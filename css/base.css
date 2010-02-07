@@ -512,6 +512,14 @@ ul.NWRowsSelectable.NWRowsSelectableFlat li.NWSelected {
 	background-position: -100px -30px;
 }
 
+#NWToolbar #NWToolbarButtons li.NWRevertDraft .NWToolbarButtonIcon {
+	background-position: -125px 0px;
+}
+
+#NWToolbar #NWToolbarButtons li.NWRevertDraft:active .NWToolbarButtonIcon {
+	background-position: -125px -30px;
+}
+
 #NWToolbar #NWToolbarButtons li.NWPublishSite .NWToolbarButtonIcon {
 	background-position: -25px 0px;
 }

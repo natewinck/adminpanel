@@ -145,6 +145,8 @@ NW = {
 					callbackYes();
 					NW.editor.functions.closeConfirmWindow();
 				};
+				document.getElementById("NWConfirmCancel").onclick = null;
+				document.getElementById("NWConfirmCancel").onclick = NW.editor.functions.closeConfirmWindow;
 				
 				$("#NWConfirm").animate({
 					top: 0,
@@ -152,8 +154,9 @@ NW = {
 				});
 			},
 			closeConfirmWindow: function() {
+				console.log($("#NWConfirmWindow").css("height"));
 				$("#NWConfirm").animate({
-					top: -135,
+					top: -parseInt($("#NWConfirmWindow").css("height")) - 60,
 					height: 0
 				});
 			},
@@ -1091,7 +1094,7 @@ NW = {
 				},
 				{
 					id: "NWListEditorDelete",
-					action: "NW.editor.functions.openConfirmWindow('Are you sure you want to delete this stupid file?', 'This action cannot be undone.', NW.filesystem.deleteEntry)",
+					action: NW.filesystem.confirmDeleteEntry,
 					trigger: "click"
 				},
 				
@@ -1116,6 +1119,11 @@ NW = {
 				{
 					className: "NWSaveDraft",
 					action: NW.io.save,
+					trigger: "click"
+				},
+				{
+					className: "NWRevertDraft",
+					action: NW.io.revert,
 					trigger: "click"
 				},
 				{
@@ -1419,16 +1427,7 @@ NW.listener = {
 		if (trigger) trigger = trigger.toLowerCase();
 		switch (trigger) {
 			case "click":
-				/*button.addEventListener("click", (function(e) {
-					console.log(typeof(callback));
-					if (typeof(callback) == "string") {
-						eval(callback);
-					} else {
-						callback(e);
-					}
-				}), false);*/
-				$(button).click(callback);
-				//button.onclick = callback;
+				button.addEventListener("click", callback, false);
 				break;
 			case "dblclick":
 				button.addEventListener("dblclick", callback, false);
@@ -1851,6 +1850,25 @@ NW.editor.checkQueryState = function () {
 	//// BRING BACK console.log(NWEditPage.document.queryCommandIndeterm("justifyLeft"));
 	//// BRING BACK console.log(document.getElementById("NWEditPage"));
 	//// BRING BACK console.log(NWEditPage.document.queryCommandValue("fontsize"));
+	
+	// If this function is called, that means the file has been edited
+	// Thus, I need to change a class name
+	var selected;
+	if ($("#NWListEditor").css("display") == "none") {
+		// Get the selected file in the sidebar
+		selected = $(".NWSites .NWSelected")[0];
+	} else {
+		// Get the selected entry in the list editor
+		selected = $("#NWListEditor .NWSelected")[0];
+	}
+	
+	if (selected
+		&& !$(selected).children(".NWDraft")[0]
+		&& $(selected).children(".NWFile")[0]
+		&& !$(selected).hasClass("NWRowCategoryHeader")
+	) {
+		$(selected).children(".NWFile").removeClass("NWFile").addClass("NWDraft");
+	}
 	
 	// Get Selection
 	if(NWEditPage.document.getSelection)
