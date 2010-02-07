@@ -38,6 +38,34 @@ NW = {
 				NW.editor.checkQueryState();
 				document.getElementById("NWEditPage").focus();
 			},
+			setNWLeftSidebarNormalWidth: function(args) {
+				NW.window.NWLeftSidebarNormalWidth = parseInt(args.obj.css("width"));
+				
+				NW.window.resize();
+			},
+			changeListEditorSize: function(args) {
+				if (args) {
+					if (!args.obj) {
+						var args = {
+							obj: $("#NWListEditor")
+						};
+					}
+				} else {
+					var args = {
+						obj: $("#NWListEditor")
+					};
+				}
+				
+				// Make sure the list editor is not bigger than the NWEdit area
+				var newHeight = parseInt(args.obj.css("height"));
+				//if (newHeight > parseInt($("#NWEdit").css("height"))) args.obj.css("height", parseInt($("#NWEdit").css("height")) + "px");
+				// Change the inside height
+				var innerHeight = newHeight - 30;
+				args.obj.children("#NWListEditorBox").css("height", innerHeight + "px");
+				
+				// Change the height of the iframe
+				NW.window.resize();
+			},
 			exitQuickSelectOptions: function () {
 				var theWindow = this.parentNode.parentNode.parentNode;
 				
@@ -85,9 +113,79 @@ NW = {
 					if (!button.onclick) button.onclick = NW.editor.functions.exitQuickSelectOptions;
 				}
 			},
+			setNWRightNormalWidth: function(args) {
+				NW.window.NWRightNormalWidth = parseInt(args.obj.css("width"));
+				
+				NW.window.resize();
+			},
+			openLoadingWindow: function(message) {
+				message = message || "Loading...";
+				$(".NWLoading .NWLoadingText").text(message);
+				$(".NWLoading").animate({
+					top: 0,
+					height: "100%"
+				});
+			},
+			closeLoadingWindow: function() {
+				$(".NWLoading").animate({
+					top: -135,
+					height: 0
+				});
+			},
+			openConfirmWindow: function(message, subMessage, callbackYes) {
+				console.log("opening");
+				message = message || "Are you sure?";
+				subMessage = subMessage || "This action cannot be undone.";
+				$("#NWConfirm #NWConfirmHeader").text(message);
+				$("#NWConfirm #NWConfirmText").text(subMessage);
+				
+				// Set the buttons up strictly
+				document.getElementById("NWConfirmYes").onclick = null;
+				document.getElementById("NWConfirmYes").onclick = function() {
+					callbackYes();
+					NW.editor.functions.closeConfirmWindow();
+				};
+				
+				$("#NWConfirm").animate({
+					top: 0,
+					height: "100%"
+				});
+			},
+			closeConfirmWindow: function() {
+				$("#NWConfirm").animate({
+					top: -135,
+					height: 0
+				});
+			},
+			togglePublish: function() {
+				var publishButton = $(".NWPublishSite .NWToolbarButtonName")[0];
+				if (publishButton.textContent == "Publish Page") {
+					publishButton.textContent = "Publish Site";
+				} else {
+					publishButton.textContent = "Publish Page";
+				}
+			},
+			publishButton: function(e) {
+				if (this.children[1].innerHTML.toUpperCase().indexOf("SITE") != -1) {
+					NW.io.publishSite();
+				} else {
+					NW.io.publishPage();
+				}
+			},
 			toggleEditPanel: function() {
-				document.getElementById("NWLeft").className = (document.getElementById("NWLeft").className == "NWRightClosed") ? "" : "NWRightClosed";
-				document.getElementById("NWRight").className = (document.getElementById("NWRight").className == "NWRightClosed") ? "" : "NWRightClosed";
+				if ($("#NWLeft").hasClass("NWRightClosed")) {
+					$("#NWLeft").removeClass("NWRightClosed");
+				} else {
+					$("#NWLeft").addClass("NWRightClosed");
+				}
+				
+				if ($("#NWRight").hasClass("NWRightClosed")) {
+					$("#NWRight").removeClass("NWRightClosed");
+				} else {
+					$("#NWRight").addClass("NWRightClosed");
+				}
+				//document.getElementById("NWLeft").className = (document.getElementById("NWLeft").className == "NWRightClosed") ? "" : "NWRightClosed";
+				//document.getElementById("NWRight").className = (document.getElementById("NWRight").className == "NWRightClosed") ? "" : "NWRightClosed";
 				//$(".NWEditPanelToggle").click(function() {
 					//$("#NWLeft").toggleClass("NWRightClosed");
 					//$("#NWRight").toggleClass("NWRightClosed");
@@ -98,10 +196,10 @@ NW = {
 			editPanelA: function(e) {
 				//$("div#NWEditPanel a").click( function() {
 				var command = this.rel;
-				if (command == "inserthtml" || command == "createLink" || command.indexOf("_") >= 0)
+				if (command == "inserthtml" || command == "createLink" || command.indexOf("_") >= 0 || !command)
 					return;
-				
 				NWEditPage.document.execCommand(command,false,null);
+				//document.getElementById("NWEditPage").contentWindow.document.execCommand(command, false, null);
 				NW.editor.checkQueryState();
 				
 				document.getElementById("NWEditPage").blur();
@@ -109,6 +207,34 @@ NW = {
 				
 				return false;
 				//});
+			},
+			alignText: function(e) {
+				var textAlign = this.rel.replace("_justify", "");
+				if (textAlign == "full") textAlign = "justify";
+				
+				var userSelection;
+				if (NWEditPage.getSelection) {
+					userSelection = NWEditPage.getSelection();
+				}
+				else if (NWEditPage.document.selection) { // should come last; Opera!
+					userSelection = NWEditPage.document.selection.createRange();
+				}
+				
+				var foundElement = false;
+				$(userSelection.focusNode).parents().each(function() {
+					// if the element that has the textAlign is already found, no need to keep looking
+					if (!foundElement) {
+						// Check to see if the current is the contenteditable element
+						// If it is, then apply the text align to this
+						if ($(this).hasClass("NWEditable")
+							|| $(this).css("display") != "inline"
+						) {
+							$(this).css("text-align", textAlign);
+							foundElement = true;
+						}
+					}
+				});
+				//NW.editor.functions.fireCommand(this.rel.replace("_", ""), false, null);
 			},
 			closeWindow: function() {
 				var zIndex = 0;
@@ -241,6 +367,9 @@ NW = {
 				return false;
 			},
 			alignImageLeft: function() {
+				// If there is no image, no need to go on
+				if (!NW.selectedImage) return false;
+				
 				// No need to align the image again
 				if (NW.selectedImage.align == "left") return false;
 				
@@ -251,6 +380,9 @@ NW = {
 				NW.editor.functions.addImageInfo();
 			},
 			alignImageRight: function() {
+				// If there is no image, no need to go on
+				if (!NW.selectedImage) return false;
+				
 				// No need to align the image again
 				if (NW.selectedImage.align == "right") return false;
 				
@@ -880,6 +1012,12 @@ NW = {
 				//$("#NWEditPage .NWEditable").attr("contenteditable", "true");
 				var editables = $("#NWEditPage").contents().find(".NWEditable");
 				editables.attr("contenteditable", "true");
+				/*editables.each(function() {
+					$(this)[0].designMode = 'On';
+					console.log($(this)[0]);
+				});
+				NWEditPage.document.designMode = "On";
+				$(NWEditPage.document.body).attr("contentEditable", "false");*/
 				/*for (var i = 0; i < editables.length; i++) {
 					var obj = editables[i];
 					obj.addEventListener("focus", function() {
@@ -892,6 +1030,7 @@ NW = {
 				
 				// Set up the keystrokes that happen inside the iframe
 				NW.listener.onkeydown.page(NWEditPage);
+				NW.listener.onkeyup.page(NWEditPage);
 				
 				iframe.contentDocument.addEventListener("click", NW.editor.checkQueryState, false);
 				iframe.contentDocument.addEventListener("mousedown", NW.editor.checkQueryState, false);
@@ -937,10 +1076,35 @@ NW = {
 					action: NW.filesystem.collapseTriangle,
 					trigger: "click"
 				},*/
+				
 				{
 					jquery: ".NWRowCategoryHeader div.NWOpen, .NWRowCategoryHeader div.NWClosed",
 					action: NW.filesystem.triangleSwitch,
 					trigger: "click"
+				},
+				
+				// List Editor
+				{
+					id: "NWListEditorAdd",
+					action: NW.filesystem.addEntry,
+					trigger: "click"
+				},
+				{
+					id: "NWListEditorDelete",
+					action: "NW.editor.functions.openConfirmWindow('Are you sure you want to delete this stupid file?', 'This action cannot be undone.', NW.filesystem.deleteEntry)",
+					trigger: "click"
+				},
+				
+				// Resize Windows
+				{
+					jquery: ".NWResizeVertical .NWResizeHandle",
+					action: NW.innerWindow.resizeVertical,
+					trigger: "mousedown"
+				},
+				{
+					jquery: ".NWResizeHorizontal .NWResizeHandle",
+					action: NW.innerWindow.resizeHorizontal,
+					trigger: "mousedown"
 				},
 				
 				// Toolbar
@@ -950,8 +1114,13 @@ NW = {
 					trigger: "click"
 				},
 				{
+					className: "NWSaveDraft",
+					action: NW.io.save,
+					trigger: "click"
+				},
+				{
 					className: "NWPublishSite",
-					action: NW.io.publish,
+					action: NW.editor.functions.publishButton,
 					trigger: "click"
 				},
 				{
@@ -982,6 +1151,11 @@ NW = {
 				{
 					jquery: "div#NWEditPanel .NWEditPanelGroup .NWEditControls > a",
 					action: NW.editor.functions.editPanelA,
+					trigger: "click"
+				},
+				{
+					jquery: "div#NWEditPanel .NWEditPanelGroup .NWEditControls.NWTextAlign > a",
+					action: NW.editor.functions.alignText,
 					trigger: "click"
 				},
 				{
@@ -1121,6 +1295,12 @@ NW = {
 		NW.templates.closeTemplatesWindow(); // Use the currently selected template
 		return true;
 	},
+	onoptiondown: function() {
+		NW.editor.functions.togglePublish();
+	},
+	onoptionup: function() {
+		NW.editor.functions.togglePublish();
+	},
 	onresize: function() {
 		NW.window.resize();
 	},
@@ -1133,6 +1313,7 @@ NW = {
 		
 		// Set up the listener; the page listener is in the iframeLoad function
 		NW.listener.onkeydown.window();
+		NW.listener.onkeyup.window();
 		
 		// Preload the images of the quick select buttons
 		NW.quickSelect.buttons.init();
@@ -1149,20 +1330,33 @@ NW = {
 		
 		// Expand or collapse triangles
 		NW.filesystem.init();
-	}
+	},
+	onbeforeunload: function(e) {
+		
+		NW.io.save();
+		return "You have unsaved changes in the draft \"something\".\nYour changes are currently being saved.  Please wait until it is finished.";
+		
+	},
+	onunload: function() {
+		//setTimeout("alert('now');", 5000);
+		//alert("gone");
+		return false;
+	},
 };
 
 $(document).ready(function() {
 	NW.onDOMLoad();
 });
 window.onload = NW.onload;
+window.onbeforeunload = NW.onbeforeunload;
+window.onunload = NW.onunload;
 window.onresize = NW.onresize;
 
 // Set up all keystrokes
 NW.listener = {
 	actions: [],
-	bindKey: function(modifiers, keyCode, action, name) {
-		this.actions[this.actions.length] = {name: name, modifiers: modifiers, keyCode: keyCode, action: action};
+	bindKey: function(modifiers, keyCode, action, name, event) {
+		this.actions[this.actions.length] = {name: name, modifiers: modifiers, keyCode: keyCode, action: action, event: event};
 	},
 	listener: function(e) {
 		for (var i = 0; i < NW.listener.actions.length; i++) {
@@ -1172,9 +1366,19 @@ NW.listener = {
 			//// BRING BACK console.log(action.modifiers + " " + action.keyCode);
 			//// BRING BACK console.log(keystroke);
 			if (keystroke) {
+				// If the action specifies a specific event, and the wrong event occurred, stop the process
+				if (action.event && action.event != e.type) {
+					continue;
+				}
+				
 				// Check to see if the function returns a value
 				// That value shows if the browser should also get the key command
-				var passToBrowser = action.action();
+				var passToBrowser;
+				if (typeof(action.action) == "string") {
+					eval(action.action);
+				} else {
+					passToBrowser = action.action();
+				}
 				if (passToBrowser != null) {
 					if (!passToBrowser) e.preventDefault();
 					return passToBrowser
@@ -1198,11 +1402,32 @@ NW.listener = {
 			//page.onkeydown = NW.listener.listener;
 		}
 	},
+	onkeyup: {
+		window: function() {
+			// If I use the addEventListener, the browser also saves since this code is just
+			// adding a listner, not replacing it
+			window.addEventListener("keyup", NW.listener.listener, false);
+			//window.onkeydown = NW.listener.listener;
+		},
+		page: function(page) {
+			// Look at the reason above for why I'm using onkeydown instead of addEventListener
+			page.addEventListener("keyup", NW.listener.listener, false);
+			//page.onkeydown = NW.listener.listener;
+		}
+	},
 	bindButton: function(button, trigger, callback) {
 		if (trigger) trigger = trigger.toLowerCase();
 		switch (trigger) {
 			case "click":
-				button.addEventListener("click", callback, false);
+				/*button.addEventListener("click", (function(e) {
+					console.log(typeof(callback));
+					if (typeof(callback) == "string") {
+						eval(callback);
+					} else {
+						callback(e);
+					}
+				}), false);*/
+				$(button).click(callback);
 				//button.onclick = callback;
 				break;
 			case "dblclick":
@@ -1262,34 +1487,258 @@ NW.window = {
 		var clientH = window.innerHeight;
 		
 		// Resize NWLeft and NWRight
-		var NWRightW = $("#NWRight").css("width");
-		var NWRightOriginalW = 330;
-		NWRightW = NWRightW.replace(/px/gi, "");
+		var NWRightW = parseInt($("#NWRight").css("width"));
+		var NWRightOriginalW = 340;
 		
-		var NWLeftW = $("#NWLeft").css("width");
-		NWLeftW = parseInt(NWLeftW);
+		var NWLeftW = parseInt($("#NWLeft").css("width"));
 		
 		if ($("#NWRight").css("display") == "none") {
 			$("#NWLeft").css("width", clientW);
-		} else if (clientW >= 620) {
-			NWLeftW = clientW - NWRightOriginalW;
-			$("#NWLeft").css("width", NWLeftW);
-			$("#NWRight").css("width", NWRightOriginalW);
-		} else if (clientW < 620) {
+		} else {
+			NWLeftW = clientW - NWRightW;
+			var minLeftWidth = 290;
+			if (!NW.window.NWRightNormalWidth) NW.window.NWRightNormalWidth = NWRightOriginalW;
+			if (parseInt($("#NWLeft").css("width")) <= minLeftWidth
+				//|| parseInt($("#NWLeft").css("width")) - parseInt($("#NWRight").css("width")) < minLeftWidth
+			) {
+				//if (!NW.window.NWRightNormalWidth) NW.window.NWRightNormalWidth = parseInt($("#NWRight").css("width"));
+				var leftWidthDifference = parseInt($("#NWRight").css("width")) - NW.window.NWRightNormalWidth;
+				var userDraggable = false;
+				if (leftWidthDifference == 0 && clientW - parseInt($("#NWRight").css("width")) > minLeftWidth) userDraggable = true;
+				if (leftWidthDifference < 0) leftWidthDifference = 0;
+				if (userDraggable) {
+					// the difference is zero, that means that the right side is whatever the user wants it to be 
+					// width-width = 0
+					$("#NWLeft").css("width", clientW - parseInt($("#NWRight").css("width")) + "px");
+					console.log("Is user draggable");
+				} else {
+					$("#NWLeft").css("width", minLeftWidth + leftWidthDifference + "px");
+					$("#NWRight").css("width", clientW - minLeftWidth + "px");
+				}
+				
+				
+				//$("#NWRight").css("width", clientW - minLeftWidth + "px");
+				//$("#NWLeft").css("width", clientW - parseInt($("#NWRight").css("width")) + "px");
+				console.log("resized");
+			} else {
+				//console.log(NW.window.NWRightNormalWidth);
+				if (NW.window.NWRightNormalWidth) {
+					$("#NWRight").css("width", NW.window.NWRightNormalWidth + "px");
+				}
+				$("#NWLeft").css("width", clientW - NWRightW);
+			}
+			//$("#NWRight").css("width", NWRightOriginalW);
+		}
+		/*else if (clientW < 620) {
 			$("#NWLeft").css("width", "290px");
 			NWRightW = clientW - 290;
 			$("#NWRight").css("width", NWRightW);
-		}
+		}*/
 		
 		// Resize NWSidebarLeft, NWEdit, and NWToolbar
 		var NWSidebarLeftH;
+		var NWSidebarLeftBorderWidth = 1;
 		//var NWToolbarH = $("#NWToolbar").css("height");
 		//NWToolbarH = NWToolbarH.replace(/px/gi, "");
 		NWToolbarH = 65;
 		
 		NWSidebarLeftH = clientH - NWToolbarH;
-		$("#NWSidebarLeft").css("height", NWSidebarLeftH - 2).css("min-height", NWSidebarLeftH - 2).css("max-height", NWSidebarLeftH - 2);
+		$("#NWSidebarLeft").css("height", NWSidebarLeftH - NWSidebarLeftBorderWidth).css("min-height", NWSidebarLeftH - NWSidebarLeftBorderWidth).css("max-height", NWSidebarLeftH - NWSidebarLeftBorderWidth);
 		$("#NWEdit").css("height", NWSidebarLeftH).css("min-height", NWSidebarLeftH).css("max-height", NWSidebarLeftH);
+		
+		// Resize the left sidebar width
+		var NWSidebarWidth = parseInt($("#NWSidebarLeft").css("width"));
+		var NWLeftWidth = parseInt($("#NWLeft").css("width"));
+		var limit = NWLeftWidth * .9;
+		if (NWSidebarWidth > limit) {
+			$("#NWSidebarLeft").css("width", limit + "px");
+		} else if (NWSidebarWidth < NW.window.NWLeftSidebarNormalWidth) {
+			if (limit < NW.window.NWLeftSidebarNormalWidth) {
+				$("#NWSidebarLeft").css("width", limit + "px");
+			} else {
+				$("#NWSidebarLeft").css("width", NW.window.NWLeftSidebarNormalWidth + "px");
+			}
+		}
+		
+		// Resize the iframe and list editor
+		// only if the list editor is open
+		if ($("#NWListEditor").css("display") != "none") {
+			// resize iframe
+			var listEditorHeight = parseInt($("#NWListEditor").css("height"));
+			var NWEditHeight = parseInt($("#NWEdit").css("height"));
+			$("#NWEditPage").css("height", NWEditHeight - listEditorHeight + "px");
+			
+			// resize list editor
+			if (listEditorHeight > NWEditHeight) {
+				$("#NWListEditor").css("height", NWEditHeight - 1 + "px");
+				NW.editor.functions.changeListEditorSize();
+			}
+		} else {
+			$("#NWEditPage").css("height", "100%");
+		}
+	}
+};
+
+NW.innerWindow = {
+	resizeVertical: function(e) {
+		NW.innerWindow.ondragstart(e, "vertical", this)
+	},
+	resizeHorizontal: function(e) {
+		NW.innerWindow.ondragstart(e, "horizontal", this)
+	},
+	ondragstart: function(e, orientation, theThis) {
+		e.preventDefault();
+		NW.innerWindowDrag = {};
+		// Set the variables for where the mouse is intially
+		NW.innerWindowDrag.initMousePos = {
+			x: e.clientX,
+			y: e.clientY
+		};
+		NW.innerWindowDrag.currentWindow = $(theThis).parents(".NWResizeVertical:first, .NWResizeHorizontal:first");
+		NW.innerWindowDrag.orientation = orientation;
+		NW.innerWindowDrag.resizeSide = (NW.innerWindowDrag.currentWindow.children(".resizeSide:first")) ? NW.innerWindowDrag.currentWindow.children(".resizeSide:first").val() : "right";
+		
+		NW.innerWindowDrag.initSize = {
+			height: parseInt(NW.innerWindowDrag.currentWindow.css("height")),
+			width: parseInt(NW.innerWindowDrag.currentWindow.css("width"))
+		};
+		
+		// Find the minumum and maximum
+		var minElement = NW.innerWindowDrag.currentWindow.children(".min:first");
+		if (minElement) {
+			NW.innerWindowDrag.minimum = minElement.val();
+			if (minElement.attr("placeholder") == "number") {
+				NW.innerWindowDrag.minimum = parseInt(NW.innerWindowDrag.minimum);
+			} else {
+				// If it's a function
+				NW.innerWindowDrag.minimum = parseInt(eval(NW.innerWindowDrag.minimum));
+			}
+		} else {
+			NW.innerWindowDrag.minimum = 0;
+		}
+		
+		var maxElement = NW.innerWindowDrag.currentWindow.children(".max:first");
+		if (maxElement) {
+			NW.innerWindowDrag.maximum = maxElement.val();
+			if (maxElement.attr("placeholder") == "number") {
+				NW.innerWindowDrag.maximum = parseInt(NW.innerWindowDrag.maximum);
+			} else {
+				// If it's a function
+				NW.innerWindowDrag.maximum = parseInt(eval(NW.innerWindowDrag.maximum));
+			}
+		} else {
+			NW.innerWindowDrag.maximum = 0;
+		}
+		
+		//NW.innerWindowDrag.dragged = false;
+		
+		// Add an event listener to see if the mouse moves
+		window.addEventListener("mousemove", NW.innerWindow.ondrag, false);
+		
+		// Add an event listener for when the mouse "mouseups"
+		window.addEventListener("mouseup", NW.innerWindow.ondragend, false);
+	},
+	ondrag: function(e) {
+		//e.preventDefault();
+		//NW.innerWindowDrag.dragged = true;
+		// Assign the current mouse position
+		NW.innerWindowDrag.currentMousePos = {
+			x: e.clientX,
+			y: e.clientY
+		};
+		//// BRING BACK console.log("init: " + NW.innerWindowDrag.initMousePos.x);
+		// BRING BACK console.log("current: " + NW.innerWindowDrag.currentMousePos.x);
+		
+		if (NW.innerWindowDrag.orientation == "horizontal") {
+			var difference = NW.innerWindowDrag.currentMousePos.x - NW.innerWindowDrag.initMousePos.x;
+		} else {
+			var difference = NW.innerWindowDrag.currentMousePos.y - NW.innerWindowDrag.initMousePos.y;
+		}
+		//console.log(NW.innerWindowDrag);
+		// Flip the direction that sizes up and down
+		if (NW.innerWindowDrag.resizeSide == "left") difference = -difference;
+		//// BRING BACK console.log(difference);
+		
+		// Apply the difference to the inner window
+		var currentWindow = NW.innerWindowDrag.currentWindow;
+		
+		if (NW.innerWindowDrag.orientation == "horizontal") {
+			var initWidth = NW.innerWindowDrag.initSize.width;
+			var newWidth = initWidth + difference;
+			if (newWidth < NW.innerWindowDrag.minimum) {
+				newWidth = NW.innerWindowDrag.minimum;
+			} else if (NW.innerWindowDrag.maximum != 0 && newWidth > NW.innerWindowDrag.maximum) {
+				newWidth = NW.innerWindowDrag.maximum
+			}
+			
+			currentWindow.css("width", newWidth + "px");
+		} else {
+			var initHeight = NW.innerWindowDrag.initSize.height;
+			var newHeight = initHeight + difference;
+			if (newHeight < NW.innerWindowDrag.minimum) {
+				newHeight = NW.innerWindowDrag.minimum;
+			} else if (NW.innerWindowDrag.maximum != 0 && newHeight > NW.innerWindowDrag.maximum) {
+				newHeight = NW.innerWindowDrag.maximum
+			}
+			
+			currentWindow.css("height", newHeight + "px");
+		}
+		
+		if (!NW.innerWindowDrag.overAllDiv) {
+			// Add a div over everything so the x y values stay the same over the iframe
+			var overAllDiv = document.createElement("div");
+			overAllDiv.style.position = "fixed";
+			overAllDiv.style.left = 0;
+			overAllDiv.style.top = 0;
+			overAllDiv.style.width = window.innerWidth + "px";
+			overAllDiv.style.height = window.innerHeight + "px";
+			overAllDiv.style.background = "none";
+			
+			NW.innerWindowDrag.currentWindow[0].parentNode.appendChild(overAllDiv);
+			NW.innerWindowDrag.overAllDiv = overAllDiv;
+		}
+		
+		// Now fire a function
+		// Just so that it doesn't have to figure out the function every time...
+		if (!NW.innerWindowDrag.callback && currentWindow.children(".callback:first").val()) {
+			//eval(currentWindow.children(".callback:first").val());
+			var callback = NW.dragNumber.findFunction(currentWindow.children(".callback:first").val());
+			NW.innerWindowDrag.callback = callback;
+		}
+		if (NW.innerWindowDrag.callback) {
+			NW.innerWindowDrag.callback({obj: currentWindow, numAdded: difference});
+		}
+		
+		/*switch (theFunction) {
+			case "image":
+				//NW.editor.functions.changeImageSize(direction, difference);
+				// BRING BACK console.log(this["NW"]);
+				break;
+			case "margin":
+				NW.editor.functions.imageMarginChange(difference);
+		}*/
+		
+		
+		// Assign the current mouse position to the initial one for the next time the mouse moves
+		//NW.innerWindowDrag.initMousePos = NW.innerWindowDrag.currentMousePos;
+	},
+	ondragend: function(e) {
+		// If the mouse was not moved, focus on the input
+		
+		// Delete the class
+		
+		// Remove div over everything
+		if (NW.innerWindowDrag.overAllDiv) {
+			NW.innerWindowDrag.overAllDiv.parentNode.removeChild(NW.innerWindowDrag.overAllDiv);
+			NW.innerWindowDrag.overAllDiv = null;
+		}
+		
+		// Delete the global variables
+		NW.innerWindowDrag = {};
+		
+		// Delete the listeners
+		window.removeEventListener("mousemove", NW.innerWindow.ondrag, false);
+		window.removeEventListener("mouseup", NW.innerWindow.ondragend, false);
 	}
 };
 
@@ -1408,9 +1857,4 @@ NW.editor.checkQueryState = function () {
 		return NWEditPage.document.getSelection();
 	else
 		return "";
-}
-
-function test() {
-	alert("Save");
-	//// BRING BACK console.log("Save");
 }
