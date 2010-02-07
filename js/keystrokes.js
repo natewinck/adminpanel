@@ -14,7 +14,7 @@ NW.keystrokes = {
 		}
 	],
 	general: [
-		NW.listener.bindKey("CMD", Key.S, test, "Save open file"),
+		NW.listener.bindKey("CMD", Key.S, NW.io.save, "Save open file"),
 		
 		NW.listener.bindKey("CMD", Key.E, NW.editor.functions.toggleEditPanel, "Close Edit Panel"),
 		NW.listener.bindKey("CMD", Key.W, NW.editor.functions.closeWindow, "Close Window"),
@@ -28,6 +28,9 @@ NW.keystrokes = {
 		// Assign a shortcut for all functions that use Enter
 		NW.listener.bindKey("", Key.ENTER, NW.onenterpress, "Enter Press"),
 		
+		NW.listener.bindKey("ALT", "", NW.onoptiondown, "Option Press", "keydown"),
+		NW.listener.bindKey("ALT", "", NW.onoptionup, "Option Press", "keyup"),
+		
 		// Templates Window Keystrokes
 		NW.listener.bindKey("", Key.LEFT_ARROW, NW.templates.moveSelectorLeft, "Move Selector Left"),
 		NW.listener.bindKey("", Key.RIGHT_ARROW, NW.templates.moveSelectorRight, "Move Selector Right"),
@@ -35,7 +38,7 @@ NW.keystrokes = {
 		NW.listener.bindKey("", Key.DOWN_ARROW, NW.templates.moveSelectorDown, "Move Selector Down")
 	],
 
-	checkKeystroke: function(modifiers, keyCode, click, e) {		
+	checkKeystroke: function(modifiers, keyCode, click, e) {
 		var ctrlKey = (modifiers.toUpperCase().indexOf("CTRL") != -1);
 		var altKey = (modifiers.toUpperCase().indexOf("ALT") != -1);
 		var metaKey = (modifiers.toUpperCase().indexOf("META") != -1) || (modifiers.toUpperCase().indexOf("APPLE") != -1);
@@ -52,11 +55,28 @@ NW.keystrokes = {
 			}
 		}
 		
-		// Check if the key is supposed to be pressed and if it is pressed
-		if (ctrlKey && !e.ctrlKey) return false;
-		if (altKey && !e.altKey) return false;
-		if (metaKey && !e.metaKey) return false;
-		if (shiftKey && !e.shiftKey) return false;
+		// Check if the key has been just lifted up and if it should have been there
+		// Work-arounds: there has to be a better way!
+		if (e.type.toUpperCase().indexOf("KEY") != -1
+			&& (e.keyCode == 17
+			|| e.keyCode == 18
+			|| e.keyCode == 224
+			|| e.keyCode == 16
+			)
+		) {
+			
+			if (ctrlKey && e.keyCode != 17) return false;
+			if (altKey && e.keyCode != 18) return false;
+			if (metaKey && e.keyCode != 224) return false;
+			if (shiftKey && e.keyCode != 16) return false;
+		} else {
+		
+			// Check if the key is supposed to be pressed and if it is pressed
+			if (ctrlKey && !e.ctrlKey) return false;
+			if (altKey && !e.altKey) return false;
+			if (metaKey && !e.metaKey) return false;
+			if (shiftKey && !e.shiftKey) return false;
+		}
 		
 		// Check if the key isn't supposed to be pressed and if it is pressed
 		if (!ctrlKey && e.ctrlKey) return false;
