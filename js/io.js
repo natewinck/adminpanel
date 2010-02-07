@@ -8,7 +8,7 @@ NW.io = {
 		filesArray = new Array();
 		filesArray[0] = new Array();
 		filesArray[0]["name"] = "some name here";
-		filesArray[0]["id"] = "aUniqueId";
+		filesArray[0]["id"] = "id=0&cat=entries";
 		filesArray[0]["draft"] = false;
 		filesArray[0]["list"] = false;
 		filesArray[1] = new Array();
@@ -37,7 +37,7 @@ NW.io = {
 		
 		NW.io.open(0, "entries");
 	},
-	open: function(objId) {
+	open: function(id, cat) {
 		// Not sure if this is the most efficient way of opening a file
 		// Hopefully, I will have a system of caching the already open page
 		//document.getElementById("NWEditPage").src = url;
@@ -46,9 +46,8 @@ NW.io = {
 		// We can go back to the other way, by having the id and the cat as different arguments
 		// However, the parsing has to occur at one point or another, it shouldn't really matter
 		// If the parsing to needs to occur elsewhere, it can be parsed from the NW.filesystem.select function, the function that calls this function (NW.io.open())
-		var id = "";
-		var cat = "";
 		
+		// DAVID: I'm assuming the id (the variable here) is always a number.  If it's not, I need to remove the parseInt() function from the parser in the NW.filesystem.select() function
 		document.getElementById("NWEditPage").src = './php/loader.php?id=' + id + '&cat=' + cat;
 		
 		// BRING BACK console.log("File Opened");
@@ -105,8 +104,11 @@ NW.io = {
 			selected = NW.filesystem.getSelected();
 		}
 		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		if (!$(selected).hasClass("NWUnsaved")) selected = null;
 		
 		if (!selected) return false;
+		
+		var file = NW.filesystem.parseId(selected.id);
 		
 		if (useLoadingWindow == null) useLoadingWindow = true;
 		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Saving Page as a Draft...");
@@ -131,8 +133,8 @@ NW.io = {
                 data[elements[i].id] = elements[i].innerHTML;
             }
             var dstring = escape(NW.io.serialize_data(data));
-            console.log("./php/saver.php?data=" + dstring + "&id=" + selected.id);
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + selected.id + "&cat=draft", false);
+            console.log("./php/saver.php?data=" + dstring + "&id=" + file.id);
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + file.id + "&cat=draft", false);
             ajax.send(null);
             ajax.onreadystatechange=function()
             {
