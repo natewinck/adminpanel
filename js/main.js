@@ -1343,7 +1343,7 @@ NW = {
 		var selected = NW.filesystem.getSelected();
 		if ($(selected).hasClass("NWUnsaved")) {
 			NW.io.save();
-			return "You have unsaved changes in the draft \"something\".\nYour changes are currently being saved.  Please wait until it is finished.";
+			return "You have unsaved changes in the draft \"" + selected.textContent + "\".\nYour changes are currently being saved.  Please wait until it is finished.";
 		}
 		
 	},

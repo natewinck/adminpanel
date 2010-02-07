@@ -29,6 +29,7 @@ NW.filesystem = {
 			if (!prevSelected.hasClass("NWRowCategoryHeader")
 				&& !prevSelected.hasClass("listEditor")
 				&& !prevSelected.children(".NWFile")[0]
+				&& prevSelected.hasClass("NWUnsaved")
 			) {
 				NW.io.save(prevSelected[0], false);
 			}
