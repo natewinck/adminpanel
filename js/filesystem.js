@@ -46,8 +46,27 @@ NW.filesystem = {
 		}
 		
 		if (!obj.hasClass("listEditor")) {
-			NW.io.open(obj.attr("id"));
+			// Parse the id into id and cat
+			var file = NW.filesystem.parseId(obj.attr("id"));
+			
+			NW.io.open(file.id, file.cat);
 		}
+	},
+	parseId: function(objId) {
+		if (!objId) return false;
+		
+		var idStartPos = objId.indexOf("id=") + 3;
+		var idEndPos = (objId.indexOf("&") != -1) ? objId.indexOf("&") : objId.length;
+		// Assuming the id is a number, use the parseInt() function
+		var id = parseInt(objId.substring(idStartPos, idEndPos));
+		objId = objId.replace(objId.substring(idStartPos - 3, idEndPos + 1), "");
+		
+		var catStartPos = objId.indexOf("cat=") + 4
+		var catEndPos = (objId.indexOf("&") != -1) ? objId.indexOf("&") : objId.length;
+		var cat = objId.substring(catStartPos, catEndPos);
+		objId = objId.replace(objId.substring(catStartPos - 4, catEndPos + 1), "");
+		
+		return {id: id, cat: cat};
 	},
 	getSelected: function() {
 		var selected;
