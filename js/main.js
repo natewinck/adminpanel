@@ -160,6 +160,15 @@ NW = {
 					height: 0
 				});
 			},
+			confirmRevert: function() {
+				var selected = NW.filesystem.getSelected() || null;
+				if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+				if ($(selected).children(".NWFile")[0]) selected = null;
+				
+				if (!selected) return false;
+				
+				NW.editor.functions.openConfirmWindow("Are you sure you want to revert the page \"" + selected.textContent + "\" to its current public state?", "This action cannot be undone and will delete any changes you have made so far.", NW.io.revert);
+			},
 			togglePublish: function() {
 				var publishButton = $(".NWPublishSite .NWToolbarButtonName")[0];
 				if (publishButton.textContent == "Publish Page") {
@@ -170,10 +179,28 @@ NW = {
 			},
 			publishButton: function(e) {
 				if (this.children[1].innerHTML.toUpperCase().indexOf("SITE") != -1) {
-					NW.io.publishSite();
+					NW.editor.functions.confirmPublishSite();
 				} else {
-					NW.io.publishPage();
+					//NW.io.publishPage();
+					NW.editor.functions.confirmPublishPage();
 				}
+			},
+			confirmPublishPage: function() {
+				var selected = NW.filesystem.getSelected() || null;
+				if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+				
+				if (!selected) return false;
+				
+				if ($(selected).children(".NWFile")[0]) {
+					// Confirm when the page is already saved
+					NW.editor.functions.openConfirmWindow("Are you sure you want to publish \"" + selected.textContent + "\"?", "This file has already been published and no changes have been made to it.", NW.io.publishPage);
+				} else {
+					// Confirm to save the page
+					NW.editor.functions.openConfirmWindow("Are you sure you want to publish \"" + selected.textContent + "\"?", "This action cannot be undone.", NW.io.publishPage);
+				}
+			},
+			confirmPublishSite: function() {
+				NW.editor.functions.openConfirmWindow("Are you sure you want to publish all drafts?", "This action cannot be undone.", NW.io.publishSite);
 			},
 			toggleEditPanel: function() {
 				if ($("#NWLeft").hasClass("NWRightClosed")) {
@@ -1123,7 +1150,7 @@ NW = {
 				},
 				{
 					className: "NWRevertDraft",
-					action: NW.io.revert,
+					action: NW.editor.functions.confirmRevert,
 					trigger: "click"
 				},
 				{

@@ -153,6 +153,9 @@ NW.io = {
 	revert: function() {
 		var selected = NW.filesystem.getSelected() || null;
 		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		if ($(selected).children(".NWFile")[0]) selected = null;
+		
+		if (!selected) return false;
 		
 		NW.filesystem.restoreFileAppearance();
 		
@@ -165,6 +168,8 @@ NW.io = {
 		// Publish actually puts the page out onto the web to viewed
 		var selected = NW.filesystem.getSelected() || null;
 		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		
+		if (!selected) return false;
 		
 		NW.filesystem.restoreFileAppearance();
 		
