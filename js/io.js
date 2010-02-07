@@ -162,18 +162,29 @@ NW.io = {
 		// Code here for reverting the page to the public state
 		
 	},
-	publishPage: function() {
+	publishPage: function(objId, useLoadingWindow) {
 		// Code for publishing
 		// The difference between this and save is that save just saves the current state of the page...
 		// Publish actually puts the page out onto the web to viewed
-		var selected = NW.filesystem.getSelected() || null;
-		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		if (!objId) {
+			var selected = NW.filesystem.getSelected() || null;
+			if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+			
+			if (!selected) return false;
+			
+			var file = NW.filesystem.parseId(selected.id);
+			var id = file.id;
+			var cat = file.cat;
+			
+			NW.filesystem.restoreFileAppearance();
+		} else {
+			var file = NW.filesystem.parseId(objId);
+			var id = file.id;
+			var cat = file.cat;
+		}
 		
-		if (!selected) return false;
-		
-		NW.filesystem.restoreFileAppearance();
-		
-		NW.editor.functions.openLoadingWindow("Publishing Page...");
+		var useLoadingWindow = (useLoadingWindow == false) ? useLoadingWindow : true;
+		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Publishing Page...");
 		
 		ajax = null;
         if(window.XMLHttpRequest)
@@ -194,23 +205,34 @@ NW.io = {
                 data[elements[i].id] = elements[i].innerHTML;
             }
             var dstring = escape(NW.io.serialize_data(data));
-            console.log("./php/saver.php?data=" + dstring + "&id=" + selected.id);
+            console.log("./php/saver.php?data=" + dstring + "&id=" + id);
             // DAVID: I believe there is a mistake here: you have the cat=drafts. Shouldn't it be cat=public or whatever you're calling it?
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + selected.id + "&cat=drafts"/* + $(".NWSelected").attr("cat")*/, false);
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + id + "&cat=drafts"/* + $(".NWSelected").attr("cat")*/, false);
             ajax.send(null);
             ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4){
+                	// Check to see if this is publishing all the drafts
+                	// If so, close the loading window only after the last page
+                	if (NW.filesystem.lastPage) {
+                		if (NW.filesystem.lastPage.id == (objId || selected.id)) {
+                			NW.editor.functions.closeLoadingWindow();
+                			NW.filesystem.lastPage = null;
+                		}
+                	}
+                	
                 	// When done publishing, close the loading window
-                	NW.editor.functions.closeLoadingWindow();
+                	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
                     console.log(ajax.responseText);
                 }
             }
         }
-        
-		//setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
 	},
 	publishSite: function() {
+		// DAVID: I believe I have completed this function, and you shouldn't even have to touch it,
+		// Right now, this function loops through all the drafts and then publishes each draft by calling the NW.io.publishPage() function
+		NW.editor.functions.openLoadingWindow("Publishing Site...");
+		NW.filesystem.lastPage = null;
 		// Code for publishing
 		// The difference between this and save is that save just saves the current state of the page...
 		// Publish actually puts the page out onto the web to viewed
@@ -218,6 +240,16 @@ NW.io = {
 		
 		// The drafts array gets all the files in the left sidebar that are drafts
 		var draftsArray = NW.filesystem.getDrafts();
+		// Now loop throught the draftsArray and publish them
+		var currentDraft;
+		for (var i = 0; i < draftsArray.length; i++) {
+			currentDraft = draftsArray[i];
+			NW.filesystem.lastPage = document.createElement("li");
+			NW.filesystem.lastPage.id = currentDraft.id;
+			
+			NW.io.publishPage(currentDraft.id, false);
+			NW.filesystem.restoreFileAppearance(document.getElementById(currentDraft["id"]));
+		}
 		// The entries headers array gets all the "Entries" buttons and loads them into an array
 		// This does not actually contain the data inside (the actual entries), since they haven't been loaded into the list editor
 		var entriesHeaders = NW.filesystem.getEntriesHeaders();
@@ -236,16 +268,21 @@ NW.io = {
 		 */
 		
 		var listEntryDraftNum = 0;
+		var currentEntry;
 		for (var i = 0; i < entriesHeaders.length; i++) {
 			for (var x = 0; x < entriesHeaders[i].listEntries.length; x++) {
 				if (entriesHeaders[i].listEntries[x]["draft"] && !entriesHeaders[i].listEntries[x]["locked"]) {
 					entryDraftsArray[i].listEntries[listEntryDraftNum] = entriesHeaders[i].listEntries[x];
-					// DAVID: as you go through below publishing the drafts via ajax, you need to run this function
+					currentEntry = entryDraftsArray[i].listEntries[listEntryDraftNum];
+					//entryArgs = NW.filesystem.parseId(currentEntry["id"]);
+					NW.filesystem.lastPage = document.createElement("li");
+					NW.filesystem.lastPage.id = currentEntry["id"];
+					
+					// Run this function
 					// (NW.filesystem.restoreFileAppearance())
 					// and get the current list object by doing getElementById() and put it in as the argument, as below
-					NW.filesystem.restoreFileAppearance(
-						document.getElementById(entryDraftsArray[i].listEntries[listEntryDraftNum]["id"])
-					);
+					NW.io.publishPage(currentEntry["id"], false);
+					NW.filesystem.restoreFileAppearance(document.getElementById(currentEntry["id"]));
 					
 					listEntryDraftNum++;
 				}
@@ -260,12 +297,13 @@ NW.io = {
 		 * Example: entryDraftsArray[3].id
 		 */
 		
-		NW.editor.functions.openLoadingWindow("Publishing Site...");
+		
 		
 		// Code for publishing all the drafts
 		
 		// Use the function inside here when the readyState equals 4, like the others that I have done
-		setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
+		//setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
+		//NW.editor.functions.closeLoadingWindow();
 	},
 	preview: function() {
 		// Code for previewing current page
