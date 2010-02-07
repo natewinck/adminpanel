@@ -1326,9 +1326,15 @@ NW = {
 		return array;
 	}*/
 	onenterpress: function() {
-		NW.windows.closeInputWindow(); // Close Input Window
-		NW.templates.closeTemplatesWindow(); // Use the currently selected template
-		return true;
+		var returnVal = true;
+		var tempVal = null;
+		tempVal = NW.windows.closeInputWindow() || false; // Close Input Window
+		returnVal = (returnVal == false) ? returnVal : tempVal;
+		
+		tempVal = NW.templates.closeTemplatesWindow() || false; // Use the currently selected template
+		returnVal = (returnVal == false) ? returnVal : tempVal;
+		
+		return returnVal;
 	},
 	onoptiondown: function() {
 		NW.editor.functions.togglePublish();
