@@ -60,6 +60,30 @@ NW.filesystem = {
 		
 		return selected;
 	},
+	getDrafts: function() {
+		var draftsArray = [];
+		var i = 0;
+		$(".NWSites > .NWRowCategory > .NWRows > li").each(function() {
+			if ($(this).children(".NWDraft")[0]) {
+				draftsArray[i] = $(this)[0];
+				i++;
+			}
+		});
+		
+		return draftsArray;
+	},
+	getEntriesHeaders: function() {
+		var entriesHeadersArray = [];
+		var i = 0;
+		$(".NWSites > .NWRowCategory > .NWRows li").each(function() {
+			if ($(this).hasClass("listEditor")) {
+				entriesHeadersArray[i] = $(this)[0];
+				i++;
+			}
+		});
+		
+		return entriesHeadersArray;
+	},
 	lock: function(id) {
 		$("#" + id).addClass("NWNonSelectable").children("div:first").removeClass().addClass("NWLocked");
 		if ($("#" + id).hasClass("NWSelected")) {
