@@ -96,7 +96,7 @@ NW.dragNumber = {
 		// Assign the current mouse position
 		NW.inputDrag.currentMousePos = {
 			x: e.clientX,
-			y: e.clienty
+			y: e.clientY
 		};
 		//// BRING BACK console.log("init: " + NW.inputDrag.initMousePos.x);
 		// BRING BACK console.log("current: " + NW.inputDrag.currentMousePos.x);
