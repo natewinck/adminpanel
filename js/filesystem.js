@@ -26,16 +26,17 @@ NW.filesystem = {
 		
 		// Save the previously selected page then remove the selected class
 		if (prevSelected[0]) {
-			if (!prevSelected.hasClass("NWRowCategoryHeader") && !prevSelected.hasClass("listEditor")) {
-				NW.io.save(prevSelected[0]);
+			if (!prevSelected.hasClass("NWRowCategoryHeader")
+				&& !prevSelected.hasClass("listEditor")
+				&& !prevSelected.children(".NWFile")[0]
+			) {
+				NW.io.save(prevSelected[0], false);
 			}
 		}
 		prevSelected.removeClass("NWSelected");
 		
 		//$(".NWSites .NWSelected").removeClass("NWSelected");
 		obj.addClass("NWSelected");
-		
-		
 		
 		if (obj.hasClass("listEditor")) {
 			NW.filesystem.showListEditor(obj);
@@ -46,6 +47,29 @@ NW.filesystem = {
 		if (!obj.hasClass("listEditor")) {
 			NW.io.open(obj.attr("id"));
 		}
+	},
+	getSelected: function() {
+		var selected;
+		if ($("#NWListEditor").css("display") == "none") {
+			// Get the selected file in the sidebar
+			selected = $(".NWSites .NWSelected")[0];
+		} else {
+			// Get the selected entry in the list editor
+			selected = $("#NWListEditor .NWSelected")[0];
+		}
+		
+		return selected;
+	},
+	lock: function(id) {
+		$("#" + id).addClass("NWNonSelectable").children("div:first").removeClass().addClass("NWLocked");
+		if ($("#" + id).hasClass("NWSelected")) {
+			$("#" + id).removeClass("NWSelected");
+			NW.io.close();
+		}
+	},
+	unlock: function(id, isDraft) {
+		var className = (isDraft) ? "NWDraft" : "NWFile";
+		$("#" + id).removeClass("NWNonSelectable").children("div:first").removeClass().addClass(className);
 	},
 	fillListEditor: function(id) {
 		// Get list array via ajax
@@ -114,6 +138,10 @@ NW.filesystem = {
 		
 		// Code here for actually adding the entry to the database
 		
+	},
+	confirmDeleteEntry: function() {
+		if (!$("#NWListEditorBox > ul > li.NWSelected")[0]) return false;
+		NW.editor.functions.openConfirmWindow("Are you sure you want to delete this stupid entry?", "This action cannot be undone", NW.filesystem.deleteEntry);
 	},
 	deleteEntry: function() {
 		var selected = $("#NWListEditorBox > ul > li.NWSelected")[0];
@@ -242,7 +270,7 @@ NW.filesystem = {
 				// First create the first li element that includes the title and file icon
 				fileElement = document.createElement("li");
 				fileElement.title = file["name"];
-				fileElement.className = "NWRowCategoryHeader NWSiteName";
+				fileElement.className = "NWRowCategoryHeader";
 				fileElement.id = file["id"];
 				siteElement.appendChild(fileElement);
 				

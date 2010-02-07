@@ -18,7 +18,7 @@ NW.keystrokes = {
 		
 		NW.listener.bindKey("CMD", Key.E, NW.editor.functions.toggleEditPanel, "Close Edit Panel"),
 		NW.listener.bindKey("CMD", Key.W, NW.editor.functions.closeWindow, "Close Window"),
-		NW.listener.bindKey("CMD", Key.O, NW.io.openDialog, "Open File"),
+		//NW.listener.bindKey("CMD", Key.O, NW.io.openDialog, "Open File"),
 		
 		NW.listener.bindKey("CMD SHIFT", Key.P, NW.io.publish, "Publish File"),
 		
