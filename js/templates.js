@@ -130,7 +130,7 @@ NW.templates = {
 	// Close Templates Window
 	closeTemplatesWindow: function(addFile) {
 		// Check to make sure the window is actually open
-		if (!NW.templates.checkIfOpen()) return false;
+		if (!NW.templates.checkIfOpen()) return true;
 		
 		if (addFile != true) (addFile == null) ? addFile = true : addFile = false;
 		var selected = NW.templates.getSelectedTemplate();
