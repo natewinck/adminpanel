@@ -28,6 +28,9 @@ NW.keystrokes = {
 		// Assign a shortcut for all functions that use Enter
 		NW.listener.bindKey("", Key.ENTER, NW.onenterpress, "Enter Press"),
 		
+		// Assign a shortcut for all functions that use Escape
+		NW.listener.bindKey("", Key.ESCAPE, NW.onescapepress, "Escape Press"),
+		
 		NW.listener.bindKey("ALT", "", NW.onoptiondown, "Option Press", "keydown"),
 		NW.listener.bindKey("ALT", "", NW.onoptionup, "Option Press", "keyup"),
 		

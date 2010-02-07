@@ -133,7 +133,6 @@ NW = {
 				});
 			},
 			openConfirmWindow: function(message, subMessage, callbackYes) {
-				console.log("opening");
 				message = message || "Are you sure?";
 				subMessage = subMessage || "This action cannot be undone.";
 				$("#NWConfirm #NWConfirmHeader").text(message);
@@ -144,6 +143,8 @@ NW = {
 				document.getElementById("NWConfirmYes").onclick = function() {
 					callbackYes();
 					NW.editor.functions.closeConfirmWindow();
+					document.getElementById("NWConfirmYes").onclick = null;
+					document.getElementById("NWConfirmCancel").onclick = null;
 				};
 				document.getElementById("NWConfirmCancel").onclick = null;
 				document.getElementById("NWConfirmCancel").onclick = NW.editor.functions.closeConfirmWindow;
@@ -154,11 +155,18 @@ NW = {
 				});
 			},
 			closeConfirmWindow: function() {
-				console.log($("#NWConfirmWindow").css("height"));
 				$("#NWConfirm").animate({
 					top: -parseInt($("#NWConfirmWindow").css("height")) - 60,
 					height: 0
 				});
+				document.getElementById("NWConfirmYes").onclick = null;
+				document.getElementById("NWConfirmCancel").onclick = null;
+			},
+			confirmWindowEnterPress: function() {
+				// If the confirm window isn't open, no need for the function
+				if (parseInt($("#NWConfirm").css("height")) == 0) return true;
+				
+				if (document.getElementById("NWConfirmYes").onclick) document.getElementById("NWConfirmYes").onclick();
 			},
 			confirmRevert: function() {
 				var selected = NW.filesystem.getSelected() || null;
@@ -1334,7 +1342,13 @@ NW = {
 		tempVal = NW.templates.closeTemplatesWindow() || false; // Use the currently selected template
 		returnVal = (returnVal == false) ? returnVal : tempVal;
 		
+		tempVal = NW.editor.functions.confirmWindowEnterPress() || false; // Agree to Confirmation Window
+		returnVal = (returnVal == false) ? returnVal : tempVal;
+		
 		return returnVal;
+	},
+	onescapepress: function() {
+		NW.editor.functions.closeConfirmWindow();
 	},
 	onoptiondown: function() {
 		NW.editor.functions.togglePublish();
