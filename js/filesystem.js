@@ -178,9 +178,15 @@ NW.filesystem = {
 	},
 	addEntry: function() {
 		var newEntry = document.createElement("li");
-		newEntry.textContent = "Untitled Entry";
 		newEntry.id = NW.io.addListEntry(newEntry);
 		$("#NWListEditorBox > ul").prepend(newEntry);
+		
+		var divElement = document.createElement("div");
+		divElement.className = "NWDraft";
+		newEntry.appendChild(divElement);
+		
+		var textElement = document.createTextNode("Untitled Entry");
+		newEntry.appendChild(textElement);
 		
 		var selected = $("#NWListEditorBox > ul > li:first-child")[0];
 		selected.addEventListener("click", NW.filesystem.select, false);
@@ -192,7 +198,7 @@ NW.filesystem = {
 	},
 	confirmDeleteEntry: function() {
 		if (!$("#NWListEditorBox > ul > li.NWSelected")[0]) return false;
-		NW.editor.functions.openConfirmWindow("Are you sure you want to delete this entry?", "This action cannot be undone", NW.filesystem.deleteEntry);
+		NW.editor.functions.openConfirmWindow("Are you sure you want to delete this entry?", "This action cannot be undone.", NW.filesystem.deleteEntry);
 	},
 	deleteEntry: function() {
 		var selected = $("#NWListEditorBox > ul > li.NWSelected")[0];
