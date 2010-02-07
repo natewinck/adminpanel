@@ -31,40 +31,74 @@
 
 <body>
 <div id="NWLeft" class="thisClass and anotherClass">
-    <div id="NWSidebarLeft">
+    <div id="NWSidebarLeft" class="NWResizeHorizontal">
+    	<input class="hiddenValue min" value="100" placeholder="number" />
+    	<input class="hiddenValue max" value="parseInt($('#NWLeft').css('width')) * .9" placeholder="function" />
+    	<input class="hiddenValue callback" value="NW.editor.functions.setNWLeftSidebarNormalWidth" placeholder="function" />
+    	<div id="NWSidebarLeftDrag" class="NWResizeHandle NWResizeHorizontalHandle"></div>
     	<ul class="NWSites NWRows NWRowsSelectable NWSelectable">
-                    <li title="Site" class="NWRowCategoryHeader NWSiteName"><div class="NWOpen"></div><div class="NWSiteIcon"></div>Site That has a really really really long name</li>
-                    <li class="NWRowCategory">
-                        <ul class="NWRows NWRowsSelectable NWSelectable">
-                            <li title="Some text here.  Some text here" id="0" cat="entries"><div class="NWFile"></div>Some text here.  Some text here</li>
-                            <li title="Some text here.  Some text here2" id="0" cat="entries"><div class="NWFile"></div>Some text here.  Some text here2</li>
-                            <li title="My Blog" class="NWRowCategoryHeader NWSiteName" id="0" cat="entries"><div class="NWOpen"></div><div class="NWFile"></div>My Blog with a really long title</li>
-                            <li class="NWRowCategory">
-                                <ul class="NWRows NWRowsSelectable NWSelectable">
-                                    <li title="Some Text here.  Some text here" id="0" cat="entries"><div class="NWFile"></div>Some text here.  Some text here</li>
-                                    <li title="Some text here.  Some text here2" id="0" cat="entries"><div class="NWFile"></div>Some text here.  Some text here2</li>
-                                    
-                                    <li title="Welcome" id="0" cat="entries"><div class="NWFile"></div>Welcome</li>
-                                    <li title="Winck inc." id="0" cat="entries"><div class="NWFile"></div>Winck inc.</li>
-                                </ul>
-                            </li>
-                            <li title="Welcome" id="0" cat="entries"><div class="NWFile"></div>Welcome</li>
-                            <li title="Winck inc" id="0" cat="entries"><div class="NWFile"></div>Winck inc.</li>
-                        </ul>
-                    </li>
-                    <li title="3MJ" class="NWRowCategoryHeader NWSiteName"><div class="NWClosed"></div><div class="NWSiteIcon"></div>3MJ</li>
-                    <li class="NWRowCategory">
-                        <ul class="NWRowsSelectable NWSelectable">
-                            <li title="A new list" id="0" cat="entries"><div class="NWFile"></div>A new list</li>
-                            <li title="Text" id="0" cat="entries"><div class="NWFile"></div>Text</li>
-                            <li title="About Us" id="0" cat="entries"><div class="NWFile"></div>About Us</li>
-                        </ul>
-        			</li>
+			<li title="Site" class="NWRowCategoryHeader NWSiteName"><div class="NWOpen"></div><div class="NWSiteIcon"></div>Site That has a really really really long name</li>
+			<li class="NWRowCategory">
+				<ul class="NWRows NWRowsSelectable NWSelectable">
+					<li title="Some text here.  Some text here" id="1234561"><div class="NWFile"></div>Some text here.  Some text here</li>
+					<li title="Some text here.  Some text here2" id="1234562"><div class="NWFile"></div>Some text here.  Some text here2</li>
+					<li title="My Blog" class="NWRowCategoryHeader NWSiteName" id="1234563"><div class="NWOpen"></div><div class="NWFile"></div>My Blog with a really long title</li>
+					<li class="NWRowCategory">
+						<ul class="NWRows NWRowsSelectable NWSelectable">
+							<li title="Some Text here.  Some text here" id="1234564"><div class="NWFile"></div>Some text here.  Some text here</li>
+							<li title="Some text here.  Some text here2" id="1234565"><div class="NWFile"></div>Some text here.  Some text here2</li>
+							
+							<li title="Welcome" id="1234566" class="listEditor"><div class="NWFile"></div>Welcome</li>
+							<li title="Winck inc." id="1234567"><div class="NWFile"></div>Winck inc.</li>
+						</ul>
+					</li>
+					<li title="Welcome" id="1234568"><div class="NWFile"></div>Welcome</li>
+					<li title="Winck inc" id="1234569"><div class="NWFile"></div>Winck inc.</li>
+				</ul>
+			</li>
+			<!--<li title="3MJ" class="NWRowCategoryHeader NWSiteName"><div class="NWClosed"></div><div class="NWSiteIcon"></div>3MJ</li>
+			<li class="NWRowCategory">
+				<ul class="NWRowsSelectable NWSelectable">
+					<li title="A new list" id="1234560"><div class="NWFile"></div>A new list</li>
+					<li title="Text" id="12345611"><div class="NWFile"></div>Text</li>
+					<li title="About Us" id="12345612"><div class="NWFile"></div>About Us</li>
+				</ul>
+			</li>-->
         </ul>
         
         
     </div>
     <div id="NWEdit"><!--<iframe id="NWEditPage" src="http://76.177.45.11/~nathanielwinckler/malloc/news/"></iframe>-->
+    <div id="NWListEditor" class="NWResizeVertical">
+    	<input class="hiddenValue min" value="30" placeholder="number" />
+    	<input class="hiddenValue max" value="parseInt($('#NWEdit').css('height')) - 1" placeholder="function" />
+    	<input class="hiddenValue callback" value="NW.editor.functions.changeListEditorSize" placeholder="function" />
+    	<div id="NWListEditorBox">
+    		<ul class="NWRowsSelectable NWRowsSelectableFlat NWSelectable NWRows">
+    			<li>An Entry Here</li>
+    			<li>Another Entry Here</li>
+    			<li>An Entry Here</li>
+    			<li>Another Entry Here</li>
+    			<li>An Entry Here</li>
+    			<li>Another Entry Here</li>
+    			<li>An Entry Here</li>
+    			<li>Another Entry Here</li>
+    			<li>An Entry Here</li>
+    			<li>Another Entry Here</li>
+    			<li>An Entry Here</li>
+    			<li>Another Entry Here</li>
+    			<li>An Entry Here</li>
+    			<li>Another Entry Here</li>
+    			<li>An Entry Here</li>
+    			<li>Another Entry Here</li>
+    		</ul>
+    	</div>
+    	<div id="NWListEditorFooter">
+    		<div id="NWListEditorAdd"></div>
+    		<div id="NWListEditorDelete"></div>
+    		<div id="NWListEditorFooterDrag" class="NWResizeHandle"></div>
+    	</div>
+    </div>
     <iframe id="NWEditPage"></iframe>
     <div id="NWQuickSelect">
     	<canvas width="400" height="300" id="NWQuickSelectCanvas"></canvas>
@@ -198,9 +232,10 @@ ut labore et dolore magna aliqua.</p>
     <div id="NWToolbar"><!--<button class="hideRight">Hide</button><button class="NWAddPage">Add Page</button>-->
     	<div id="NWToolbarButtons">
             <ul>
-                <li class="NWAddPage"><div class="NWToolbarButtonIcon"></div><div class="NWToolbarButtonName">Add Page</div></li>
-                <li class="NWPublishSite"><div class="NWToolbarButtonIcon"></div><div class="NWToolbarButtonName">Publish Site</div></li>
-                <li class="NWPreviewPage"><div class="NWToolbarButtonIcon"></div><div class="NWToolbarButtonName">Preview</div></li>
+                <!--<li class="NWAddPage"><div class="NWToolbarButtonIcon"></div><div class="NWToolbarButtonName">Add Page</div></li>-->
+                <li class="NWSaveDraft"><div class="NWToolbarButtonIcon"></div><div class="NWToolbarButtonName">Save Draft</div></li>
+                <li class="NWPublishSite"><div class="NWToolbarButtonIcon"></div><div class="NWToolbarButtonName">Publish Page</div></li>
+                <!--<li class="NWPreviewPage"><div class="NWToolbarButtonIcon"></div><div class="NWToolbarButtonName">Preview</div></li>-->
                 <li class="NWToolbarSplitter"></li>
                 <li class="NWEditPanelToggle"><div class="NWToolbarButtonIcon"></div><div class="NWToolbarButtonName">Edit Panel</div></li>
             </ul>
@@ -245,6 +280,16 @@ ut labore et dolore magna aliqua.</p>
             <div class="NWLoadingText">Loading...</div>
         </div>
     </div>
+    <div id="NWConfirm">
+    	<div id="NWConfirmWindow">
+        	<div id="NWConfirmHeader">Are you sure you want to delete this entry?</div>
+            <div id="NWConfirmText">This action cannot be undone.</div>
+            <div id="NWConfirmButtons">
+				<div id="NWConfirmYes"></div>
+				<div id="NWConfirmCancel"></div>
+			</div>
+        </div>
+    </div>
     <div id="NWWindows">
         <div id="NWQuickSelectAlignment" class="NWDraggable NWQuickSelectOptions">
             <div class="NWDraggableToolbar">
@@ -283,7 +328,12 @@ ut labore et dolore magna aliqua.</p>
         </div>-->
 	</div>
 </div>
-<div id="NWRight">
+<div id="NWRight" class="NWResizeHorizontal">
+	<input class="hiddenValue min" value="11" placeholder="number" />
+    <input class="hiddenValue max" value="parseInt(window.innerWidth) - 290" placeholder="function" />
+    <input class="hiddenValue resizeSide" value="left" placeholder="number" />
+    <input class="hiddenValue callback" value="NW.editor.functions.setNWRightNormalWidth" placeholder="function" />
+    <div id="NWRightResizeHandle" class="NWResizeHorizontalHandle NWResizeHandle"></div>
 	<div id="NWSidebarRight">
     	<div id="NWEditPanel">
         	<div class="NWTitle">Edit Options</div>
@@ -392,10 +442,10 @@ ut labore et dolore magna aliqua.</p>
                     <a rel="subscript" title="Subscript" class="NWTextSub"></a>
             	</div>
                 <div class="NWEditControls NWTextAlign">
-                	<a rel="justifyleft" title="Align Left" class="NWAlignLeft"></a>
-                    <a rel="justifycenter" title="Align Center" class="NWAlignCenter"></a>
-                    <a rel="justifyright" title="Align Right" class="NWAlignRight"></a>
-                    <a rel="justifyfull" title="Align Full" class="NWAlignFull"></a>
+                	<a rel="_justifyleft" title="Align Left" class="NWAlignLeft"></a>
+                    <a rel="_justifycenter" title="Align Center" class="NWAlignCenter"></a>
+                    <a rel="_justifyright" title="Align Right" class="NWAlignRight"></a>
+                    <a rel="_justifyfull" title="Align Full" class="NWAlignFull"></a>
                 </div>
                 <div class="NWEditControls NWFontSize">
                 	<a rel="increasefontsize" title="Increase font size" class="NWIncreaseFontSize"></a>
