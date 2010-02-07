@@ -12,6 +12,33 @@ html, body {
 	padding: 0px;
 	overflow: hidden;
 }
+.hiddenValue { display: none; }
+
+/* NWResize */
+.NWResizeHandle {
+	display: block;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-color: #eeeeee;
+}
+
+.NWResizeHandle.NWResizeHorizontalHandle {
+	height: 100%;
+	width: 10px;
+	background-image: url(../images/NWListEditor/resize_horizontal.png);
+	border-left: solid 1px #dddddd;
+	border-right: solid 1px #dddddd;
+	cursor: ew-resize;
+}
+
+.NWResizeHandle.NWResizeVerticalHandle {
+	height: 10px;
+	width: 100%;
+	background-image: url(../images/NWListEditor/resize_vertical.png);
+	border-top: solid 1px #dddddd;
+	border-bottom: solid 1px #dddddd;
+	cursor: ns-resize;
+}
 
 /* NWRows */
 ul.NWRows {
@@ -128,6 +155,20 @@ ul.NWRowsSelectable li.NWSelected {
 	text-shadow: 0px 1px 1px #444444;
 }
 
+ul.NWRowsSelectable.NWRowsSelectableFlat li {
+	height: 15px;
+	padding: 2px 2px 3px 2px;
+	cursor: default;
+	background: none;
+}
+
+ul.NWRowsSelectable.NWRowsSelectableFlat li.NWSelected {
+	background-image: none;
+	background-color: #3875d7;
+	color: #ffffff;
+	text-shadow: none;
+}
+
 
 /* NWLeft */
 #NWLeft {
@@ -144,8 +185,9 @@ ul.NWRowsSelectable li.NWSelected {
 
 /* NWSidebarLeft */
 #NWSidebarLeft {
-	overflow-x: hidden; 
-	resize: horizontal; 
+	overflow-x: hidden;
+	white-space: nowrap;
+	/*resize: horizontal;*/
 	/*min-height: 90%;*/
 	/*max-height: 90%;*/
 	max-width: 90%; 
@@ -155,10 +197,23 @@ ul.NWRowsSelectable li.NWSelected {
 	width: 200px; 
 	/*height: 90%;*/
 	background-color: #DEE3EC; 
-	border-right: solid 2px #C5CCCD;
-	border-bottom: solid 2px #C5CCCD;
+	border-right: solid 1px #C5CCCD;
+	border-bottom: solid 1px #C5CCCD;
 	font-family: "Lucida Grande", "LucidaGrande", Arial, Helvetica, sans-serif;
 	font-size: 12px;
+}
+
+#NWSidebarLeft #NWSidebarLeftDrag {
+	height: 100%;
+	width: 10px;
+	display: block;
+	float: right;
+	background-image: url(../images/NWListEditor/resize_horizontal.png);
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-color: #eeeeee;
+	border-left: solid 1px #dddddd;
+	cursor: ew-resize;
 }
 
 #NWSidebarLeft ul {
@@ -166,6 +221,10 @@ ul.NWRowsSelectable li.NWSelected {
 	margin: 0px;
 	padding: 0px;
 	list-style: none;
+}
+
+#NWSidebarLeft ul.NWRowsSelectable li.NWNonSelectable:not(.NWSiteName), #NWListEditor ul.NWRowsSelectable li.NWNonSelectable {
+	color: #999999;
 }
 
 #NWSidebarLeft ul.NWSites li.NWSiteName div.NWSiteIcon {
@@ -180,7 +239,7 @@ ul.NWRowsSelectable li.NWSelected {
 	background-position: center center;
 }
 
-#NWSidebarLeft ul.NWRowsSelectable li div.NWFile {
+#NWSidebarLeft ul.NWRowsSelectable li div.NWFile, #NWListEditor ul.NWRowsSelectable li div.NWFile {
 	width: 20px;
 	height: 17px;
 	float: left;
@@ -189,6 +248,45 @@ ul.NWRowsSelectable li.NWSelected {
 	position: relative;
 	top: -1px;
 	background-image: url(../images/NWSidebar/file.png);
+	background-position: left top;
+	background-repeat: no-repeat;
+}
+
+#NWSidebarLeft ul.NWRowsSelectable li div.NWDraft, #NWListEditor ul.NWRowsSelectable li div.NWDraft {
+	width: 20px;
+	height: 17px;
+	float: left;
+	padding: 0px 0px 0px 0px;
+	margin-right: 2px;
+	position: relative;
+	top: -1px;
+	background-image: url(../images/NWSidebar/draft.png);
+	background-position: left top;
+	background-repeat: no-repeat;
+}
+
+#NWSidebarLeft ul.NWRowsSelectable li div.NWLocked, #NWListEditor ul.NWRowsSelectable li div.NWLocked {
+	width: 20px;
+	height: 17px;
+	float: left;
+	padding: 0px 0px 0px 0px;
+	margin-right: 2px;
+	position: relative;
+	top: -1px;
+	background-image: url(../images/NWSidebar/locked.png);
+	background-position: left top;
+	background-repeat: no-repeat;
+}
+
+#NWSidebarLeft ul.NWRowsSelectable li div.NWList {
+	width: 20px;
+	height: 17px;
+	float: left;
+	padding: 0px 0px 0px 0px;
+	margin-right: 2px;
+	position: relative;
+	top: -1px;
+	background-image: url(../images/NWSidebar/list.png);
 	background-position: left top;
 	background-repeat: no-repeat;
 }
@@ -203,9 +301,94 @@ ul.NWRowsSelectable li.NWSelected {
 	overflow: hidden;
 }
 
+#NWEdit #NWListEditor {
+	/*height: 200px;*/
+	font-family: "Lucida Grande", "LucidaGrande", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	border-bottom: solid 1px #aaaaaa;
+	overflow: hidden;
+	display: none;
+}
+
+#NWEdit #NWListEditor #NWListEditorBox {
+	height: 170px;
+	width: auto;
+	padding: 0px;
+	overflow: auto;
+}
+
+#NWEdit #NWListEditor #NWListEditorBox ul {
+	min-height: 100%;
+	height: auto;
+	padding: 0px;
+	margin: 0px;
+	list-style: none;
+	background-image: url(../images/NWListEditor/list_alternating.jpg);
+	background-repeat: repeat;
+}
+
+#NWEdit #NWListEditor #NWListEditorBox ul li {
+	height: 15px;
+	display: block;
+	padding: 2px 5px 3px 10px;
+	cursor: default;
+}
+
+#NWEdit #NWListEditor #NWListEditorFooter {
+	height: 17px;
+	padding: 6px 0px 6px 10px;
+	background-image: url(../images/NWListEditor/resize_vertical.png);
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-color: #eeeeee;
+	border-top: solid 1px #dddddd;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+#NWEdit #NWListEditor #NWListEditorFooter div {
+	display: block;
+}
+
+#NWEdit #NWListEditor #NWListEditorFooter #NWListEditorAdd {
+	height: 17px;
+	width: 85px;
+	float: left;
+	background-image: url(../images/NWListEditor/add_entry.png);
+	background-repeat: no-repeat;
+	background-position: 0px 0px;
+}
+
+#NWEdit #NWListEditor #NWListEditorFooter #NWListEditorAdd:active {
+	background-position: 0px -17px;
+}
+
+#NWEdit #NWListEditor #NWListEditorFooter #NWListEditorDelete {
+	height: 17px;
+	width: 85px;
+	margin-left: 10px;
+	float: left;
+	background-image: url(../images/NWListEditor/delete.png);
+	background-repeat: no-repeat;
+	background-position: 0px 0px;
+}
+
+#NWEdit #NWListEditor #NWListEditorFooter #NWListEditorDelete:active {
+	background-position: 0px -17px;
+}
+
+#NWEdit #NWListEditor #NWListEditorFooter #NWListEditorFooterDrag {
+	width: auto;
+	height: 29px;
+	margin: -6px 0px -6px 180px;
+	cursor: ns-resize;
+	background: none;
+	border: none;
+}
+
 #NWEdit > iframe {
 	width: 100%;
-	height: 100%;
+	/*height: 100%;*/
 	padding: 0px;
 	margin: 0px 0px -4px 0px;
 	border: none;
@@ -319,6 +502,14 @@ ul.NWRowsSelectable li.NWSelected {
 
 #NWToolbar #NWToolbarButtons li.NWAddPage:active .NWToolbarButtonIcon {
 	background-position: 0px -30px;
+}
+
+#NWToolbar #NWToolbarButtons li.NWSaveDraft .NWToolbarButtonIcon {
+	background-position: -100px 0px;
+}
+
+#NWToolbar #NWToolbarButtons li.NWSaveDraft:active .NWToolbarButtonIcon {
+	background-position: -100px -30px;
 }
 
 #NWToolbar #NWToolbarButtons li.NWPublishSite .NWToolbarButtonIcon {
@@ -501,36 +692,39 @@ div.NWChooseTemplate .NWTemplatesWindow .NWTemplatesWindowBottom .NWTemplatesWin
 }
 
 .NWLoading .NWLoadingWindow .NWLoadingBarContainer {
-	height: 10px;
+	/*height: 10px;*/
+	height: 20px;
 	width: 250px;
 	margin: 20px auto 0px auto;
-	background-image: url(../images/NWLoadingWindow/loading_bar.png);
+	/*background-image: url(../images/NWLoadingWindow/loading_bar.png);*/
 	background-repeat: no-repeat;
 	background-position: 0px -20px;
 }
 
 .NWLoading .NWLoadingWindow .NWLoadingBarContainer .NWLoadingBarLeft {
 	height: 10px;
-	width: 5px;
-	background-image: url(../images/NWLoadingWindow/loading_bar.png);
+	/*width: 5px;*/
+	/*background-image: url(../images/NWLoadingWindow/loading_bar.png);*/
 	background-position: 0px 0px;
 	background-repeat: no-repeat;
 	float: left;
 }
 
 .NWLoading .NWLoadingWindow .NWLoadingBarContainer .NWLoadingBar {
-	height: 10px;
-	width: 0px;
-	background-image: url(../images/NWLoadingWindow/loading_bar.png);
-	background-position: 0px -10px;
+	/*height: 10px;*/
+	height: 20px;
+	width: 250px;
+	/*background-image: url(../images/NWLoadingWindow/loading_bar.png);
+	background-position: 0px -10px;*/
+	background-image: url(../images/NWLoadingWindow/loading_wave.gif);
 	background-repeat: no-repeat;
 	float: left;
 }
 
 .NWLoading .NWLoadingWindow .NWLoadingBarContainer .NWLoadingBarRight {
 	height: 10px;
-	width: 5px;
-	background-image: url(../images/NWLoadingWindow/loading_bar.png);
+	/*width: 5px;*/
+	/*background-image: url(../images/NWLoadingWindow/loading_bar.png);*/
 	background-position: -5px 0px;
 	background-repeat: no-repeat;
 	float: left;
@@ -544,13 +738,102 @@ div.NWChooseTemplate .NWTemplatesWindow .NWTemplatesWindowBottom .NWTemplatesWin
 }
 
 
+/* NWConfirmWindow */
+#NWConfirm {
+	position: fixed;
+	top: -135px;
+	width: 100%;
+	height: 0px;
+	cursor: default;
+}
+
+#NWConfirm #NWConfirmWindow {
+	width: 370px;
+	height: auto;
+	margin: auto;
+	padding: 25px 15px 15px 15px;
+	background-image: url(../images/NWTemplatesWindow/top-shadow.png);
+	background-position: center top;
+	background-repeat: repeat-x;
+	background-color: rgba(244,244,244,0.9);
+	border-left: solid 1px rgba(0,0,0,0.4);
+	border-right: solid 1px rgba(0,0,0,0.4);
+	border-bottom: solid 1px rgba(0,0,0,0.4);
+	-webkit-box-shadow: 0px 3px 8px #000000;
+	-moz-box-shadow: 0px 3px 8px #000000;
+	-o-box-shadow: 0px 3px 8px #000000;
+	-icab-box-shadow: 0px 3px 8px #000000;
+	-khtml-box-shadow: 0px 3px 8px #000000;
+	box-shadow: 0px 3px 8px #000000;
+}
+
+#NWConfirm #NWConfirmWindow #NWConfirmHeader {
+	/*height: 10px;*/
+	height: auto;
+	width: auto;
+	margin: 0px auto 0px auto;
+	/*background-image: url(../images/NWConfirmWindow/loading_bar.png);*/
+	background-repeat: no-repeat;
+	background-position: 0px -20px;
+	font-family: "Lucida Grande", "LucidaGrande", Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	font-weight: bold;
+	text-align: left;
+}
+
+#NWConfirm #NWConfirmWindow #NWConfirmText {
+	font-family: "Lucida Grande", "LucidaGrande", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	text-align: left;
+	color: #666666;
+	margin-top: 10px;
+}
+
+#NWConfirm #NWConfirmWindow #NWConfirmButtons {
+	height: 17px;
+	width: auto;
+	margin: 20px 0px 0px 0px;
+}
+
+#NWConfirm #NWConfirmWindow #NWConfirmButtons div {
+	display: block;
+}
+
+#NWConfirm #NWConfirmWindow #NWConfirmButtons #NWConfirmYes {
+	height: 17px;
+	width: 85px;
+	float: right;
+	background-image: url(../images/NWConfirmWindow/yes.png);
+	background-repeat: no-repeat;
+	background-position: 0px 0px;
+}
+
+#NWConfirm #NWConfirmWindow #NWConfirmButtons #NWConfirmYes:active {
+	background-position: 0px -17px;
+}
+
+#NWConfirm #NWConfirmWindow #NWConfirmButtons #NWConfirmCancel {
+	height: 17px;
+	width: 85px;
+	margin-right: 10px;
+	float: right;
+	background-image: url(../images/NWTemplatesWindow/cancel.png);
+	background-repeat: no-repeat;
+	background-position: 0px 0px;
+}
+
+#NWConfirm #NWConfirmWindow #NWConfirmButtons #NWConfirmCancel:active {
+	background-position: 0px -17px;
+}
+
+
 /* NWRight */
 #NWRight {
 	display: block;
 	float: right;
 	height: 100%;
 	/*width: 25%;*/
-	width: 330px;
+	width: 340px;
 }
 
 #NWRight.NWRightClosed {
@@ -558,12 +841,20 @@ div.NWChooseTemplate .NWTemplatesWindow .NWTemplatesWindowBottom .NWTemplatesWin
 	display: none;
 }
 
+#NWRight #NWRightResizeHandle {
+	float: left;
+	background-color: #5F656B;
+	border-right: solid 1px #2F353B;
+	border-left: solid 1px #2F353B;
+	border-left: none;
+}
+
 
 /* NWSidebarRight */
 #NWSidebarRight {
 	display: block;
-	height:100%;
-	width:100%;
+	height: 100%;
+	width: auto;
 	background-color: #3F454B;
 	font-family: "Lucida Grande", "LucidaGrande", Arial, Helvetica, sans-serif;
 	font-size: 12px;
