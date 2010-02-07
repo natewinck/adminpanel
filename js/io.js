@@ -1,4 +1,31 @@
 NW.io = {
+	getFilesArray: function() {
+		// Code here for getting the array of all the files
+		var filesArray = null;
+		
+		// Test Array
+		// DELETE when using real array
+		filesArray = new Array();
+		filesArray[0] = new Array();
+		filesArray[0]["name"] = "some name here";
+		filesArray[0]["id"] = "aUniqueId";
+		filesArray[0]["draft"] = false;
+		filesArray[0]["list"] = false;
+		filesArray[1] = new Array();
+		filesArray[1]["name"] = "some name here 2";
+		filesArray[1]["id"] = "aUniqueId2";
+		filesArray[1]["draft"] = false;
+		filesArray[1]["list"] = true;
+		filesArray[2] = new Array();
+		filesArray[2]["name"] = "Home";
+		filesArray[2]["id"] = "HomeId";
+		filesArray[2]["draft"] = true;
+		filesArray[2]["locked"] = true;
+		filesArray[2]["list"] = false;
+		
+		
+		return filesArray;
+	},
 	openLastOpenFile: function() {
 		// Eventually put code in here that will detect which file was last open
 		// This could open multiple pages and store them in the background (maybe)
@@ -6,12 +33,24 @@ NW.io = {
 		// For now, just open the malloc news file
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/malloc/news/");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary Sutherland/Welcome.html");
+		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary%20Sutherland/Updates/77A1D142-8FD9-489B-BC1F-7048A0A3EB2D.html");
+		
 		NW.io.open(0, "entries");
 	},
-	open: function(id, cat) {
+	open: function(objId) {
 		// Not sure if this is the most efficient way of opening a file
 		// Hopefully, I will have a system of caching the already open page
+		//document.getElementById("NWEditPage").src = url;
+		
+		// Code here for parsing the objId
+		// We can go back to the other way, by having the id and the cat as different arguments
+		// However, the parsing has to occur at one point or another, it shouldn't really matter
+		// If the parsing to needs to occur elsewhere, it can be parsed from the NW.filesystem.select function, the function that calls this function (NW.io.open())
+		var id = "";
+		var cat = "";
+		
 		document.getElementById("NWEditPage").src = './php/loader.php?id=' + id + '&cat=' + cat;
+		
 		// BRING BACK console.log("File Opened");
 		// To prevent caching of the iframe, I found that setting the id to something else like "new Date().getTime()
 		// will prevent this caching
@@ -20,9 +59,60 @@ NW.io = {
 		var test = prompt("Enter a URL:");
 		if (test != null && test != "") NW.io.open(test);
 	},
-	save: function() {
+	close: function() {
+		// This may need to be more specific eventually
+		document.getElementById("NWEditPage").src = "";
+	},
+	getListEntriesArray: function() {
+		// Code here for getting the array of all the entries
+		var listArray = null;
+		
+		// Test Array
+		// DELETE when using real array
+		listArray = new Array();
+		listArray[0] = new Array();
+		listArray[0]["name"] = "some name here";
+		listArray[0]["id"] = "aUniqueId3";
+		listArray[0]["draft"] = true;
+		listArray[1] = new Array();
+		listArray[1]["name"] = "some name here 2";
+		listArray[1]["id"] = "aUniqueId4";
+		listArray[2] = new Array();
+		listArray[2]["name"] = "some name here";
+		listArray[2]["id"] = "aUniqueId5";
+		listArray[2]["draft"] = true;
+		listArray[2]["locked"] = true;
+		
+		
+		return listArray;
+	},
+	addListEntry: function(obj) {
+		// Code here for getting the id for the list item via ajax
+		// I'm not sure if this part needs to be done the instant you hit "Add Entry", which is what it's doing right now
+		// It could probably be done when the user hits the save button
+		// For now, though...
+		
+		var name = obj.textContent;
+		var id = 5;
+		
+		return id;
+	},
+	save: function(obj, useLoadingWindow) {
+		// Find the selected object
+		if (obj && obj.target) obj = null;
+		var selected = obj || null;
+		if (!selected) {
+			selected = NW.filesystem.getSelected();
+		}
+		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		
+		if (!selected) return false;
+		
+		if (useLoadingWindow == null) useLoadingWindow = true;
+		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Saving Page as a Draft...");
+		
 		// Code for saving
-        ajax = null;
+		ajax = null;
         if(window.XMLHttpRequest)
         {
             ajax = new XMLHttpRequest();
@@ -41,40 +131,39 @@ NW.io = {
                 data[elements[i].id] = elements[i].innerHTML;
             }
             var dstring = escape(NW.io.serialize_data(data));
-            console.log("./php/saver.php?data=" + dstring + "&id=" + $(".NWSelected")[0].id);
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + $(".NWSelected").attr("id") + "&cat=draft", false);
+            console.log("./php/saver.php?data=" + dstring + "&id=" + selected.id);
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + selected.id + "&cat=draft", false);
             ajax.send(null);
             ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4){
+                	// When done saving, close the loading window
+                	NW.editor.functions.closeLoadingWindow();
                     console.log(ajax.responseText);
                 }
             }
         }
+		
+		// When done saving, close the loading window
+		//setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
 	},
-	publish: function() {
+	revert: function() {
+		var selected = NW.filesystem.getSelected() || null;
+		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		
+		// Code here for reverting the page to the public state
+		
+	},
+	publishPage: function() {
 		// Code for publishing
 		// The difference between this and save is that save just saves the current state of the page...
 		// Publish actually puts the page out onto the web to viewed
+		var selected = NW.filesystem.getSelected() || null;
+		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
 		
-		// The animation, right now, just animates a progress; there is nothing attached to it, though
-		$(".NWLoading").animate({
-			top: 0,
-			height: "100%"
-		});
-		$(".NWLoadingWindow .NWLoadingBar").animate({
-			width: 240
-		}, 2000, "linear", function() {
-			$(".NWLoading").animate({
-				top: -135,
-				height: 0
-			}, function() {
-				$(".NWLoadingWindow .NWLoadingBar").css("width", "0px");
-			});
-		});
-        
-		// Code for saving
-        ajax = null;
+		NW.editor.functions.openLoadingWindow("Publishing Page...");
+		
+		ajax = null;
         if(window.XMLHttpRequest)
         {
             ajax = new XMLHttpRequest();
@@ -93,21 +182,45 @@ NW.io = {
                 data[elements[i].id] = elements[i].innerHTML;
             }
             var dstring = escape(NW.io.serialize_data(data));
-            console.log("./php/saver.php?data=" + dstring + "&id=" + $(".NWSelected")[0].id);
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + $(".NWSelected").attr("id") + "&cat=drafts"/* + $(".NWSelected").attr("cat")*/, false);
+            console.log("./php/saver.php?data=" + dstring + "&id=" + selected.id);
+            // DAVID: I believe there is a mistake here: you have the cat=drafts. Shouldn't it be cat=public or whatever you're calling it?
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + selected.id + "&cat=drafts"/* + $(".NWSelected").attr("cat")*/, false);
             ajax.send(null);
             ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4){
+                	// When done publishing, close the loading window
+                	NW.editor.functions.closeLoadingWindow();
                     console.log(ajax.responseText);
                 }
             }
         }
+        
+		//setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
+	},
+	publishSite: function() {
+		// Code for publishing
+		// The difference between this and save is that save just saves the current state of the page...
+		// Publish actually puts the page out onto the web to viewed
+		// Publishing only publishes the drafts, since that is the only thing that has changed
+		
+		// The drafts array gets all the files in the left sidebar that are drafts
+		var draftsArray = NW.filesystem.getDrafts();
+		// The entries headers array gets all the "Entries" buttons and loads them into an array
+		// This does not actually contain the data inside (the actual entries), since they haven't been loaded into the list editor
+		var entriesHeaders = NW.filesystem.getEntriesHeaders();
+		
+		NW.editor.functions.openLoadingWindow("Publishing Site...");
+		
+		// Code for publishing all the drafts
+		
+		// Use the function inside here when the readyState equals 4, like the others that I have done
+		setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
 	},
 	preview: function() {
 		// Code for previewing current page
 	},
-    serialize_data: function(mixed_value) {
+	serialize_data: function(mixed_value) {
         // http://kevin.vanzonneveld.net
         // +   original by: Arpad Ray (mailto:arpad@php.net)
         // +   improved by: Dino
@@ -255,5 +368,4 @@ NW.io = {
 
         return utftext;
     }
-
 };
