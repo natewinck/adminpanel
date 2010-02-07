@@ -84,6 +84,13 @@ NW.filesystem = {
 		
 		return entriesHeadersArray;
 	},
+	restoreFileAppearance: function(obj) {
+		var obj = obj || NW.filesystem.getSelected();
+		if (!obj) return false;
+		if ($(obj).hasClass("NWRowCategoryHeader")) return false;
+		
+		$(obj).removeClass("NWUnsaved").children("div").removeClass().addClass("NWFile");
+	},
 	lock: function(id) {
 		$("#" + id).addClass("NWNonSelectable").children("div:first").removeClass().addClass("NWLocked");
 		if ($("#" + id).hasClass("NWSelected")) {
@@ -165,7 +172,7 @@ NW.filesystem = {
 	},
 	confirmDeleteEntry: function() {
 		if (!$("#NWListEditorBox > ul > li.NWSelected")[0]) return false;
-		NW.editor.functions.openConfirmWindow("Are you sure you want to delete this stupid entry?", "This action cannot be undone", NW.filesystem.deleteEntry);
+		NW.editor.functions.openConfirmWindow("Are you sure you want to delete this entry?", "This action cannot be undone", NW.filesystem.deleteEntry);
 	},
 	deleteEntry: function() {
 		var selected = $("#NWListEditorBox > ul > li.NWSelected")[0];

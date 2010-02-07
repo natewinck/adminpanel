@@ -9,7 +9,7 @@ NW.io = {
 		filesArray[0] = new Array();
 		filesArray[0]["name"] = "some name here";
 		filesArray[0]["id"] = "aUniqueId";
-		filesArray[0]["draft"] = false;
+		filesArray[0]["draft"] = true;
 		filesArray[0]["list"] = false;
 		filesArray[1] = new Array();
 		filesArray[1]["name"] = "some name here 2";
@@ -63,7 +63,7 @@ NW.io = {
 		// This may need to be more specific eventually
 		document.getElementById("NWEditPage").src = "";
 	},
-	getListEntriesArray: function() {
+	getListEntriesArray: function(id) {
 		// Code here for getting the array of all the entries
 		var listArray = null;
 		
@@ -139,6 +139,7 @@ NW.io = {
                 if(ajax.readyState==4){
                 	// When done saving, close the loading window
                 	NW.editor.functions.closeLoadingWindow();
+                	$(selected).removeClass("NWUnsaved");
                     console.log(ajax.responseText);
                 }
             }
@@ -151,6 +152,8 @@ NW.io = {
 		var selected = NW.filesystem.getSelected() || null;
 		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
 		
+		NW.filesystem.restoreFileAppearance();
+		
 		// Code here for reverting the page to the public state
 		
 	},
@@ -160,6 +163,8 @@ NW.io = {
 		// Publish actually puts the page out onto the web to viewed
 		var selected = NW.filesystem.getSelected() || null;
 		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		
+		NW.filesystem.restoreFileAppearance();
 		
 		NW.editor.functions.openLoadingWindow("Publishing Page...");
 		
@@ -209,6 +214,44 @@ NW.io = {
 		// The entries headers array gets all the "Entries" buttons and loads them into an array
 		// This does not actually contain the data inside (the actual entries), since they haven't been loaded into the list editor
 		var entriesHeaders = NW.filesystem.getEntriesHeaders();
+		var entryDraftsArray = entriesHeaders;
+		for (var i = 0; i < entriesHeaders.length; i++) {
+			//entriesHeaders[i].listEntries = [];
+			entriesHeaders[i].listEntries = NW.io.getListEntriesArray(entriesHeaders[i].id);
+		}
+		/* entriesHeaders Structure
+		 * entriesHeaders = array of DOM objects
+		 * entriesHeaders[].listEntries = multi-dimensional array of entries for the given group (found by the id)
+		 * entriesHeaders[].listEntries[] = name array to access different aspects of the list
+		 *
+		 * Example: entriesHeaders[1].listEntries[2]["name"]
+		 * Example: entriesHeaders[3].id
+		 */
+		
+		var listEntryDraftNum = 0;
+		for (var i = 0; i < entriesHeaders.length; i++) {
+			for (var x = 0; x < entriesHeaders[i].listEntries.length; x++) {
+				if (entriesHeaders[i].listEntries[x]["draft"] && !entriesHeaders[i].listEntries[x]["locked"]) {
+					entryDraftsArray[i].listEntries[listEntryDraftNum] = entriesHeaders[i].listEntries[x];
+					// DAVID: as you go through below publishing the drafts via ajax, you need to run this function
+					// (NW.filesystem.restoreFileAppearance())
+					// and get the current list object by doing getElementById() and put it in as the argument, as below
+					NW.filesystem.restoreFileAppearance(
+						document.getElementById(entryDraftsArray[i].listEntries[listEntryDraftNum]["id"])
+					);
+					
+					listEntryDraftNum++;
+				}
+			}
+		}
+		/* entryDraftsArray Structure
+		 * entryDraftsArray = array of DOM objects
+		 * entryDraftsArray[].listEntries = multi-dimensional array of entries that are drafts and not locked for the given group
+		 * entryDraftsArray[].listEntries[] = name array to access different aspects of the list
+		 *
+		 * Example: entryDraftsArray[1].listEntries[2]["name"]
+		 * Example: entryDraftsArray[3].id
+		 */
 		
 		NW.editor.functions.openLoadingWindow("Publishing Site...");
 		

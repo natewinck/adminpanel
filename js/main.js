@@ -1340,9 +1340,11 @@ NW = {
 		NW.filesystem.init();
 	},
 	onbeforeunload: function(e) {
-		
-		NW.io.save();
-		return "You have unsaved changes in the draft \"something\".\nYour changes are currently being saved.  Please wait until it is finished.";
+		var selected = NW.filesystem.getSelected();
+		if ($(selected).hasClass("NWUnsaved")) {
+			NW.io.save();
+			return "You have unsaved changes in the draft \"something\".\nYour changes are currently being saved.  Please wait until it is finished.";
+		}
 		
 	},
 	onunload: function() {
@@ -1853,21 +1855,16 @@ NW.editor.checkQueryState = function () {
 	
 	// If this function is called, that means the file has been edited
 	// Thus, I need to change a class name
-	var selected;
-	if ($("#NWListEditor").css("display") == "none") {
-		// Get the selected file in the sidebar
-		selected = $(".NWSites .NWSelected")[0];
-	} else {
-		// Get the selected entry in the list editor
-		selected = $("#NWListEditor .NWSelected")[0];
-	}
+	var selected = NW.filesystem.getSelected();
 	
 	if (selected
-		&& !$(selected).children(".NWDraft")[0]
-		&& $(selected).children(".NWFile")[0]
+		//&& !$(selected).children(".NWDraft")[0]
+		&& !$(selected).hasClass("NWUnsaved")
+		//&& $(selected).children(".NWFile")[0]
 		&& !$(selected).hasClass("NWRowCategoryHeader")
 	) {
 		$(selected).children(".NWFile").removeClass("NWFile").addClass("NWDraft");
+		$(selected).addClass("NWUnsaved");
 	}
 	
 	// Get Selection
