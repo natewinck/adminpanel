@@ -14,6 +14,7 @@ NW.io = {
 		filesArray[1] = new Array();
 		filesArray[1]["name"] = "some name here 2";
 		filesArray[1]["id"] = "aUniqueId2";
+		filesArray[1]["headerId"] = "aHeaderId";
 		filesArray[1]["draft"] = false;
 		filesArray[1]["list"] = true;
 		filesArray[2] = new Array();
@@ -175,8 +176,6 @@ NW.io = {
 			var file = NW.filesystem.parseId(selected.id);
 			var id = file.id;
 			var cat = file.cat;
-			
-			NW.filesystem.restoreFileAppearance();
 		} else {
 			var file = NW.filesystem.parseId(objId);
 			var id = file.id;
@@ -214,15 +213,35 @@ NW.io = {
                 if(ajax.readyState==4){
                 	// Check to see if this is publishing all the drafts
                 	// If so, close the loading window only after the last page
-                	if (NW.filesystem.lastPage) {
+                	/*if (NW.filesystem.lastPage) {
                 		if (NW.filesystem.lastPage.id == (objId || selected.id)) {
                 			NW.editor.functions.closeLoadingWindow();
                 			NW.filesystem.lastPage = null;
                 		}
+                	}*/
+                	if (NW.filesystem.allDraftsForPublish) {
+                		var draft;
+                		for (var draftArrayIndex in NW.filesystem.allDraftsForPublish) {
+                			draft = NW.filesystem.allDraftsForPublish[draftArrayIndex];
+                			if (draft.id == objId) {
+                				if (document.getElementById(draft.id)) {
+                					// Use the if statement just in case this id is of a hidden (and thus unloaded) list editor draft
+                					NW.filesystem.restoreFileAppearance(document.getElementById(draft.id));
+                				}
+                				NW.filesystem.allDraftsForPublish.splice(draftArrayIndex, 1);
+                			}
+                		}
+                		
+                		// When all of the drafts have been published, close the loading window
+                		if (NW.filesystem.allDraftsForPublish.length == 0) {
+                			NW.editor.functions.closeLoadingWindow();
+                			NW.filesystem.allDraftsForPublish = null;
+                		}
+                	} else {
+						// When done publishing, close the loading window and restore appearance
+						NW.filesystem.restoreFileAppearance();
+						if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
                 	}
-                	
-                	// When done publishing, close the loading window
-                	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
                     console.log(ajax.responseText);
                 }
             }
@@ -233,6 +252,9 @@ NW.io = {
 		// Right now, this function loops through all the drafts and then publishes each draft by calling the NW.io.publishPage() function
 		NW.editor.functions.openLoadingWindow("Publishing Site...");
 		NW.filesystem.lastPage = null;
+		NW.filesystem.allDraftsForPublish = null;
+		NW.filesystem.allDraftsForPublish = [];
+		var publishArray = [];
 		// Code for publishing
 		// The difference between this and save is that save just saves the current state of the page...
 		// Publish actually puts the page out onto the web to viewed
@@ -244,11 +266,13 @@ NW.io = {
 		var currentDraft;
 		for (var i = 0; i < draftsArray.length; i++) {
 			currentDraft = draftsArray[i];
-			NW.filesystem.lastPage = document.createElement("li");
+			publishArray[currentDraft.id] = {name: currentDraft.textContent, id: currentDraft.id};
+			
+			/*NW.filesystem.lastPage = document.createElement("li");
 			NW.filesystem.lastPage.id = currentDraft.id;
 			
 			NW.io.publishPage(currentDraft.id, false);
-			NW.filesystem.restoreFileAppearance(document.getElementById(currentDraft["id"]));
+			NW.filesystem.restoreFileAppearance(document.getElementById(currentDraft["id"]));*/
 		}
 		// The entries headers array gets all the "Entries" buttons and loads them into an array
 		// This does not actually contain the data inside (the actual entries), since they haven't been loaded into the list editor
@@ -274,7 +298,9 @@ NW.io = {
 				if (entriesHeaders[i].listEntries[x]["draft"] && !entriesHeaders[i].listEntries[x]["locked"]) {
 					entryDraftsArray[i].listEntries[listEntryDraftNum] = entriesHeaders[i].listEntries[x];
 					currentEntry = entryDraftsArray[i].listEntries[listEntryDraftNum];
-					//entryArgs = NW.filesystem.parseId(currentEntry["id"]);
+					publishArray[currentEntry["id"]] = {name: currentEntry["name"], id: currentEntry["id"]};
+					
+					/*//entryArgs = NW.filesystem.parseId(currentEntry["id"]);
 					NW.filesystem.lastPage = document.createElement("li");
 					NW.filesystem.lastPage.id = currentEntry["id"];
 					
@@ -282,7 +308,7 @@ NW.io = {
 					// (NW.filesystem.restoreFileAppearance())
 					// and get the current list object by doing getElementById() and put it in as the argument, as below
 					NW.io.publishPage(currentEntry["id"], false);
-					NW.filesystem.restoreFileAppearance(document.getElementById(currentEntry["id"]));
+					NW.filesystem.restoreFileAppearance(document.getElementById(currentEntry["id"]));*/
 					
 					listEntryDraftNum++;
 				}
@@ -296,8 +322,34 @@ NW.io = {
 		 * Example: entryDraftsArray[1].listEntries[2]["name"]
 		 * Example: entryDraftsArray[3].id
 		 */
+		 
+		// Look for any unsaved drafts in the list editor that are not gotten by the NW.filesystem.getEntriesHeaders() function and the array under it
+		$("#NWListEditor .NWRowsSelectable li.NWUnsaved").each(function() {
+			publishArray[$(this).attr("id")] = {name: $(this).text(), id: $(this).attr("id")};
+		});
 		
+		// Convert the dictionary array into a number array
+		var draft = null;
+		var tempArray = [];
+		var i = 0;
+		for (draft in publishArray) {
+			tempArray[i] = publishArray[draft];
+			i++;
+		}
 		
+		publishArray = null;
+		publishArray = tempArray;
+		// Create a local array so it doesn't keep getting edited
+		// Unfortunately, I can't use something = somethingElse, since the two variables are now attached
+		// e.g. if I make a change to something, it changes on somethingElse as well
+		for (var draft in publishArray) {
+				NW.filesystem.allDraftsForPublish[draft] = publishArray[draft];
+		}
+		
+		draft = null;
+		for (draft in publishArray) {
+			NW.io.publishPage(publishArray[draft].id, false);
+		}
 		
 		// Code for publishing all the drafts
 		
