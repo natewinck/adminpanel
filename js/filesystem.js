@@ -328,7 +328,7 @@ NW.filesystem = {
 				fileElement = document.createElement("li");
 				fileElement.title = file["name"];
 				fileElement.className = "NWRowCategoryHeader";
-				fileElement.id = file["id"];
+				fileElement.id = file["headerId"];
 				siteElement.appendChild(fileElement);
 				
 				divElement = document.createElement("div");
