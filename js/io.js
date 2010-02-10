@@ -251,6 +251,7 @@ NW.io = {
 		// DAVID: I believe I have completed this function, and you shouldn't even have to touch it,
 		// Right now, this function loops through all the drafts and then publishes each draft by calling the NW.io.publishPage() function
 		NW.editor.functions.openLoadingWindow("Publishing Site...");
+		NW.io.save(null, false);
 		NW.filesystem.lastPage = null;
 		NW.filesystem.allDraftsForPublish = null;
 		NW.filesystem.allDraftsForPublish = [];
