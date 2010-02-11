@@ -49,8 +49,12 @@ NW.filesystem = {
 			// Parse the id into id and cat
 			var file = NW.filesystem.parseId(obj.attr("id"));
 			
-			NW.io.open(file.id, file.cat);
+			NW.io.open(file.cat, file.id);
 		}
+	},
+	createId: function(cat, id) {
+		var id = "id=" + (id || "") + "&cat=" + (cat || "");
+		return id;
 	},
 	parseId: function(objId) {
 		if (!objId) return false;
@@ -138,7 +142,7 @@ NW.filesystem = {
 		for (var i = 0; i < listArray.length; i++) {
 			entry = listArray[i];
 			entryElement = document.createElement("li");
-			entryElement.id = entry["id"];
+			entryElement.id = NW.filesystem.createId(entry["cat"], entry["id"]);
 			entryElement.title = entry["name"];
 			if (entry["locked"]) entryElement.className = "NWNonSelectable";
 			
@@ -148,7 +152,7 @@ NW.filesystem = {
 				divElement = document.createElement("div");
 				divElement.className = "NWLocked";
 				entryElement.appendChild(divElement);
-			} else if (entry["draft"]) {
+			} else if (entry["cat"] == "draft") {
 				divElement = document.createElement("div");
 				divElement.className = "NWDraft";
 				entryElement.appendChild(divElement);
@@ -170,7 +174,9 @@ NW.filesystem = {
 		NW.filesystem.select(null, firstEntry);
 	},
 	showListEditor: function(obj) {
-		NW.filesystem.fillListEditor(obj[0].id);
+		if (!obj) return false;
+		var objId = NW.filesystem.parseId(obj[0].id);
+		NW.filesystem.fillListEditor(objId.cat);
 		$("#NWListEditor").css("display", "block");
 	},
 	hideListEditor: function() {
@@ -303,7 +309,7 @@ NW.filesystem = {
 			if (file["list"] == false) {
 				fileElement = document.createElement("li");
 				fileElement.title = file["name"];
-				fileElement.id = file["id"];
+				fileElement.id = NW.filesystem.createId(file["cat"], file["id"]);
 				if (file["locked"]) fileElement.className = "NWNonSelectable";
 				siteElement.appendChild(fileElement);
 				
@@ -353,7 +359,7 @@ NW.filesystem = {
 				
 				fileElement = document.createElement("li");
 				fileElement.title = "Entries for " + file["name"];
-				fileElement.id = file["id"];
+				fileElement.id = NW.filesystem.createId(file["cat"], file["id"]);
 				fileElement.className = "listEditor";
 				ulElement.appendChild(fileElement);
 				

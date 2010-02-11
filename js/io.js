@@ -1,30 +1,45 @@
 NW.io = {
 	getFilesArray: function() {
 		// Code here for getting the array of all the files
-		var filesArray = null;
-		
-		// Test Array
-		// DELETE when using real array
-		filesArray = new Array();
-		filesArray[0] = new Array();
-		filesArray[0]["name"] = "some name here";
-		filesArray[0]["id"] = "id=0&cat=entries";
-		filesArray[0]["draft"] = false;
-		filesArray[0]["list"] = false;
-		filesArray[1] = new Array();
-		filesArray[1]["name"] = "some name here 2";
-		filesArray[1]["id"] = "aUniqueId2";
-		filesArray[1]["headerId"] = "aHeaderId";
-		filesArray[1]["draft"] = false;
-		filesArray[1]["list"] = true;
-		filesArray[2] = new Array();
-		filesArray[2]["name"] = "Home";
-		filesArray[2]["id"] = "HomeId";
-		filesArray[2]["draft"] = true;
-		filesArray[2]["locked"] = true;
-		filesArray[2]["list"] = false;
-		
-		
+		var filesXML = null;
+        var filesArray = new Array();
+
+        ajax = null;
+        if(window.XMLHttpRequest)
+        {
+            ajax = new XMLHttpRequest();
+        }
+        else
+        {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if(ajax != null)
+        {
+            ajax.open("GET", "./php/loader.php?xml=true", false);
+            ajax.send(null);
+            console.log("sending");
+            ajax.onreadystatechange=function()
+            {
+            	console.log(ajax.readyState);
+                if(ajax.readyState==4){
+                    filesXML = ajax.responseText; //NOT WORKING
+                    console.log(ajax.responseText);
+                }
+            }
+        }
+        filesXML = ajax.responseText;
+        var parser = new DOMParser();
+        var files = parser.parseFromString(filesXML, "text/xml");
+        //console.log(files); 
+        for(var i = 0; i < files.documentElement.children.length; i++)
+        {
+            var file = new Array();
+            file['cat'] = files.documentElement.children[i].getElementsByTagName('cat')[0].childNodes[0].nodeValue;
+            file['name'] = files.documentElement.children[i].getElementsByTagName('title')[0].childNodes[0].nodeValue;
+            file['list'] = true;
+            filesArray.push(file);
+        }
 		return filesArray;
 	},
 	openLastOpenFile: function() {
@@ -36,20 +51,22 @@ NW.io = {
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary Sutherland/Welcome.html");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary%20Sutherland/Updates/77A1D142-8FD9-489B-BC1F-7048A0A3EB2D.html");
 		
-		NW.io.open(0, "entries");
+		NW.io.open("entries", 0);
 	},
-	open: function(id, cat) {
-		// Not sure if this is the most efficient way of opening a file
-		// Hopefully, I will have a system of caching the already open page
-		//document.getElementById("NWEditPage").src = url;
-		
-		// Code here for parsing the objId
-		// We can go back to the other way, by having the id and the cat as different arguments
-		// However, the parsing has to occur at one point or another, it shouldn't really matter
-		// If the parsing to needs to occur elsewhere, it can be parsed from the NW.filesystem.select function, the function that calls this function (NW.io.open())
-		
-		// DAVID: I'm assuming the id (the variable here) is always a number.  If it's not, I need to remove the parseInt() function from the parser in the NW.filesystem.select() function
-		document.getElementById("NWEditPage").src = './php/loader.php?id=' + id + '&cat=' + cat;
+	open: function(cat, id) {
+        //Gets an entry from the backend.
+        //id is always an integer, cat is a string
+        //IF id is left off then it gets multiple entries.
+        //console.log(id);
+        
+        if(id != null)
+        {
+            document.getElementById("NWEditPage").src = './php/loader.php?id=' + id + '&cat=' + cat;
+        }
+        else
+        {
+            document.getElementById("NWEditPage").src = './php/loader.php?cat=' + cat;
+        }
 		
 		// BRING BACK console.log("File Opened");
 		// To prevent caching of the iframe, I found that setting the id to something else like "new Date().getTime()
@@ -63,28 +80,50 @@ NW.io = {
 		// This may need to be more specific eventually
 		document.getElementById("NWEditPage").src = "";
 	},
-	getListEntriesArray: function(id) {
+	getListEntriesArray: function(cat) {
 		// Code here for getting the array of all the entries
-		var listArray = null;
-		
-		// Test Array
-		// DELETE when using real array
-		listArray = new Array();
-		listArray[0] = new Array();
-		listArray[0]["name"] = "some name here";
-		listArray[0]["id"] = "aUniqueId3";
-		listArray[0]["draft"] = true;
-		listArray[1] = new Array();
-		listArray[1]["name"] = "some name here 2";
-		listArray[1]["id"] = "aUniqueId4";
-		listArray[2] = new Array();
-		listArray[2]["name"] = "some name here";
-		listArray[2]["id"] = "aUniqueId5";
-		listArray[2]["draft"] = true;
-		listArray[2]["locked"] = true;
-		
-		
-		return listArray;
+		// Code here for getting the array of all the files
+		var filesXML = null;
+        var filesArray = new Array();
+
+        ajax = null;
+        if(window.XMLHttpRequest)
+        {
+            ajax = new XMLHttpRequest();
+        }
+        else
+        {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if(ajax != null)
+        {
+            ajax.open("GET", "./php/loader.php?xml=true&cat=" + cat, false);
+            ajax.send(null);
+            ajax.onreadystatechange=function()
+            {
+                if(ajax.readyState==4){
+                    filesXML = ajax.responseText; //NOT WORKING
+                    //console.log(ajax.responseText);
+                }
+            }
+        }
+        filesXML = ajax.responseText;
+        var parser = new DOMParser();
+        var files = parser.parseFromString(filesXML, "text/xml");
+        //console.log(files.documentElement.children[0]); 
+        for(var i = 0; i < files.documentElement.children.length; i++)
+        {
+            var file = new Array();
+            file['id'] = files.documentElement.children[i].getElementsByTagName('id')[0].childNodes[0].nodeValue;
+            file['name'] = files.documentElement.children[i].getElementsByTagName('title')[0].childNodes[0].nodeValue;
+            file['author'] = files.documentElement.children[i].getElementsByTagName('author')[0].childNodes[0].nodeValue;
+            file['cat'] = files.documentElement.children[i].getElementsByTagName('cat')[0].childNodes[0].nodeValue;
+            file['draft'] = false;
+            file['locked'] = false;
+            filesArray.push(file);
+        }
+		return filesArray;
 	},
 	addListEntry: function(obj) {
 		// Code here for getting the id for the list item via ajax
