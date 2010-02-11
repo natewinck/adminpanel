@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 06, 2010 at 10:55 PM
+-- Generation Time: Feb 11, 2010 at 06:03 PM
 -- Server version: 5.1.36
 -- PHP Version: 5.3.0
 
@@ -18,6 +18,26 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 --
 -- Database: `adminpanel`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `categories`
+--
+
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` text NOT NULL,
+  `table` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`, `table`) VALUES
+(0, 'Entries', 'entries');
 
 -- --------------------------------------------------------
 
