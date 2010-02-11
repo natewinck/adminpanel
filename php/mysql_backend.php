@@ -11,12 +11,39 @@
         return $con;
     }
     
-    //** Function to get a list of entries **//
-    function get_entries($con, $table, $start, $max)
+    //** Function to get a list of categories **//
+    function get_categories($con)
     {
-        $query = "SELECT * FROM $table LIMIT $start, $max"; //SQL Statement
+        $query = "SELECT * FROM categories";
+        $result = mysql_query($query, $con); //Run the Statement
+        $cats = Array(); //Create an empty array
+        echo mysql_error();
+        while($cat = mysql_fetch_assoc($result)) //Loop through the results
+        {
+            $cats[] = $cat; //Append them
+        }
+        return $cats; //Return them
+    }
+    
+    //** Function to get a list of entries **//
+    function get_entries($con, $table, $start=NULL, $max=NULL)
+    {
+        if($start == NULL)
+        {
+            $query = "SELECT * FROM $table"; //SQL Statement
+        }
+        else if($max == NULL)
+        {
+            $query = "SELECT * FROM $table LIMIT $start"; //SQL Statement
+        }
+        else
+        {
+            $query = "SELECT * FROM $table LIMIT $start, $max"; //SQL Statement
+        }
+        //echo $query;
         $result = mysql_query($query, $con); //Run the Statement
         $entries = Array(); //Create an empty array
+        echo mysql_error();
         while($row = mysql_fetch_assoc($result)) //Loop through the results
         {
             $entries[] = $row; //Append them
