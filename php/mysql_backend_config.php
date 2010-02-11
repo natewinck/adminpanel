@@ -3,7 +3,7 @@
     $config = array(
                 "server" => "localhost",
                 "username" => "root",
-                "password" => "",
+                "password" => "root",
                 "database" => "adminpanel"
                 );
 
