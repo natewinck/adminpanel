@@ -37,6 +37,7 @@ NW.filesystem = {
 		prevSelected.removeClass("NWSelected");
 		
 		//$(".NWSites .NWSelected").removeClass("NWSelected");
+		//console.log(obj);
 		obj.addClass("NWSelected");
 		
 		if (obj.hasClass("listEditor")) {
