@@ -18,7 +18,7 @@ NW.io = {
         {
             ajax.open("GET", "./php/loader.php?xml=true", false);
             ajax.send(null);
-            console.log("sending");
+            //console.log("sending");
             ajax.onreadystatechange=function()
             {
             	console.log(ajax.readyState);
