@@ -5,10 +5,13 @@
     {
 ?>
     <entry>
-        <id><?php echo str_replace("<br>", "<br />", $cat['id']); ?></id>
-        <title><?php echo str_replace("<br>", "<br />", $cat['title']); ?></title>
-        <author><?php echo str_replace("<br>", "<br />", $cat['author']); ?></author>
-        <cat><?php echo str_replace("<br>", "<br />", $_GET['cat']); ?></cat>
+<?php
+    foreach($cat as $key => $value)
+    {
+        $value = str_replace("<br>", "<br />", $value);
+        echo "        <$key>$value</$key>\n";
+    }
+?>
     </entry>
 <?php
     }

@@ -26,19 +26,19 @@
     }
     
     //** Function to get a list of entries **//
-    function get_entries($con, $table, $start=NULL, $max=NULL)
+    function get_entries($con, $cat, $start=NULL, $max=NULL)
     {
         if($start == NULL)
         {
-            $query = "SELECT * FROM $table"; //SQL Statement
+            $query = "SELECT * FROM entries WHERE cat='$cat'"; //SQL Statement
         }
         else if($max == NULL)
         {
-            $query = "SELECT * FROM $table LIMIT $start"; //SQL Statement
+            $query = "SELECT * FROM entries WHERE cat='$cat' LIMIT $start"; //SQL Statement
         }
         else
         {
-            $query = "SELECT * FROM $table LIMIT $start, $max"; //SQL Statement
+            $query = "SELECT * FROM entries WHERE cat='$cat' LIMIT $start, $max"; //SQL Statement
         }
         //echo $query;
         $result = mysql_query($query, $con); //Run the Statement
@@ -52,9 +52,16 @@
     }
     
     //** Function to get a single entry **//
-    function get_entry($con, $table, $field, $value)
+    function get_entry($con, $cat, $field, $value)
     {
-        $query = "SELECT * FROM $table WHERE $field = $value LIMIT 0,1"; //SQL Statement
+        if(is_numeric($value))
+        {
+            $query = "SELECT * FROM entries WHERE $field = $value AND cat = '$cat' LIMIT 0,1"; //SQL Statement
+        }
+        else
+        {
+            $query = "SELECT * FROM entries WHERE $field = '$value' AND cat = '$cat' LIMIT 0,1"; //SQL Statement
+        }
         $result = mysql_query($query, $con); //Run the Statement
         $entries = Array(); //Create an empty array
         while($row = mysql_fetch_assoc($result)) //Loop through the results
