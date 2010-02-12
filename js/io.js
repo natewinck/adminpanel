@@ -32,11 +32,11 @@ NW.io = {
         var parser = new DOMParser();
         var files = parser.parseFromString(filesXML, "text/xml");
         //console.log(files); 
-        for(var i = 0; i < files.documentElement.children.length; i++)
+        for(var i = 0; i < files.getElementsByTagName('name').length; i++)
         {
             var file = new Array();
-            file['cat'] = files.documentElement.children[i].getElementsByTagName('cat')[0].childNodes[0].nodeValue;
-            file['name'] = files.documentElement.children[i].getElementsByTagName('title')[0].childNodes[0].nodeValue;
+            file['cat'] = files.getElementsByTagName('table')[i].childNodes[0].nodeValue;
+            file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
             file['list'] = true;
             filesArray.push(file);
         }
@@ -112,15 +112,15 @@ NW.io = {
         var parser = new DOMParser();
         var files = parser.parseFromString(filesXML, "text/xml");
         //console.log(files.documentElement.children[0]); 
-        for(var i = 0; i < files.documentElement.children.length; i++)
+        for(var i = 0; i < files.getElementsByTagName('id').length; i++)
         {
             var file = new Array();
-            file['id'] = files.documentElement.children[i].getElementsByTagName('id')[0].childNodes[0].nodeValue;
-            file['name'] = files.documentElement.children[i].getElementsByTagName('title')[0].childNodes[0].nodeValue;
-            file['author'] = files.documentElement.children[i].getElementsByTagName('author')[0].childNodes[0].nodeValue;
-            file['cat'] = files.documentElement.children[i].getElementsByTagName('cat')[0].childNodes[0].nodeValue;
-            file['draft'] = false;
-            file['locked'] = false;
+            file['id'] = files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
+            file['name'] = files.getElementsByTagName('title')[i].childNodes[0].nodeValue;
+            file['author'] = files.getElementsByTagName('author')[i].childNodes[0].nodeValue;
+            file['cat'] = files.getElementsByTagName('cat')[i].childNodes[0].nodeValue;
+            file['draft'] = parseInt(files.getElementsByTagName('draft')[i].childNodes[0].nodeValue);
+            file['locked'] = parseInt(files.getElementsByTagName('locked')[i].childNodes[0].nodeValue);
             filesArray.push(file);
         }
 		return filesArray;

@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 11, 2010 at 06:03 PM
+-- Generation Time: Feb 12, 2010 at 08:46 PM
 -- Server version: 5.1.36
 -- PHP Version: 5.3.0
 
@@ -25,6 +25,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 -- Table structure for table `categories`
 --
 
+DROP TABLE IF EXISTS `categories`;
 CREATE TABLE IF NOT EXISTS `categories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
@@ -45,6 +46,7 @@ INSERT INTO `categories` (`id`, `name`, `table`) VALUES
 -- Table structure for table `drafts`
 --
 
+DROP TABLE IF EXISTS `drafts`;
 CREATE TABLE IF NOT EXISTS `drafts` (
   `pageid` int(11) NOT NULL,
   `author` text NOT NULL,
@@ -69,11 +71,15 @@ INSERT INTO `drafts` (`pageid`, `author`, `title`, `body`, `timestamp`) VALUES
 -- Table structure for table `entries`
 --
 
+DROP TABLE IF EXISTS `entries`;
 CREATE TABLE IF NOT EXISTS `entries` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` text NOT NULL,
   `body` text NOT NULL,
   `author` text NOT NULL,
+  `cat` varchar(50) NOT NULL,
+  `draft` tinyint(1) NOT NULL DEFAULT '0',
+  `locked` int(11) NOT NULL DEFAULT '0',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
@@ -82,8 +88,8 @@ CREATE TABLE IF NOT EXISTS `entries` (
 -- Dumping data for table `entries`
 --
 
-INSERT INTO `entries` (`id`, `title`, `body`, `author`, `timestamp`) VALUES
-(0, 'Tu Quoque<br>', 'Lorum ipsum delorum in ad infinitum.<br>', 'Atlanis/emallson', '2010-02-06 16:59:31');
+INSERT INTO `entries` (`id`, `title`, `body`, `author`, `cat`, `draft`, `locked`, `timestamp`) VALUES
+(0, 'Tu Quoque<br>', 'Lorum ipsum delorum in ad infinitum.<br>', 'Atlanis/emallson', 'entries', 0, 0, '2010-02-12 15:43:28');
 
 -- --------------------------------------------------------
 
@@ -91,6 +97,7 @@ INSERT INTO `entries` (`id`, `title`, `body`, `author`, `timestamp`) VALUES
 -- Table structure for table `users`
 --
 
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(30) NOT NULL,

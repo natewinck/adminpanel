@@ -1,13 +1,16 @@
-<?xml version="1.0" ?>
+<?php header("content-type: text/xml"); ?>
 <categories>
 <?php
     foreach($data as $cat)
     {
 ?>
     <category>
-        <id><?php echo $cat['id']; ?></id>
-        <cat><?php echo $cat['table']; ?></cat>
-        <title><?php echo $cat['name']; ?></title>
+<?php
+    foreach($cat as $key => $value)
+    {
+        echo "        <$key>$value</$key>\n";
+    }
+?>
     </category>
 <?php
     }
