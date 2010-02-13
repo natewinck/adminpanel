@@ -28,7 +28,7 @@ html, body {
 	background-image: url(../images/NWListEditor/resize_horizontal.png);
 	border-left: solid 1px #dddddd;
 	border-right: solid 1px #dddddd;
-	cursor: ew-resize;
+	cursor: col-resize;
 }
 
 .NWResizeHandle.NWResizeVerticalHandle {
@@ -37,7 +37,7 @@ html, body {
 	background-image: url(../images/NWListEditor/resize_vertical.png);
 	border-top: solid 1px #dddddd;
 	border-bottom: solid 1px #dddddd;
-	cursor: ns-resize;
+	cursor: row-resize;
 }
 
 /* NWRows */
@@ -213,7 +213,6 @@ ul.NWRowsSelectable.NWRowsSelectableFlat li.NWSelected {
 	background-position: center center;
 	background-color: #eeeeee;
 	border-left: solid 1px #dddddd;
-	cursor: ew-resize;
 }
 
 #NWSidebarLeft ul {

@@ -25,6 +25,15 @@ NW.io = {
             }
             ajax.open("GET", "./php/loader.php?xml=true", false);
             ajax.send(null);
+            
+            // For some reason, on my computer, it loads so fast in Firefox that the readyState never changes!
+            // Strangely, though, it loads fine (normally) in Safari
+            // So (hopefully just for now)....
+            if(ajax.readyState==4){
+				files = ajax.responseXML; //NOT WORKING
+				console.log(ajax.responseXML);
+			}
+			
             /*console.log(ajax.responseText);
             filesText = ajax.responseText;
             filesXML = ajax.responseXML;
