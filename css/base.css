@@ -380,7 +380,7 @@ ul.NWRowsSelectable.NWRowsSelectableFlat li.NWSelected {
 	width: auto;
 	height: 29px;
 	margin: -6px 0px -6px 180px;
-	cursor: ns-resize;
+	cursor: row-resize;
 	background: none;
 	border: none;
 }
