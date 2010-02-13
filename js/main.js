@@ -246,6 +246,22 @@ NW = {
 				return false;
 				//});
 			},
+			getFieldsDataArray: function() {
+				var fieldsArray = [];
+				var fieldClassName, startFieldPos, endFieldPos, fieldName, data;
+				$(NWEditPage.document.body).children(".NWEditable").each(function() {
+					fieldClassName = $(this)[0].className;
+					
+					startFieldPos = fieldClassName.indexOf("NWField") + 7;
+					endFieldPos = fieldClassName.indexOf("NWZ");
+					fieldName = fieldClassName.substring(startFieldPos, endFieldPos);
+					
+					data = $(this)[0].innerHTML;
+					fieldsArray[fieldName] = data;
+				});
+				
+				return fieldsArray;
+			},
 			alignText: function(e) {
 				var textAlign = this.rel.replace("_justify", "");
 				if (textAlign == "full") textAlign = "justify";

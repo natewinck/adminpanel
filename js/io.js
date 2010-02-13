@@ -16,21 +16,36 @@ NW.io = {
         
         if(ajax != null)
         {
-            ajax.open("GET", "./php/loader.php?xml=true", false);
-            ajax.send(null);
-            //console.log("sending");
-            ajax.onreadystatechange=function()
+        	ajax.onreadystatechange=function()
             {
-            	console.log(ajax.readyState);
                 if(ajax.readyState==4){
-                    filesXML = ajax.responseText; //NOT WORKING
-                    console.log(ajax.responseText);
+                    files = ajax.responseXML; //NOT WORKING
+                    console.log(ajax.responseXML);
                 }
             }
+            ajax.open("GET", "./php/loader.php?xml=true", false);
+            ajax.send(null);
+            /*console.log(ajax.responseText);
+            filesText = ajax.responseText;
+            filesXML = ajax.responseXML;
+            console.log(filesXML);
+			//var parser = new DOMParser();
+			var files = parser.parseFromString(filesText, "text/xml");*/
+			/*console.log(filesXML);
+			files = filesXML;
+			for(var i = 0; i < files.getElementsByTagName("category").length; i++) {
+				var file = new Array();
+				file['cat'] = files.getElementsByTagName("category")[i].getElementsByTagName('cat')[0].childNodes[0].nodeValue;
+				file['name'] = files.getElementsByTagName("category")[i].getElementsByTagName('title')[0].childNodes[0].nodeValue;
+				file['list'] = true;
+				filesArray.push(file);
+			}
+        	console.log(filesArray);*/
+            //console.log("sending");
         }
-        filesXML = ajax.responseText;
+        /*filesXML = ajax.responseText;
         var parser = new DOMParser();
-        var files = parser.parseFromString(filesXML, "text/xml");
+        var files = parser.parseFromString(filesXML, "text/xml");*/
         //console.log(files); 
         for(var i = 0; i < files.getElementsByTagName('name').length; i++)
         {
@@ -166,12 +181,15 @@ NW.io = {
         
         if(ajax != null)
         {
-            var elements = NWEditPage.document.getElementsByClassName("NWEditable");
+            /*var elements = NWEditPage.document.getElementsByClassName("NWEditable");
             var data = new Array();
             for(var i = 0; i < elements.length; i++)
             {
                 data[elements[i].id] = elements[i].innerHTML;
-            }
+            }*/
+            // Get the data
+            var data = NW.editor.functions.getFieldsDataArray();
+            // Serialize it for php
             var dstring = escape(NW.io.serialize_data(data));
             console.log("./php/saver.php?data=" + dstring + "&id=" + file.id);
             ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + file.id + "&cat=draft", false);
@@ -196,6 +214,8 @@ NW.io = {
 		if ($(selected).children(".NWFile")[0]) selected = null;
 		
 		if (!selected) return false;
+		
+		NW.io.save(null, false);
 		
 		NW.filesystem.restoreFileAppearance();
 		
