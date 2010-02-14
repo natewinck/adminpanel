@@ -19,8 +19,8 @@ NW.io = {
         	ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4){
-                    files = ajax.responseXML; //NOT WORKING
-                    console.log(ajax.responseXML);
+                    //files = ajax.responseXML; //NOT WORKING
+                    console.log("test");
                 }
             }
             ajax.open("GET", "./php/loader.php?xml=true", false);
