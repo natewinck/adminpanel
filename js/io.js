@@ -60,8 +60,9 @@ NW.io = {
         {
             var file = new Array();
             file['cat'] = files.getElementsByTagName('table')[i].childNodes[0].nodeValue;
+            file['id'] = files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
             file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
-            file['list'] = true;
+            //file['list'] = true;
             filesArray.push(file);
         }
 		return filesArray;
@@ -74,6 +75,22 @@ NW.io = {
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/malloc/news/");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary Sutherland/Welcome.html");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary%20Sutherland/Updates/77A1D142-8FD9-489B-BC1F-7048A0A3EB2D.html");
+		
+		var isEntry = false; // Variable for if the last opened file was inside the list editor
+		// Code here to figure out if the entry is true
+		
+		if (isEntry) {
+			// Code here for opening the list editor, filling it, then selecting the correct entry
+			// Not sure what everything needs to be; these are all guesses and are temporary
+			var entryButton = document.getElementById(NW.filesystem.createId("entries", 0));
+			NW.filesystem.showListEditor(entryButton);
+			
+			var openedEntry = document.getElementById(NW.filesystem.createId("entries", 0));
+			if (openedPage) $(openedPage).addClass("NWSelected");
+		} else {
+			var openedPage = document.getElementById(NW.filesystem.createId("entries", 0));
+			if (openedPage) $(openedPage).addClass("NWSelected");
+		}
 		
 		NW.io.open("entries", 0);
 	},
@@ -200,8 +217,9 @@ NW.io = {
             var data = NW.editor.functions.getFieldsDataArray();
             // Serialize it for php
             var dstring = escape(NW.io.serialize_data(data));
+            console.log(file);
             console.log("./php/saver.php?data=" + dstring + "&id=" + file.id);
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + file.id + "&cat=draft", false);
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + file.id + "&cat=drafts", true); // DAVID: Not sure if you wanted cat to equal draft (which it was) or drafts (what I changed it to).  It can now save a draft, but it can't load it.
             ajax.send(null);
             ajax.onreadystatechange=function()
             {

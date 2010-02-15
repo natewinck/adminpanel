@@ -117,6 +117,7 @@ NW.dragNumber = {
 			overAllDiv.style.width = window.innerWidth + "px";
 			overAllDiv.style.height = window.innerHeight + "px";
 			overAllDiv.style.background = "none";
+			overAllDiv.style.cursor = "ew-resize";
 			
 			input.parentNode.appendChild(overAllDiv);
 			NW.dragNumber.overAllDiv = overAllDiv;

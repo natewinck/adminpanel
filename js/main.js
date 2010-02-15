@@ -723,7 +723,7 @@ NW = {
 				
 				// Add the events to the image
 				NW.editor.functions.addImageEvents(imageTag);
-				console.log(NW.selectedImage);
+				//console.log(NW.selectedImage);
 				
 				NW.editor.functions.changeImageMargin({setNum: 13, first: true});	// Set a default margin for the image
 				
@@ -1034,7 +1034,7 @@ NW = {
 					// Check to see if image is aligned left or right
 					left: (useRightMargin) ? 0 : Math.round(newMargin)
 				};
-				console.log(NW.whitespace.first_child(NW.selectedImage.parentNode));
+				//console.log(NW.whitespace.first_child(NW.selectedImage.parentNode));
 				// BRING BACK console.log(margin);
 				
 				NW.selectedImage.style.marginTop = margin.top + "px";
@@ -1547,6 +1547,7 @@ NW.listener = {
 
 NW.window = {
 	resize: function() {
+		// This function needs to be cleaned up.  I made a mess when I tried to make some resizes automatic
 		var clientW = window.innerWidth;
 		var clientH = window.innerHeight;
 		
@@ -1574,7 +1575,7 @@ NW.window = {
 					// the difference is zero, that means that the right side is whatever the user wants it to be 
 					// width-width = 0
 					$("#NWLeft").css("width", clientW - parseInt($("#NWRight").css("width")) + "px");
-					console.log("Is user draggable");
+					//console.log("Is user draggable");
 				} else {
 					$("#NWLeft").css("width", minLeftWidth + leftWidthDifference + "px");
 					$("#NWRight").css("width", clientW - minLeftWidth + "px");
@@ -1583,7 +1584,7 @@ NW.window = {
 				
 				//$("#NWRight").css("width", clientW - minLeftWidth + "px");
 				//$("#NWLeft").css("width", clientW - parseInt($("#NWRight").css("width")) + "px");
-				console.log("resized");
+				//console.log("resized");
 			} else {
 				//console.log(NW.window.NWRightNormalWidth);
 				if (NW.window.NWRightNormalWidth) {
@@ -1757,6 +1758,7 @@ NW.innerWindow = {
 			overAllDiv.style.width = window.innerWidth + "px";
 			overAllDiv.style.height = window.innerHeight + "px";
 			overAllDiv.style.background = "none";
+			overAllDiv.style.cursor = (NW.innerWindowDrag.orientation == "horizontal") ? "col-resize" : "row-resize";
 			
 			NW.innerWindowDrag.currentWindow[0].parentNode.appendChild(overAllDiv);
 			NW.innerWindowDrag.overAllDiv = overAllDiv;
