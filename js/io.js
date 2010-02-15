@@ -60,9 +60,13 @@ NW.io = {
         {
             var file = new Array();
             file['cat'] = files.getElementsByTagName('table')[i].childNodes[0].nodeValue;
-            file['id'] = files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
+            // This is completely temporary: using the cat to distinguish if it uses the listEditor (the page in the left sidebar doesn't need the id, since it's not loading a page, only a category of entries.  The reason why is on wave
+            // Ideally, this would actually check file["list"] to detect if it needs the listEditor
+            file['id'] = (file['cat'] == "entries") ? null : files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
             file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
-            //file['list'] = true;
+            // Again, this is completely temporary: using the cat to distinguish if it uses the listEditor.  The reason why is on wave
+            // This should actually check file["list"] to detect if it needs the listEditor
+            file['list'] = (file['cat'] == "entries");
             filesArray.push(file);
         }
 		return filesArray;
@@ -75,24 +79,32 @@ NW.io = {
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/malloc/news/");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary Sutherland/Welcome.html");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary%20Sutherland/Updates/77A1D142-8FD9-489B-BC1F-7048A0A3EB2D.html");
+		var lastOpenFile = {
+			id: "1",
+			cat: "pages",
+			list: true,
+			locked: false
+		};
 		
-		var isEntry = false; // Variable for if the last opened file was inside the list editor
-		// Code here to figure out if the entry is true
+		if (lastOpenFile.locked) return false;
+		
+		if (lastOpenFile.list) var isEntry = true; // Variable for if the last opened file was inside the list editor
 		
 		if (isEntry) {
 			// Code here for opening the list editor, filling it, then selecting the correct entry
 			// Not sure what everything needs to be; these are all guesses and are temporary
-			var entryButton = document.getElementById(NW.filesystem.createId("entries", 0));
-			NW.filesystem.showListEditor(entryButton);
+			var entryButton = document.getElementById(NW.filesystem.createId(lastOpenFile.cat, ""));
+			NW.filesystem.select(null, entryButton);
+			NW.filesystem.showListEditor($(entryButton));
 			
-			var openedEntry = document.getElementById(NW.filesystem.createId("entries", 0));
-			if (openedPage) $(openedPage).addClass("NWSelected");
+			var openedEntry = document.getElementById(NW.filesystem.createId(lastOpenFile.cat, lastOpenFile.id));
+			if (openedEntry) NW.filesystem.select(null, openedEntry);
 		} else {
-			var openedPage = document.getElementById(NW.filesystem.createId("entries", 0));
-			if (openedPage) $(openedPage).addClass("NWSelected");
+			var openedPage = document.getElementById(NW.filesystem.createId(lastOpenFile.cat, lastOpenFile.id));
+			if (openedPage) NW.filesystem.select(null, openedPage);
 		}
 		
-		NW.io.open("entries", 0);
+		NW.io.open(lastOpenFile.cat, lastOpenFile.id);
 	},
 	open: function(cat, id) {
         //Gets an entry from the backend.
@@ -141,17 +153,17 @@ NW.io = {
         {
             ajax.open("GET", "./php/loader.php?xml=true&cat=" + cat, false);
             ajax.send(null);
-            ajax.onreadystatechange=function()
+            /* ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4){
                     filesXML = ajax.responseText; //NOT WORKING
                     //console.log(ajax.responseText);
                 }
-            }
+            }*/
         }
-        filesXML = ajax.responseText;
-        var parser = new DOMParser();
-        var files = parser.parseFromString(filesXML, "text/xml");
+        files = ajax.responseXML;
+        //var parser = new DOMParser();
+        //var files = parser.parseFromString(filesXML, "text/xml");
         //console.log(files.documentElement.children[0]); 
         for(var i = 0; i < files.getElementsByTagName('id').length; i++)
         {

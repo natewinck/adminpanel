@@ -154,7 +154,7 @@ NW.filesystem = {
 				divElement = document.createElement("div");
 				divElement.className = "NWLocked";
 				entryElement.appendChild(divElement);
-			} else if (entry["cat"] == "draft") {
+			} else if (entry["draft"]) {
 				divElement = document.createElement("div");
 				divElement.className = "NWDraft";
 				entryElement.appendChild(divElement);
