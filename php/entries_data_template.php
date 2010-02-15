@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?php header("content-type: text/xml") ?>
 <entries>
 <?php
     foreach($data as $cat)
