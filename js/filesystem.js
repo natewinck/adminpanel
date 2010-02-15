@@ -53,8 +53,10 @@ NW.filesystem = {
 		}
 	},
 	createId: function(cat, id) {
-		var id = "id=" + (id || "") + "&cat=" + (cat || "");
-		return id;
+		if (id == null) id = "";
+		if (cat == null) cat = "";
+		var objId = "id=" + id + "&cat=" + cat;
+		return objId;
 	},
 	parseId: function(objId) {
 		if (!objId) return false;
@@ -306,7 +308,7 @@ NW.filesystem = {
 		// Fill in the files
 		for (var i = 0; i < filesArray.length; i++) {
 			file = filesArray[i];
-			if (file["list"] == false) {
+			if (!file["list"]) {
 				fileElement = document.createElement("li");
 				fileElement.title = file["name"];
 				fileElement.id = NW.filesystem.createId(file["cat"], file["id"]);
