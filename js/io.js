@@ -80,8 +80,8 @@ NW.io = {
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary Sutherland/Welcome.html");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary%20Sutherland/Updates/77A1D142-8FD9-489B-BC1F-7048A0A3EB2D.html");
 		var lastOpenFile = {
-			id: "1",
-			cat: "pages",
+			id: "0",
+			cat: "entries",
 			list: true,
 			locked: false
 		};
