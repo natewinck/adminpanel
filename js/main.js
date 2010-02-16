@@ -1066,6 +1066,18 @@ NW = {
 				//$("#NWEditPage .NWEditable").attr("contenteditable", "true");
 				var editables = $("#NWEditPage").contents().find(".NWEditable");
 				editables.attr("contenteditable", "true");
+				
+				// Disable all links inside the iframe
+				var links = $("#NWEditPage").contents().find("a");
+				links.each(function() {
+					if ($(this).attr("href") != "#"
+						&& $(this).attr("href") != "javascript:;"
+						&& $(this).attr("href") != ""
+						&& !$(this).parents(".NWEditable")[0]
+					) {
+						$(this).click(function(){return false;});
+					}
+				});
 				/*editables.each(function() {
 					$(this)[0].designMode = 'On';
 					console.log($(this)[0]);
