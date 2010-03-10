@@ -553,7 +553,9 @@ NW.quickSelect = {
 			NWSidebarW = parseInt(NWSidebarW);
 			
 			// Find the height of anything above the iframe
-			NWEntryH = 0; // Nothing yet
+			NWEntryH = (document.getElementById("NWListEditor").style.display != "none")
+							? $("#NWListEditor").css("height")
+							: 0; // Find the height of the list editor
 			NWEntryH = parseInt(NWEntryH);
 			
 			
