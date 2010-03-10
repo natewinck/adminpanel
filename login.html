@@ -3,10 +3,19 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Admin Panel | Login</title>
-<script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
-<script type="text/javascript" src="js/jquery-ui-1.7.1.custom.min.js"></script>
+<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8rc3.custom.min.js"></script>
+<script type="text/javascript" src="js/inputlabel.js"></script>
 
 <link href="css/login.css" rel="stylesheet" type="text/css" />
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$(".placeholder").click(onInputFocus);
+	$("#usernameInput, #passwordInput").focus(onInputFocus);
+	$("#usernameInput").focus();
+});
+</script>
 </head>
 
 <body>
@@ -15,8 +24,10 @@
 <div id="loginBox">
 	<div id="loginFormBox">
     	<form id="loginForm">
-        	<input type="text" placeholder="Username" />
-            <input type="password" placeholder="Password" />
+    		<label id="usernameLabel" class="placeholder"><span>Username</span></label>
+        	<input type="text" id="usernameInput" />
+        	<label id="passwordLabel" class="placeholder"><span>Password</span></label>
+            <input type="password" id="passwordInput" />
             <input type="button" id="loginButton" />
         </form>
     </div>

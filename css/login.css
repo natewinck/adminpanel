@@ -1,4 +1,10 @@
 @charset "UTF-8";
+
+@font-face {
+	font-family: "LucidaGrande";
+	src: url('LucidaGrande.dfont');
+}
+
 html, body {
 	height: 100%;
 	width: 100%;
@@ -8,6 +14,8 @@ html, body {
 	background-image: url(../images/LoginPage/AdminPanel_Symbol.png);
 	background-repeat: no-repeat;
 	background-position: -200px center;
+	font-family: "Lucida Grande", "LucidaGrande", Arial, Helvetica, sans-serif;
+	font-size: 12px;
 }
 
 #gradientBottom {
@@ -53,12 +61,36 @@ html, body {
 	width: auto;
 }
 
+#loginBox #loginFormBox #loginForm .placeholder {
+	cursor: text;
+}
+
+#loginBox #loginFormBox #loginForm .placeholder span {
+	position: absolute;
+	line-height: 17px;
+	font-size: 11px;
+	padding: 1px 0px 0px 6px;
+	color: #999999;
+	opacity: 1;
+}
+
+#loginBox #loginFormBox #loginForm .placeholder span.focus {
+	color: #dddddd;
+}
+
+#loginBox #loginFormBox #loginForm .placeholder span.focus.hidden {
+	opacity: 0;
+}
+
 #loginBox #loginFormBox #loginForm input {
 	height: 18px;
 	width: 250px;
+	line-height: 18px;
+	padding: 0px 4px 0px 4px;
 	display: block;
 	background-color: rgba(255, 255, 255, 0.91);
 	border: solid 1px #333333;
+	font-size: 11px;
 	color: #555555;
 	margin-bottom: 5px;
 }

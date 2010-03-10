@@ -177,13 +177,13 @@ NW = {
 				
 				NW.editor.functions.openConfirmWindow("Are you sure you want to revert the page \"" + selected.textContent + "\" to its current public state?", "This action cannot be undone and will delete any changes you have made so far.", NW.io.revert);
 			},
-			togglePublish: function() {
+			togglePublishPage: function() {
 				var publishButton = $(".NWPublishSite .NWToolbarButtonName")[0];
-				if (publishButton.textContent == "Publish Page") {
-					publishButton.textContent = "Publish Site";
-				} else {
-					publishButton.textContent = "Publish Page";
-				}
+				publishButton.textContent = "Publish Page";
+			},
+			togglePublishSite: function() {
+				var publishButton = $(".NWPublishSite .NWToolbarButtonName")[0];
+				publishButton.textContent = "Publish Site";
 			},
 			publishButton: function(e) {
 				if (this.children[1].innerHTML.toUpperCase().indexOf("SITE") != -1) {
@@ -262,15 +262,74 @@ NW = {
 				
 				return fieldsArray;
 			},
-			alignText: function(e) {
-				var textAlign = this.rel.replace("_justify", "");
-				if (textAlign == "full") textAlign = "justify";
+			fireCustomCommand: function(commandName, text) {
+				if (!commandName) return false;
+				var command = NW.editor.commands[commandName];
+				if (!command) return false;
 				
 				var userSelection;
 				if (NWEditPage.getSelection) {
 					userSelection = NWEditPage.getSelection();
+				} else if (NWEditPage.document.selection) { // should come last; Opera!
+					userSelection = NWEditPage.document.selection.createRange();
 				}
-				else if (NWEditPage.document.selection) { // should come last; Opera!
+				
+				var rangeObject;
+				if (userSelection.getRangeAt)
+					rangeObject = userSelection.getRangeAt(0);
+				else { // Safari!
+					var range = document.createRange();
+					range.setStart(userSelection.anchorNode, userSelection.anchorOffset);
+					range.setEnd(userSelection.focusNode, userSelection.focusOffset);
+					rangeObject = range;
+				}
+				
+				if (command.applyToParent && false) {
+					var foundElement = false;
+					$(userSelection.focusNode).parents().each(function() {
+						// if the element is already found, no need to keep looking
+						if (!foundElement) {
+							// Check to see if the current is the contenteditable element
+							// If it is, then apply the css to this
+							if ($(this).hasClass("NWEditable")
+								|| $(this).css("display") != "inline"
+							) {
+								$(this).css(command.css, command.value);
+								foundElement = true;
+							}
+						}
+					});
+				} else {
+					/*var foundElement = false;
+					$(userSelection.focusNode).parents().each(function() {
+						// if the element is already found, no need to keep looking
+						if (!foundElement) {
+							// Check to see if the current is the contenteditable element
+							// If it is, then apply the css to this
+							if ($(this).hasClass("NWEditable")
+								|| $(this).css("display") != "inline"
+							) {
+								var element = NWEditPage.document.createElement("span");
+								//$(element).css("color", "red");
+								element.style.color = "red";
+								console.log(rangeObject);
+								rangeObject.surroundContents(element);
+								foundElement = true;
+							}
+						}
+					});*/
+				}
+			},
+			alignText: function(e) {
+				var textAlign = this.rel.replace("_justify", "");
+				if (textAlign == "full") textAlign = "justify";
+				
+				NW.editor.functions.fireCustomCommand(this.rel.replace("_", ""), "");
+				
+				/*var userSelection;
+				if (NWEditPage.getSelection) {
+					userSelection = NWEditPage.getSelection();
+				} else if (NWEditPage.document.selection) { // should come last; Opera!
 					userSelection = NWEditPage.document.selection.createRange();
 				}
 				
@@ -287,7 +346,7 @@ NW = {
 							foundElement = true;
 						}
 					}
-				});
+				});*/
 				//NW.editor.functions.fireCommand(this.rel.replace("_", ""), false, null);
 			},
 			closeWindow: function() {
@@ -1379,10 +1438,10 @@ NW = {
 		NW.editor.functions.closeConfirmWindow();
 	},
 	onoptiondown: function() {
-		NW.editor.functions.togglePublish();
+		NW.editor.functions.togglePublishSite();
 	},
 	onoptionup: function() {
-		NW.editor.functions.togglePublish();
+		NW.editor.functions.togglePublishPage();
 	},
 	onresize: function() {
 		NW.window.resize();
@@ -1413,6 +1472,15 @@ NW = {
 		
 		// Expand or collapse triangles
 		NW.filesystem.init();
+		
+		/*Range.prototype.surroundContents = function (newNode) {
+			console.log("it worked");
+                // extract and surround contents
+                var content = this.extractContents();
+                this.insertNode(newNode);
+                newNode.appendChild(content);
+                this.selectNode(newNode);
+        };*/
 	},
 	onbeforeunload: function(e) {
 		var selected = NW.filesystem.getSelected();

@@ -180,9 +180,15 @@ NW.filesystem = {
 		var objId = NW.filesystem.parseId(obj[0].id);
 		NW.filesystem.fillListEditor(objId.cat);
 		$("#NWListEditor").css("display", "block");
+		
+		// Resize the list editor
+		NW.window.resize();
 	},
 	hideListEditor: function() {
 		$("#NWListEditor").css("display", "none");
+		
+		// Resize the list editor
+		NW.window.resize();
 	},
 	addEntry: function() {
 		var newEntry = document.createElement("li");
