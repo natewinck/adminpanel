@@ -1,10 +1,10 @@
 <?php 
-    $string = "<categories>\n";
+    $string = "<pages>\n";
     
     foreach($data as $cat)
     {
 
-        $string = $string . "\t<category>\n";
+        $string = $string . "\t<page>\n";
 
         foreach($cat as $key => $value)
         {
@@ -12,10 +12,10 @@
         }
 
 
-        $string = $string . "\t</category>\n";
+        $string = $string . "\t</page>\n";
 
     }
-    $string = $string . "</categories>\n";
+    $string = $string . "</pages>\n";
     $len = strlen($string);
     header("content-type: text/xml");
     header("content-length: $len");

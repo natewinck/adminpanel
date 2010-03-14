@@ -45,7 +45,7 @@ NW.io = {
 			for(var i = 0; i < files.getElementsByTagName("category").length; i++) {
 				var file = new Array();
 				file['cat'] = files.getElementsByTagName("category")[i].getElementsByTagName('cat')[0].childNodes[0].nodeValue;
-				file['name'] = files.getElementsByTagName("category")[i].getElementsByTagName('title')[0].childNodes[0].nodeValue;
+				file['name'] = files.getElementsByTagName("category")[i].getElementsByTagName('name')[0].childNodes[0].nodeValue;
 				file['list'] = true;
 				filesArray.push(file);
 			}
@@ -59,14 +59,14 @@ NW.io = {
         for(var i = 0; i < files.getElementsByTagName('name').length; i++)
         {
             var file = new Array();
-            file['cat'] = files.getElementsByTagName('table')[i].childNodes[0].nodeValue;
+            file['list'] = files.getElementsByTagName('list')[i].childNodes[0].nodeValue;
             // This is completely temporary: using the cat to distinguish if it uses the listEditor (the page in the left sidebar doesn't need the id, since it's not loading a page, only a category of entries.  The reason why is on wave
             // Ideally, this would actually check file["list"] to detect if it needs the listEditor
             file['id'] = (file['cat'] == "entries") ? null : files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
             file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
             // Again, this is completely temporary: using the cat to distinguish if it uses the listEditor.  The reason why is on wave
             // This should actually check file["list"] to detect if it needs the listEditor
-            file['list'] = (file['cat'] == "entries");
+            //file['list'] = (file['cat'] == "entries");
             filesArray.push(file);
         }
 		return filesArray;
@@ -169,9 +169,9 @@ NW.io = {
         {
             var file = new Array();
             file['id'] = files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
-            file['name'] = files.getElementsByTagName('title')[i].childNodes[0].nodeValue;
+            file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
             file['author'] = files.getElementsByTagName('author')[i].childNodes[0].nodeValue;
-            file['cat'] = files.getElementsByTagName('cat')[i].childNodes[0].nodeValue;
+            file['cat'] = files.getElementsByTagName('page')[i].childNodes[0].nodeValue;
             file['draft'] = parseInt(files.getElementsByTagName('draft')[i].childNodes[0].nodeValue);
             file['locked'] = parseInt(files.getElementsByTagName('locked')[i].childNodes[0].nodeValue);
             filesArray.push(file);

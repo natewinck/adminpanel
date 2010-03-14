@@ -49,13 +49,13 @@ NW.filesystem = {
 			// Parse the id into id and cat
 			var file = NW.filesystem.parseId(obj.attr("id"));
 			
-			NW.io.open(file.cat, file.id);
+			NW.io.open(file.id);
 		}
 	},
-	createId: function(cat, id) {
+	createId: function(id) {
 		if (id == null) id = "";
-		if (cat == null) cat = "";
-		var objId = "id=" + id + "&cat=" + cat;
+		//if (cat == null) cat = "";
+		var objId = "id=" + id;// + "&cat=" + cat;
 		return objId;
 	},
 	parseId: function(objId) {
@@ -67,12 +67,12 @@ NW.filesystem = {
 		var id = parseInt(objId.substring(idStartPos, idEndPos));
 		objId = objId.replace(objId.substring(idStartPos - 3, idEndPos + 1), "");
 		
-		var catStartPos = objId.indexOf("cat=") + 4
+		/*var catStartPos = objId.indexOf("cat=") + 4
 		var catEndPos = (objId.indexOf("&") != -1) ? objId.indexOf("&") : objId.length;
 		var cat = objId.substring(catStartPos, catEndPos);
-		objId = objId.replace(objId.substring(catStartPos - 4, catEndPos + 1), "");
+		objId = objId.replace(objId.substring(catStartPos - 4, catEndPos + 1), "");*/
 		
-		return {id: id, cat: cat};
+		return {id: id};//, cat: cat};
 	},
 	getSelected: function() {
 		var selected;
@@ -178,7 +178,7 @@ NW.filesystem = {
 	showListEditor: function(obj) {
 		if (!obj) return false;
 		var objId = NW.filesystem.parseId(obj[0].id);
-		NW.filesystem.fillListEditor(objId.cat);
+		NW.filesystem.fillListEditor(objId.id);
 		$("#NWListEditor").css("display", "block");
 		
 		// Resize the list editor
@@ -367,7 +367,7 @@ NW.filesystem = {
 				
 				fileElement = document.createElement("li");
 				fileElement.title = "Entries for " + file["name"];
-				fileElement.id = NW.filesystem.createId(file["cat"], file["id"]);
+				fileElement.id = NW.filesystem.createId(file["id"]);
 				fileElement.className = "listEditor";
 				ulElement.appendChild(fileElement);
 				
