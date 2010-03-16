@@ -1,10 +1,14 @@
-<html>
-    <head>
-        <title><?php echo $data['title']; ?></title>
-    </head>
-    <body>
-        <div class="NWEditable NWFieldtitleNWZ" id="title"><?php echo $data['title']; ?></div>
-        <div class="NWEditable NWFieldbodyNWZ" id="body"><?php echo $data['body']; ?></div>
-        <div class="NWEditable NWFieldauthorNWZ" id="author"><?php echo $data['author']; ?></div>
-    </body>
-</html>
+<?php
+	$string = "<html>\n\t<head>\n\t\t<title>";
+	$string = $string . $data['name'] . "</title>\n\t</head>\n\t<body>\n";
+
+	foreach($data as $key => $value)
+	{
+		$string = $string . "\t\t<div class=\"NWEditable NWFieldtitleNWZ\" id=\"$key\">$value</div>\n";
+	}
+	$string = $string . "</body>\n</html>";
+	$len = strlen($string);
+	header("content-type: text/html");
+	header("content-length: $len");
+	echo $string;
+?>

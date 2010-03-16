@@ -116,10 +116,11 @@ NW.io = {
         {
             document.getElementById("NWEditPage").src = './php/loader.php?id=' + id + '&cat=' + cat;
         }
-        else
+        else if(cat == null)
         {
-            document.getElementById("NWEditPage").src = './php/loader.php?cat=' + cat;
+            document.getElementById("NWEditPage").src = './php/loader.php?cat=' + id;
         }
+		
 		
 		// BRING BACK console.log("File Opened");
 		// To prevent caching of the iframe, I found that setting the id to something else like "new Date().getTime()
