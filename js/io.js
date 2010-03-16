@@ -62,7 +62,7 @@ NW.io = {
             file['list'] = files.getElementsByTagName('list')[i].childNodes[0].nodeValue;
             // This is completely temporary: using the cat to distinguish if it uses the listEditor (the page in the left sidebar doesn't need the id, since it's not loading a page, only a category of entries.  The reason why is on wave
             // Ideally, this would actually check file["list"] to detect if it needs the listEditor
-            file['id'] = (file['cat'] == "entries") ? null : files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
+            file['id'] = files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
             file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
             // Again, this is completely temporary: using the cat to distinguish if it uses the listEditor.  The reason why is on wave
             // This should actually check file["list"] to detect if it needs the listEditor
@@ -80,8 +80,8 @@ NW.io = {
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary Sutherland/Welcome.html");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary%20Sutherland/Updates/77A1D142-8FD9-489B-BC1F-7048A0A3EB2D.html");
 		var lastOpenFile = {
-			id: "0",
-			cat: "entries",
+			pageId: "1",
+			entryId: "1",
 			list: true,
 			locked: false
 		};
@@ -93,32 +93,35 @@ NW.io = {
 		if (isEntry) {
 			// Code here for opening the list editor, filling it, then selecting the correct entry
 			// Not sure what everything needs to be; these are all guesses and are temporary
-			var entryButton = document.getElementById(NW.filesystem.createId(lastOpenFile.cat, ""));
+			var entryButton = document.getElementById(
+									NW.filesystem.createId(lastOpenFile.pageId, null, true)
+							);
+			console.log(NW.filesystem.createId(lastOpenFile.pageId, lastOpenFile.entryId, true));
 			NW.filesystem.select(null, entryButton);
 			NW.filesystem.showListEditor($(entryButton));
 			
-			var openedEntry = document.getElementById(NW.filesystem.createId(lastOpenFile.cat, lastOpenFile.id));
+			var openedEntry = document.getElementById(NW.filesystem.createId(lastOpenFile.pageId, lastOpenFile.entryId));
 			if (openedEntry) NW.filesystem.select(null, openedEntry);
 		} else {
-			var openedPage = document.getElementById(NW.filesystem.createId(lastOpenFile.cat, lastOpenFile.id));
+			var openedPage = document.getElementById(NW.filesystem.createId(lastOpenFile.pageId));
 			if (openedPage) NW.filesystem.select(null, openedPage);
 		}
 		
 		NW.io.open(lastOpenFile.cat, lastOpenFile.id);
 	},
-	open: function(cat, id) {
+	open: function(pageId, entryId) {
+		if (pageId == null) return false;
         //Gets an entry from the backend.
         //id is always an integer, cat is a string
         //IF id is left off then it gets multiple entries.
         //console.log(id);
         
-        if(id != null)
-        {
-            document.getElementById("NWEditPage").src = './php/loader.php?id=' + id + '&cat=' + cat;
-        }
-        else if(cat == null)
-        {
-            document.getElementById("NWEditPage").src = './php/loader.php?cat=' + id;
+        if (entryId != null) {
+        	// Load an entry
+            document.getElementById("NWEditPage").src = './php/loader.php?pageId=' + pageId + '&entryId=' + entryId;
+        } else if (cat == null) {
+        	// Load a page
+            document.getElementById("NWEditPage").src = './php/loader.php?pageId=' + pageId;
         }
 		
 		
@@ -134,7 +137,7 @@ NW.io = {
 		// This may need to be more specific eventually
 		document.getElementById("NWEditPage").src = "";
 	},
-	getListEntriesArray: function(cat) {
+	getListEntriesArray: function(pageId) {
 		// Code here for getting the array of all the entries
 		// Code here for getting the array of all the files
 		var filesXML = null;
@@ -152,7 +155,7 @@ NW.io = {
         
         if(ajax != null)
         {
-            ajax.open("GET", "./php/loader.php?xml=true&cat=" + cat, false);
+            ajax.open("GET", "./php/loader.php?xml=true&pageId=" + pageId, false); //DAVID: &pageId could be anything; I just thought that was very self explanatory
             ajax.send(null);
             /* ajax.onreadystatechange=function()
             {
@@ -170,9 +173,9 @@ NW.io = {
         {
             var file = new Array();
             file['id'] = files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
+            file['pageId'] = files.getElementsByTagName('page')[i].childNodes[0].nodeValue;
             file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
             file['author'] = files.getElementsByTagName('author')[i].childNodes[0].nodeValue;
-            file['cat'] = files.getElementsByTagName('page')[i].childNodes[0].nodeValue;
             file['draft'] = parseInt(files.getElementsByTagName('draft')[i].childNodes[0].nodeValue);
             file['locked'] = parseInt(files.getElementsByTagName('locked')[i].childNodes[0].nodeValue);
             filesArray.push(file);
@@ -232,7 +235,10 @@ NW.io = {
             var dstring = escape(NW.io.serialize_data(data));
             //console.log(file);
             //console.log("./php/saver.php?data=" + dstring + "&id=" + file.id);
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + file.id + "&cat=drafts", true); // DAVID: Not sure if you wanted cat to equal draft (which it was) or drafts (what I changed it to).  It can now save a draft, but it can't load it.
+            
+            // DAVID: I put entryId in this as well; not sure if this is how it should be
+            // Also, I have a feeling "cat=drafts" is outdated, but I'm not sure
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&pageId=" + file.pageId + "&entryId=" + file.entryId + "&cat=drafts", true); // DAVID: Not sure if you wanted cat to equal draft (which it was) or drafts (what I changed it to).  It can now save a draft, but it can't load it.
             ajax.send(null);
             ajax.onreadystatechange=function()
             {
@@ -273,12 +279,12 @@ NW.io = {
 			if (!selected) return false;
 			
 			var file = NW.filesystem.parseId(selected.id);
-			var id = file.id;
-			var cat = file.cat;
+			var pageId = file.pageId;
+			var entryId = file.entryId;
 		} else {
 			var file = NW.filesystem.parseId(objId);
-			var id = file.id;
-			var cat = file.cat;
+			var pageId = file.pageId;
+			var entryId = file.entryId;
 		}
 		
 		var useLoadingWindow = (useLoadingWindow == false) ? useLoadingWindow : true;
@@ -305,7 +311,9 @@ NW.io = {
             var dstring = escape(NW.io.serialize_data(data));
             //console.log("./php/saver.php?data=" + dstring + "&id=" + id);
             // DAVID: I believe there is a mistake here: you have the cat=drafts. Shouldn't it be cat=public or whatever you're calling it?
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + id + "&cat=drafts"/* + $(".NWSelected").attr("cat")*/, false);
+           
+           	// DAVID: I'm pretty sure this shouldn't have "cat=drafts"
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&pageId=" + pageId + "&entryId=" + entryId + "&cat=drafts"/* + $(".NWSelected").attr("cat")*/, false);
             ajax.send(null);
             ajax.onreadystatechange=function()
             {
