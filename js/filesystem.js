@@ -375,7 +375,7 @@ NW.filesystem = {
 				fileElement = document.createElement("li");
 				fileElement.title = file["name"];
 				fileElement.className = "NWRowCategoryHeader";
-				//fileElement.id = file["headerId"];		// Bring back if we want to load the overall entries page
+				fileElement.id = NW.filesystem.createId(file["id"]);		// Create the id for the overall entries page
 				siteElement.appendChild(fileElement);
 				
 				divElement = document.createElement("div");

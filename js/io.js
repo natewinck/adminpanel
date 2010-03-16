@@ -119,7 +119,7 @@ NW.io = {
         if (entryId != null) {
         	// Load an entry
             document.getElementById("NWEditPage").src = './php/loader.php?pageId=' + pageId + '&entryId=' + entryId;
-        } else if (cat == null) {
+        } else {
         	// Load a page
             document.getElementById("NWEditPage").src = './php/loader.php?pageId=' + pageId;
         }
