@@ -20,7 +20,7 @@ NW.io = {
             {
                 if(ajax.readyState==4){
                     //files = ajax.responseXML; //NOT WORKING
-                    console.log("test");
+                    //console.log("test");
                 }
             }
             ajax.open("GET", "./php/loader.php?xml=true", false);
@@ -31,7 +31,7 @@ NW.io = {
             // So (hopefully just for now)....
             if(ajax.readyState==4){
 				files = ajax.responseXML; //NOT WORKING
-				console.log(ajax.responseXML);
+				//console.log(ajax.responseXML);
 			}
 			
             /*console.log(ajax.responseText);
@@ -229,8 +229,8 @@ NW.io = {
             var data = NW.editor.functions.getFieldsDataArray();
             // Serialize it for php
             var dstring = escape(NW.io.serialize_data(data));
-            console.log(file);
-            console.log("./php/saver.php?data=" + dstring + "&id=" + file.id);
+            //console.log(file);
+            //console.log("./php/saver.php?data=" + dstring + "&id=" + file.id);
             ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + file.id + "&cat=drafts", true); // DAVID: Not sure if you wanted cat to equal draft (which it was) or drafts (what I changed it to).  It can now save a draft, but it can't load it.
             ajax.send(null);
             ajax.onreadystatechange=function()
@@ -239,7 +239,7 @@ NW.io = {
                 	// When done saving, close the loading window
                 	NW.editor.functions.closeLoadingWindow();
                 	$(selected).removeClass("NWUnsaved");
-                    console.log(ajax.responseText);
+                    //console.log(ajax.responseText);
                 }
             }
         }
@@ -302,7 +302,7 @@ NW.io = {
                 data[elements[i].id] = elements[i].innerHTML;
             }
             var dstring = escape(NW.io.serialize_data(data));
-            console.log("./php/saver.php?data=" + dstring + "&id=" + id);
+            //console.log("./php/saver.php?data=" + dstring + "&id=" + id);
             // DAVID: I believe there is a mistake here: you have the cat=drafts. Shouldn't it be cat=public or whatever you're calling it?
             ajax.open("GET", "./php/saver.php?data=" + dstring + "&id=" + id + "&cat=drafts"/* + $(".NWSelected").attr("cat")*/, false);
             ajax.send(null);
@@ -340,7 +340,7 @@ NW.io = {
 						NW.filesystem.restoreFileAppearance();
 						if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
                 	}
-                    console.log(ajax.responseText);
+                    //console.log(ajax.responseText);
                 }
             }
         }
