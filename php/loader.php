@@ -2,10 +2,10 @@
     require "mysql_backend.php";
     
     //print_r($_GET);
-    if(isset($_GET['id']) && is_numeric($_GET['id']) && isset($_GET['cat'])) //Get a single Entry
+    if(isset($_GET['pageId']) && is_numeric($_GET['pageId']) && isset($_GET['entryId'])) //Get a single Entry
     {
         $con = get_connection(); 
-        $data = get_entry($con, $_GET['cat'], 'id', $_GET['id']);
+        $data = get_entry($con, $_GET['pageId'], 'id', $_GET['entryId']);
 		if($data['data'] != NULL)
 		{
 			$data_col = unserialize(base64_decode($data['data'])); //Data array in the DB is serialized and B64d, so we need to undo it.
@@ -22,20 +22,20 @@
 		unset($data['locked']);
         include("entry_template.php");
     }
-    else if(isset($_GET['cat']) && isset($_GET['xml'])) //Get list of entries in XML form
+    else if(isset($_GET['pageId']) && isset($_GET['xml'])) //Get list of entries in XML form
     {
         $con = get_connection();
         if(isset($_GET['start']) && isset($_GET['max']))
         {
-            $data = get_entries($con, $_GET['cat'], $_GET['start'], $_GET['max']);
+            $data = get_entries($con, $_GET['pageId'], $_GET['start'], $_GET['max']);
         }
         else if(isset($_GET['start']))
         {
-            $data = get_entries($con, $_GET['cat'], $_GET['start']);
+            $data = get_entries($con, $_GET['pageId'], $_GET['start']);
         }
         else
         {
-            $data = get_entries($con, $_GET['cat']);
+            $data = get_entries($con, $_GET['pageId']);
         }
         foreach($data as $row)
         {
@@ -52,20 +52,20 @@
         }
         include("entries_data_template.php");
     }
-    else if(isset($_GET['cat'])) //Get a list of entries
+    else if(isset($_GET['pageId'])) //Get a list of entries
     {
         $con = get_connection();
         if(isset($_GET['start']) && isset($_GET['max']))
         {
-            $data = get_entries($con, $_GET['cat'], $_GET['start'], $_GET['max']);
+            $data = get_entries($con, $_GET['pageId'], $_GET['start'], $_GET['max']);
         }
         else if(isset($_GET['start']))
         {
-            $data = get_entries($con, $_GET['cat'], $_GET['start']);
+            $data = get_entries($con, $_GET['pageId'], $_GET['start']);
         }
         else
         {
-            $data = get_entries($con, $_GET['cat']);
+            $data = get_entries($con, $_GET['pageId']);
         }
         //include("entries_template.php");
     }
