@@ -49,33 +49,61 @@ NW.filesystem = {
 			// Parse the id into id and cat
 			var file = NW.filesystem.parseId(obj.attr("id"));
 			
-			if(file.cat == "") file.cat = null;
-			if(file.id == "") file.id = null;
-			
-			NW.io.open(file.cat, file.id);
+			NW.io.open(file.pageId, file.entryId);
 		}
 	},
-	createId: function(cat, id) {
-		if (id == null) id = "";
-		if (cat == null) cat = "";
-		var objId = "id=" + id + "&cat=" + cat;
+	createId: function(pageId, entryId, listEditor) {
+		if (pageId == null) pageId = "";
+		if (entryId == null) entryId = "";
+		if (listEditor == null) listEditor = "";
+		var objId = "pageId=" + pageId + "&entryId=" + entryId + "&listEditor=" + listEditor;
 		return objId;
 	},
 	parseId: function(objId) {
 		if (!objId) return false;
-		
-		var idStartPos = objId.indexOf("id=") + 3;
-		var idEndPos = (objId.indexOf("&") != -1) ? objId.indexOf("&") : objId.length;
+		/*
+		var pageIdStartPos = objId.indexOf("pageId=") + 7; // 7 == length of "pageId="
+		var pageIdEndPos = (objId.indexOf("&") != -1) ? objId.indexOf("&") : objId.length;
 		// Assuming the id is a number, use the parseInt() function
-		var id = parseInt(objId.substring(idStartPos, idEndPos));
-		objId = objId.replace(objId.substring(idStartPos - 3, idEndPos + 1), "");
+		var pageId = parseInt(objId.substring(pageIdStartPos, pageIdEndPos));
+		objId = objId.replace(objId.substring(PageIdStartPos - 3, pageIdEndPos + 1), "");
 		
-		var catStartPos = objId.indexOf("cat=") + 4
-		var catEndPos = (objId.indexOf("&") != -1) ? objId.indexOf("&") : objId.length;
+		var entryIdStartPos = objId.indexOf("cat=") + 4
+		var entryIdEndPos = (objId.indexOf("&") != -1) ? objId.indexOf("&") : objId.length;
 		var cat = objId.substring(catStartPos, catEndPos);
 		objId = objId.replace(objId.substring(catStartPos - 4, catEndPos + 1), "");
 		
 		return {id: id, cat: cat};
+		*/
+		var tempObjId = objId;
+		var name, nameStartPos, nameEndPos, data, dataStartPos, dataEndPos;
+		var parsedId = [];
+		while (tempObjId.length > 0) {
+			// The name start position will always be zero
+			nameStartPos = 0;
+			// Find where the name ends
+			nameEndPos = tempObjId.indexOf("=");
+			// Extract the name
+			name = tempObjId.substring(nameStartPos, nameEndPos);
+			// Delete the name and the "=" sign from the string
+			tempObjId = tempObjId.replace(tempObjId.substring(nameStartPos, nameEndPos + 1), "");
+			
+			// The data start position will always be zero
+			dataStartPos = 0;
+			// Find where the data ends
+			dataEndPos = (tempObjId.indexOf("&") != -1) ? tempObjId.indexOf("&") : tempObjId.length;
+			// Extract the data
+			data = tempObjId.substring(dataStartPos, dataEndPos);
+			// If the data is an empty string, make it null
+			data = (data == "") ? null : data;
+			// Delete the "&" sign and the data from the string
+			tempObjId = tempObjId.replace(tempObjId.substring(dataStartPos, dataEndPos + 1), "");
+			
+			// Add the data to a dictionary array
+			parsedId[name] = data;
+		}
+		
+		return parsedId;
 	},
 	getSelected: function() {
 		var selected;
@@ -131,9 +159,9 @@ NW.filesystem = {
 		var className = (isDraft) ? "NWDraft" : "NWFile";
 		$("#" + id).removeClass("NWNonSelectable").children("div:first").removeClass().addClass(className);
 	},
-	fillListEditor: function(id) {
+	fillListEditor: function(pageId) {
 		// Get list array via ajax
-		var listArray = NW.io.getListEntriesArray(id);
+		var listArray = NW.io.getListEntriesArray(pageId);
 		
 		if (!listArray) return;
 		
@@ -147,7 +175,7 @@ NW.filesystem = {
 		for (var i = 0; i < listArray.length; i++) {
 			entry = listArray[i];
 			entryElement = document.createElement("li");
-			entryElement.id = NW.filesystem.createId(entry["cat"], entry["id"]);
+			entryElement.id = NW.filesystem.createId(entry["pageId"], entry["id"]);
 			entryElement.title = entry["name"];
 			if (entry["locked"]) entryElement.className = "NWNonSelectable";
 			
@@ -181,14 +209,9 @@ NW.filesystem = {
 	showListEditor: function(obj) {
 		if (!obj) return false;
 		var objId = NW.filesystem.parseId(obj[0].id);
-		if(objId.cat == "")
-		{
-			NW.filesystem.fillListEditor(objId.id);
-		}
-		else
-		{
-			NW.filesystem.fillListEditor(objId.id);
-		}
+		
+		NW.filesystem.fillListEditor(objId.pageId);
+		
 		$("#NWListEditor").css("display", "block");
 		
 		// Resize the list editor
@@ -327,7 +350,7 @@ NW.filesystem = {
 			if (!file["list"]) {
 				fileElement = document.createElement("li");
 				fileElement.title = file["name"];
-				fileElement.id = NW.filesystem.createId(file["cat"], file["id"]);
+				fileElement.id = NW.filesystem.createId(file["id"]);
 				if (file["locked"]) fileElement.className = "NWNonSelectable";
 				siteElement.appendChild(fileElement);
 				
@@ -377,7 +400,7 @@ NW.filesystem = {
 				
 				fileElement = document.createElement("li");
 				fileElement.title = "Entries for " + file["name"];
-				fileElement.id = NW.filesystem.createId(file["cat"], file["id"]);
+				fileElement.id = NW.filesystem.createId(file["id"], null, true);
 				fileElement.className = "listEditor";
 				ulElement.appendChild(fileElement);
 				
