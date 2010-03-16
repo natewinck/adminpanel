@@ -16,6 +16,10 @@
 		{
 			unset($data['data']);
 		}
+		unset($data['rank']);
+		unset($data['draft']);
+		unset($data['page']);
+		unset($data['locked']);
         include("entry_template.php");
     }
     else if(isset($_GET['cat']) && isset($_GET['xml'])) //Get list of entries in XML form
