@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 14, 2010 at 10:02 PM
+-- Generation Time: Apr 16, 2010 at 09:54 PM
 -- Server version: 5.1.36
 -- PHP Version: 5.3.0
 
@@ -25,20 +25,23 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 -- Table structure for table `drafts`
 --
 
-DROP TABLE IF EXISTS `drafts`;
 CREATE TABLE IF NOT EXISTS `drafts` (
-  `page_id` int(11) DEFAULT NULL,
-  `entry_id` int(11) DEFAULT NULL,
+  `page_id` int(11) NOT NULL DEFAULT '0',
+  `entry_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
   `data` text NOT NULL,
-  `lock` int(11) DEFAULT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  `lockuid` int(11) DEFAULT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`entry_id`),
+  KEY `page_id` (`page_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
 
 --
 -- Dumping data for table `drafts`
 --
 
+INSERT INTO `drafts` (`page_id`, `entry_id`, `name`, `data`, `lockuid`, `timestamp`) VALUES
+(1, 1, 'Bleach', '', 0, '2010-04-16 17:49:04');
 
 -- --------------------------------------------------------
 
@@ -46,7 +49,6 @@ CREATE TABLE IF NOT EXISTS `drafts` (
 -- Table structure for table `entries`
 --
 
-DROP TABLE IF EXISTS `entries`;
 CREATE TABLE IF NOT EXISTS `entries` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Numeric ID',
   `name` text NOT NULL COMMENT 'Entry Name',
@@ -65,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `entries` (
 --
 
 INSERT INTO `entries` (`id`, `name`, `data`, `author`, `rank`, `draft`, `page`, `locked`, `timestamp`) VALUES
-(1, 'Bleach', NULL, 0, -1, 0, 1, 0, '2010-03-14 16:32:52');
+(1, 'Bleach', NULL, 0, -1, 0, 1, 0, '2010-04-16 17:49:17');
 
 -- --------------------------------------------------------
 
@@ -73,7 +75,6 @@ INSERT INTO `entries` (`id`, `name`, `data`, `author`, `rank`, `draft`, `page`, 
 -- Table structure for table `pages`
 --
 
-DROP TABLE IF EXISTS `pages`;
 CREATE TABLE IF NOT EXISTS `pages` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Numeric ID',
   `name` text NOT NULL COMMENT 'Page Name',
@@ -92,4 +93,4 @@ CREATE TABLE IF NOT EXISTS `pages` (
 --
 
 INSERT INTO `pages` (`id`, `name`, `data`, `author`, `rank`, `draft`, `list`, `locked`, `timestamp`) VALUES
-(1, 'Anime', NULL, 0, -1, 0, 1, 0, '0000-00-00 00:00:00');
+(1, 'Bleach', NULL, 0, -1, 0, 1, 0, '2010-03-14 16:32:52');

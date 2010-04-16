@@ -71,31 +71,11 @@
         return $entries[0]; //Return it
     }
     
-    //** Function to add an entry **//
-    
-    //** Function to update an entry **//
-    function update_entry($con, $data)
-    {
-        $table = $data['page'];
-        unset($data['page']);
-        $id = $data['id'];
-        unset($data['id']);
-        foreach($data as $field => $value)
-        {
-            $query = "UPDATE $table SET $field = \"$value\" WHERE id = $id";
-            print($query . "\n");
-            $result = mysql_query($query, $con);
-        }
-    }
-    
     //** Function to draft an entry **//
-    function draft_entry($con, $data)
+    function modify_data($con, $data)
     {
-        $table = $data['page'];
-        unset($data['page']);
-        $data['pageid'] = $data['id'];
-        unset($data['id']);
-        $pageid = $data['pageid'];
+        $table = $data['type'];
+        unset($data['type']);
         
         $query = "INSERT INTO $table (";
         $fields = "";
@@ -107,18 +87,20 @@
             if(is_numeric($value))
             {
                 $values = $values . $value . ",";
-                $update = $update . $field . "=" . $value . ", ";
+                //$update = $update . $field . "=" . $value . ", ";
+				if($field != 'id') $update = "$update $field=VALUES($field),";
             }
             else
             {
                 $values = $values . "\"" . $value . "\",";
-                $update = $update . $field . "=\"" . $value . "\", ";
+                //$update = $update . $field . "=\"" . $value . "\", ";
+				if($field != 'id') $update = "$update $field=VALUES($field),";
             }
         }
         $fields = substr_replace($fields, "", -1);
         $values = substr_replace($values, "", -1);
-        $update = substr_replace($update, "", -2);
-        $query = $query . "$fields) VALUES ($values) ON DUPLICATE KEY UPDATE $update";
+        $update = substr_replace($update, "", -1);
+        $query = $query . "$fields) VALUES ($values) ON DUPLICATE KEY UPDATE $update;";
         print($query . "\n");
         $result = mysql_query($query, $con);
         print(mysql_error());

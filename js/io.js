@@ -193,7 +193,7 @@ NW.io = {
 		
 		return id;
 	},
-	save: function(obj, useLoadingWindow) {
+	save: function(obj, useLoadingWindow, not_draft) {
 		// Find the selected object
 		if (obj && obj.target) obj = null;
 		var selected = obj || null;
@@ -236,16 +236,48 @@ NW.io = {
             //console.log(file);
             //console.log("./php/saver.php?data=" + dstring + "&id=" + file.id);
             
+			var draftString = "";
+			if(!not_draft) draftString = "&draft=true";
+			
             // DAVID: I put entryId in this as well; not sure if this is how it should be
             // Also, I have a feeling "cat=drafts" is outdated, but I'm not sure
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&pageId=" + file.pageId + "&entryId=" + file.entryId + "&cat=drafts", true); // DAVID: Not sure if you wanted cat to equal draft (which it was) or drafts (what I changed it to).  It can now save a draft, but it can't load it.
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&page=" + file.pageId + "&entry=" + file.entryId + draftString, true); // DAVID: Not sure if you wanted cat to equal draft (which it was) or drafts (what I changed it to).  It can now save a draft, but it can't load it.
             ajax.send(null);
             ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4){
-                	// When done saving, close the loading window
-                	NW.editor.functions.closeLoadingWindow();
-                	$(selected).removeClass("NWUnsaved");
+					if(not_draft)
+					{
+						if (NW.filesystem.allDraftsForPublish) {
+							var draft;
+							for (var draftArrayIndex in NW.filesystem.allDraftsForPublish) {
+								draft = NW.filesystem.allDraftsForPublish[draftArrayIndex];
+								if (draft.id == objId) {
+									if (document.getElementById(draft.id)) {
+										// Use the if statement just in case this id is of a hidden (and thus unloaded) list editor draft
+										NW.filesystem.restoreFileAppearance(document.getElementById(draft.id));
+									}
+									NW.filesystem.allDraftsForPublish.splice(draftArrayIndex, 1);
+								}
+							}
+							
+							// When all of the drafts have been published, close the loading window
+							if (NW.filesystem.allDraftsForPublish.length == 0) {
+								NW.editor.functions.closeLoadingWindow();
+								NW.filesystem.allDraftsForPublish = null;
+							}
+						} else {
+							// When done publishing, close the loading window and restore appearance
+							NW.filesystem.restoreFileAppearance();
+							if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
+						}
+					}
+					else
+					{
+						// When done saving, close the loading window
+						NW.editor.functions.closeLoadingWindow();
+						$(selected).removeClass("NWUnsaved");
+					}
                     //console.log(ajax.responseText);
                 }
             }
@@ -269,90 +301,7 @@ NW.io = {
 		
 	},
 	publishPage: function(objId, useLoadingWindow) {
-		// Code for publishing
-		// The difference between this and save is that save just saves the current state of the page...
-		// Publish actually puts the page out onto the web to viewed
-		if (!objId) {
-			var selected = NW.filesystem.getSelected() || null;
-			if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
-			
-			if (!selected) return false;
-			
-			var file = NW.filesystem.parseId(selected.id);
-			var pageId = file.pageId;
-			var entryId = file.entryId;
-		} else {
-			var file = NW.filesystem.parseId(objId);
-			var pageId = file.pageId;
-			var entryId = file.entryId;
-		}
-		
-		var useLoadingWindow = (useLoadingWindow == false) ? useLoadingWindow : true;
-		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Publishing Page...");
-		
-		ajax = null;
-        if(window.XMLHttpRequest)
-        {
-            ajax = new XMLHttpRequest();
-        }
-        else
-        {
-            ajax = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        
-        if(ajax != null)
-        {
-            var elements = NWEditPage.document.getElementsByClassName("NWEditable");
-            var data = new Array();
-            for(var i = 0; i < elements.length; i++)
-            {
-                data[elements[i].id] = elements[i].innerHTML;
-            }
-            var dstring = escape(NW.io.serialize_data(data));
-            //console.log("./php/saver.php?data=" + dstring + "&id=" + id);
-            // DAVID: I believe there is a mistake here: you have the cat=drafts. Shouldn't it be cat=public or whatever you're calling it?
-           
-           	// DAVID: I'm pretty sure this shouldn't have "cat=drafts"
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&pageId=" + pageId + "&entryId=" + entryId + "&cat=drafts"/* + $(".NWSelected").attr("cat")*/, false);
-            ajax.send(null);
-            ajax.onreadystatechange=function()
-            {
-                if(ajax.readyState==4){
-                	// Check to see if this is publishing all the drafts
-                	// If so, close the loading window only after the last page
-                	/*if (NW.filesystem.lastPage) {
-                		if (NW.filesystem.lastPage.id == (objId || selected.id)) {
-                			NW.editor.functions.closeLoadingWindow();
-                			NW.filesystem.lastPage = null;
-                		}
-                	}*/
-                	if (NW.filesystem.allDraftsForPublish) {
-                		var draft;
-                		for (var draftArrayIndex in NW.filesystem.allDraftsForPublish) {
-                			draft = NW.filesystem.allDraftsForPublish[draftArrayIndex];
-                			if (draft.id == objId) {
-                				if (document.getElementById(draft.id)) {
-                					// Use the if statement just in case this id is of a hidden (and thus unloaded) list editor draft
-                					NW.filesystem.restoreFileAppearance(document.getElementById(draft.id));
-                				}
-                				NW.filesystem.allDraftsForPublish.splice(draftArrayIndex, 1);
-                			}
-                		}
-                		
-                		// When all of the drafts have been published, close the loading window
-                		if (NW.filesystem.allDraftsForPublish.length == 0) {
-                			NW.editor.functions.closeLoadingWindow();
-                			NW.filesystem.allDraftsForPublish = null;
-                		}
-                	} else {
-						// When done publishing, close the loading window and restore appearance
-						NW.filesystem.restoreFileAppearance();
-						if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
-                	}
-                    //console.log(ajax.responseText);
-                }
-            }
-        }
+		NW.io.save(objId, useLoadingWindow, true);
 	},
 	publishSite: function() {
 		// DAVID: I believe I have completed this function, and you shouldn't even have to touch it,
