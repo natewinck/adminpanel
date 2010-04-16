@@ -252,9 +252,10 @@ NW = {
 				$(NWEditPage.document.body).children(".NWEditable").each(function() {
 					fieldClassName = $(this)[0].className;
 					
-					startFieldPos = fieldClassName.indexOf("NWField") + 7;
-					endFieldPos = fieldClassName.indexOf("NWZ");
-					fieldName = fieldClassName.substring(startFieldPos, endFieldPos);
+					//startFieldPos = fieldClassName.indexOf("NWField") + 7;
+					//endFieldPos = fieldClassName.indexOf("NWZ");
+					//fieldName = fieldClassName.substring(startFieldPos, endFieldPos);
+					fieldName = $(this)[0].id;
 					
 					data = $(this)[0].innerHTML;
 					fieldsArray[fieldName] = data;
