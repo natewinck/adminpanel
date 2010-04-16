@@ -96,6 +96,8 @@ NW.filesystem = {
 			data = tempObjId.substring(dataStartPos, dataEndPos);
 			// If the data is an empty string, make it null
 			data = (data == "") ? null : data;
+			// If data is a number inside a string, make it a number
+			data = (isNaN(parseInt(data))) ? data : parseInt(data);
 			// Delete the "&" sign and the data from the string
 			tempObjId = tempObjId.replace(tempObjId.substring(dataStartPos, dataEndPos + 1), "");
 			
