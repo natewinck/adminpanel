@@ -21,19 +21,24 @@ NW.filesystem = {
 			NW.filesystem.triangleClick = false;
 			return false;
 		}
+		
+		var topParents = $(".NWSelected").parents(".NWSelectable:last");
+		topParents.each(function() {
+			var prevSelected = $(this).find(".NWSelected");
+			// Save the previously selected page then remove the selected class
+			if (prevSelected[0]) {
+				if (!prevSelected.hasClass("NWRowCategoryHeader")
+					&& !prevSelected.hasClass("listEditor")
+					&& !prevSelected.children(".NWFile")[0]
+					&& prevSelected.hasClass("NWUnsaved")
+				) {
+					NW.io.save(prevSelected[0], false);
+				}
+			}
+		});
+		
 		var topParent = obj.parents(".NWSelectable:last");
 		var prevSelected = topParent.find(".NWSelected");
-		
-		// Save the previously selected page then remove the selected class
-		if (prevSelected[0]) {
-			if (!prevSelected.hasClass("NWRowCategoryHeader")
-				&& !prevSelected.hasClass("listEditor")
-				&& !prevSelected.children(".NWFile")[0]
-				&& prevSelected.hasClass("NWUnsaved")
-			) {
-				NW.io.save(prevSelected[0], false);
-			}
-		}
 		prevSelected.removeClass("NWSelected");
 		
 		//$(".NWSites .NWSelected").removeClass("NWSelected");
@@ -243,6 +248,7 @@ NW.filesystem = {
 		NW.filesystem.select(null, selected);
 		
 		// Code here for actually adding the entry to the database
+		NW.io.addListEntry(selected);
 		
 	},
 	confirmDeleteEntry: function() {
