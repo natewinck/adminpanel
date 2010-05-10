@@ -25,6 +25,23 @@
         return $pages; //Return them
     }
     
+    //** Function to get a single page **//
+    function get_page($con, $page)
+    {
+    	$draftQuery = "SELECT * FROM drafts WHERE page_id = '$page' AND entry_id = -1"; // SQL Statement for drafts
+    	$query = "SELECT * FROM pages WHERE id = '$page'"; // SQL Statement
+    	$result = mysql_query($draftQuery, $con); // Run the Statement for drafts
+    	if (mysql_num_rows($result) == 0) {
+    		$result = mysql_query($query, $con); // Run the Statement
+    	}
+    	$pages = Array(); // Create an empty array
+    	while ($page = mysql_fetch_assoc($result))
+    	{
+    		$pages[] = $page;  // Append them
+    	}
+    	return $pages[0]; // Return it
+    }
+    
     //** Function to get a list of entries **//
     function get_entries($con, $page, $start=NULL, $max=NULL)
     {
@@ -56,13 +73,18 @@
     {
         if(is_numeric($value))
         {
+        	$draftQuery = "SELECT * FROM drafts WHERE entry_id = $value AND page_id = '$page' LIMIT 0,1"; //SQL Statement for drafts
             $query = "SELECT * FROM entries WHERE $field = $value AND page = '$page' LIMIT 0,1"; //SQL Statement
         }
         else
         {
+        	$draftQuery = "SELECT * FROM drafts WHERE entry_id = '$value' AND page_id = '$page' LIMIT 0,1"; //SQL Statement for drafts
             $query = "SELECT * FROM entries WHERE $field = '$value' AND page = '$page' LIMIT 0,1"; //SQL Statement
         }
-        $result = mysql_query($query, $con); //Run the Statement
+        $result = mysql_query($draftQuery, $con); // Run the Statement for drafts
+        if (mysql_num_rows($result) == 0) {
+        	$result = mysql_query($query, $con); //Run the Statement
+        }
         $entries = Array(); //Create an empty array
         while($row = mysql_fetch_assoc($result)) //Loop through the results
         {
@@ -72,7 +94,7 @@
     }
     
     //** Function to draft an entry **//
-    function modify_data($con, $data)
+    function modify_data($con, $data, $publish)
     {
         $table = $data['type'];
         unset($data['type']);
@@ -104,6 +126,22 @@
         print($query . "\n");
         $result = mysql_query($query, $con);
         print(mysql_error());
+        
+        // Now delete the draft of the page or entry
+        if ($table != "drafts" && $data['draft'] != 1) {
+        	if ($table == "entries") {
+        		$pageId = $data["page"];
+        		$entryId = $data["id"];
+        	} else {
+        		$pageId = $data["id"];
+        		$entryId = -1;
+        	}
+        	
+        	$query = "DELETE FROM drafts WHERE page_id=" . $pageId . " AND entry_id=$entryId;";
+        	print($query . "\n");
+        	$result = mysql_query($query, $con);
+        	print(mysql_error());
+        }
     }
     
 ?>
