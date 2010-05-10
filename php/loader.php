@@ -55,7 +55,7 @@
     else if(isset($_GET['pageId'])) //Get a list of entries
     {
         $con = get_connection();
-        if(isset($_GET['start']) && isset($_GET['max']))
+        /*if(isset($_GET['start']) && isset($_GET['max']))
         {
             $data = get_entries($con, $_GET['pageId'], $_GET['start'], $_GET['max']);
         }
@@ -66,8 +66,9 @@
         else
         {
             $data = get_entries($con, $_GET['pageId']);
-        }
-        //include("entries_template.php");
+        }*/
+        $data = get_page($con, $_GET['pageId']);
+        include("page_template.php");
     }
     else if(isset($_GET['xml'])) //Get a list of pages in XML form
     {
