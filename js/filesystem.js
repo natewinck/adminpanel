@@ -22,9 +22,9 @@ NW.filesystem = {
 			return false;
 		}
 		
-		var topParents = $(".NWSelected").parents(".NWSelectable:last");
-		topParents.each(function() {
-			var prevSelected = $(this).find(".NWSelected");
+		//var topParents = $(".NWSelected").parents(".NWSelectable:last");
+		$(".NWSelected").each(function() {
+			var prevSelected = $(this);
 			// Save the previously selected page then remove the selected class
 			if (prevSelected[0]) {
 				if (!prevSelected.hasClass("NWRowCategoryHeader")
