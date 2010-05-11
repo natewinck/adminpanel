@@ -109,7 +109,6 @@ NW.io = {
 		NW.io.open(lastOpenFile.cat, lastOpenFile.id);
 	},
 	open: function(pageId, entryId) {
-		console.log(pageId + " and " + entryId);
 		if (pageId == null) return false;
         //Gets an entry from the backend.
         //id is always an integer, cat is a string

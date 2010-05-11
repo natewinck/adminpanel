@@ -1512,38 +1512,124 @@ window.onresize = NW.onresize;
 NW.listener = {
 	actions: [],
 	bindKey: function(modifiers, keyCode, action, name, event) {
-		this.actions[this.actions.length] = {name: name, modifiers: modifiers, keyCode: keyCode, action: action, event: event};
+		this.actions[this.createActionId(null, modifiers, keyCode, event)] = {name: name, modifiers: modifiers, keyCode: keyCode, action: action, event: event};
+	},
+	createActionId: function(e, modifiers, keyCode, event) {
+		var actionId = "";
+		if (e) {
+			var modifierArray = [];
+			if (e.type == "keydown") {
+				if (e.altKey) modifierArray.push("ALT");
+				if (e.shiftKey) modifierArray.push("SHIFT");
+				if (e.metaKey && isMac()) modifierArray.push("CMD");
+				if (e.ctrlKey) {
+					if (isMac()) {
+						modifierArray.push("CTRL");
+					} else {
+						modifierArray.push("CMD");
+					}
+				}
+			} else {
+				if (e.keyCode == 18) modifierArray.push("ALT");
+				if (e.keyCode == 16) modifierArray.push("SHIFT");
+				if ((e.keyCode == 224 || e.keyCode == 91) && isMac()) modifierArray.push("CMD");
+				if (e.keyCode == 17) {
+					if (isMac()) {
+						modifierArray.push("CTRL");
+					} else {
+						modifierArray.push("CMD");
+					}
+				}
+			}
+			modifierArray.sort();
+			
+			for (var i = 0; i < modifierArray.length; i++) {
+				if (i == 0) {
+					actionId = modifierArray[i];
+				} else {
+					actionId += " " + modifierArray[i];
+				}
+			}
+			
+			var keyCode = e.keyCode;
+			switch (e.keyCode) {
+				/*case "CONTROL":
+				case "CTRL":
+				case "ALT":
+				case "META":
+				case "SHIFT":*/
+				case 17: // CTRL key
+				case 18: // ALT key
+				case 224: // Firefox META key
+				case 91: // Safari META key
+				case 16: // SHIFT key
+					keyCode = null;
+					break;
+			}
+			if (modifierArray[0] && keyCode) {
+				actionId += " " + keyCode;
+			} else if (keyCode) {
+				actionId = keyCode;
+			}
+			
+			actionId += " " + e.type;
+		} else {
+			if (modifiers) {
+				var modifierArray = modifiers.split(" ");
+				modifierArray.sort();
+				for (var i = 0; i < modifierArray.length; i++) {
+					if (i == 0) {
+						actionId = modifierArray[i];
+					} else {
+						actionId += " " + modifierArray[i];
+					}
+				}
+			}
+			
+			if (modifiers && keyCode) {
+				actionId += " " + keyCode;
+			} else if (keyCode) {
+				actionId = keyCode;
+			}
+			
+			(event) ? actionId += " " + event : actionId += " " + "keydown";
+		}
+		
+		return actionId;
 	},
 	listener: function(e) {
-		for (var i = 0; i < NW.listener.actions.length; i++) {
-			var action = NW.listener.actions[i];
-			var keystroke = NW.keystrokes.checkKeystroke(action.modifiers, action.keyCode, "", e);
+		var actionId = NW.listener.createActionId(e);
+		var action = NW.listener.actions[actionId];
+		if (!action) return false;
+		//for (var i = 0; i < NW.listener.actions.length; i++) {
+			//var action = NW.listener.actions[i];
+			//var keystroke = NW.keystrokes.checkKeystroke(action.modifiers, action.keyCode, "", e);
 			//// BRING BACK console.log(e.keyCode);
 			//// BRING BACK console.log(action.modifiers + " " + action.keyCode);
 			//// BRING BACK console.log(keystroke);
-			if (keystroke) {
+			//if (keystroke) {
 				// If the action specifies a specific event, and the wrong event occurred, stop the process
-				if (action.event && action.event != e.type) {
-					continue;
-				}
+				/*if (action.event && action.event != e.type) {
+					return false;
+				}*/
 				
-				// Check to see if the function returns a value
-				// That value shows if the browser should also get the key command
-				var passToBrowser;
-				if (typeof(action.action) == "string") {
-					eval(action.action);
-				} else {
-					passToBrowser = action.action();
-				}
-				if (passToBrowser != null) {
-					if (!passToBrowser) e.preventDefault();
-					return passToBrowser
-				}
-				// This prevents the default action from happening (though Safari likes to keep the basic ones such as bold
-				e.preventDefault();
-				return false;
-			}
+		// Check to see if the function returns a value
+		// That value shows if the browser should also get the key command
+		var passToBrowser;
+		if (typeof(action.action) == "string") {
+			eval(action.action);
+		} else {
+			passToBrowser = action.action();
 		}
+		if (passToBrowser != null) {
+			if (!passToBrowser) e.preventDefault();
+			return passToBrowser;
+		}
+		// This prevents the default action from happening (though Safari likes to keep the basic ones such as bold
+		e.preventDefault();
+		return false;
+			//}
+		//}
 	},
 	onkeydown: {
 		window: function() {
