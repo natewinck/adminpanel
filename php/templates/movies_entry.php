@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title><?php $data["name"]; ?></title>
+<title><?php echo $data["name"]; ?></title>
 <style>
 canvas { border: 1px solid black; }
 .rounded {
@@ -54,7 +54,8 @@ h2 {
 
 <body>
 <h3>The movies entry template</h3>
-<p class="newspaper NWEditable NWFieldnewspaperNWZ"><?php if ($data["newspaper"]) $data["newspaper"]; ?></p>
-<h2 class="NWEditable NWFieldheaderNWZ"><?php if ($data["header"]) $data["header"]; ?></h2>
+<p class="newspaper NWEditable NWFieldnewspaperNWZ"><?php if ($data["newspaper"]) echo $data["newspaper"]; ?></p>
+<h2 class="NWEditable NWFieldheaderNWZ"><?php if ($data["header"]) echo $data["header"]; ?></h2>
+<p class="NWEditable NWFieldnameNWZ"><?php if($data["name"]) echo $data["name"]; ?></p>
 </body>
 </html>
