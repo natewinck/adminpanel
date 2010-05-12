@@ -233,6 +233,7 @@ NW.filesystem = {
 	addEntry: function() {
 		var newEntry = document.createElement("li");
 		newEntry.id = NW.io.addListEntry(newEntry);
+		if (newEntry.id == null) return false;
 		$("#NWListEditorBox > ul").prepend(newEntry);
 		
 		var divElement = document.createElement("div");
@@ -248,7 +249,7 @@ NW.filesystem = {
 		NW.filesystem.select(null, selected);
 		
 		// Code here for actually adding the entry to the database
-		NW.io.addListEntry(selected);
+		//NW.io.addListEntry(selected);
 		
 	},
 	confirmDeleteEntry: function() {

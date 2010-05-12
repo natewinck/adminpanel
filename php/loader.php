@@ -20,7 +20,8 @@
 		unset($data['draft']);
 		unset($data['page']);
 		unset($data['locked']);
-        include("entry_template.php");
+        include("templates/" . $data["template"] . "_entry.php");
+        unset($data['template']);
     }
     else if(isset($_GET['pageId']) && isset($_GET['xml'])) //Get list of entries in XML form
     {
@@ -68,7 +69,8 @@
             $data = get_entries($con, $_GET['pageId']);
         }*/
         $data = get_page($con, $_GET['pageId']);
-        include("page_template.php");
+        include("templates/" . $data["template"] . "_page.php");
+        unset($data['template']);
     }
     else if(isset($_GET['xml'])) //Get a list of pages in XML form
     {

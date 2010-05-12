@@ -90,6 +90,17 @@
         {
             $entries[] = $row; //Append them
         }
+        
+        // Now get the template
+        $query = "SELECT * FROM pages WHERE id = $page"; //SQL Statement for getting the template
+        $result = mysql_query($query, $con);
+        $page = Array();
+        while ($row = mysql_fetch_assoc($result)) {
+        	$page[] = $row;
+        }
+        // Add the template data to the entries data
+        $entries[0]["template"] = $page[0]["template"];
+        
         return $entries[0]; //Return it
     }
     
