@@ -186,9 +186,40 @@ NW.io = {
 		// I'm not sure if this part needs to be done the instant you hit "Add Entry", which is what it's doing right now
 		// It could probably be done when the user hits the save button
 		// For now, though...
+		var selectedEntriesRow = $("#NWSidebarLeft .NWSelected.listEditor");
+		if (!selectedEntriesRow[0]) return null;
 		
+		var parsedId = NW.filesystem.parseId(selectedEntriesRow[0].id);
+		var pageId = parsedId.pageId;
+		if (!pageId) return null;
+		
+		/*ajax = null;
+        if (window.XMLHttpRequest) {
+            ajax = new XMLHttpRequest();
+        } else {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if (ajax != null) {
+            // Get the data
+            //var data = NW.editor.functions.getFieldsDataArray();
+            // Serialize it for php
+            //var dstring = escape(NW.io.serialize_data(data));
+            
+            ajax.open("GET", "./php/saver.php?data=" + dstring + "&page=" + file.pageId + entryString + "&draft=true", true);
+            ajax.send(null);
+            ajax.onreadystatechange=function()
+            {
+                if(ajax.readyState==4) {
+					// When done saving, close the loading window
+					NW.editor.functions.closeLoadingWindow();
+					$(selected).removeClass("NWUnsaved");
+                    //console.log(ajax.responseText);
+                }
+            }
+		*/
 		var name = obj.textContent;
-		var id = 5;
+		var id = NW.filesystem.createId(null, null);
 		
 		return id;
 	},
