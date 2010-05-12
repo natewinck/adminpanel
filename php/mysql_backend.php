@@ -31,14 +31,29 @@
     	$draftQuery = "SELECT * FROM drafts WHERE page_id = '$page' AND entry_id = -1"; // SQL Statement for drafts
     	$query = "SELECT * FROM pages WHERE id = '$page'"; // SQL Statement
     	$result = mysql_query($draftQuery, $con); // Run the Statement for drafts
+    	$isDraft = true;
     	if (mysql_num_rows($result) == 0) {
     		$result = mysql_query($query, $con); // Run the Statement
+    		$isDraft = false;
     	}
     	$pages = Array(); // Create an empty array
-    	while ($page = mysql_fetch_assoc($result))
+    	while ($currentPage = mysql_fetch_assoc($result))
     	{
-    		$pages[] = $page;  // Append them
+    		$pages[] = $currentPage;  // Append them
     	}
+    	
+    	// Now get the template
+    	if ($isDraft) {
+			$query = "SELECT * FROM pages WHERE id = $page"; //SQL Statement for getting the template
+			$result = mysql_query($query, $con);
+			$nonDraftPages = Array();
+			while ($row = mysql_fetch_assoc($result)) {
+				$nonDraftPages[] = $row;
+			}
+			// Add the template data to the entries data
+			$pages[0]["template"] = $nonDraftPages[0]["template"];
+		}
+    	
     	return $pages[0]; // Return it
     }
     
@@ -139,7 +154,7 @@
         print(mysql_error());
         
         // Now delete the draft of the page or entry
-        if ($table != "drafts" && $data['draft'] != 1) {
+        if ($table != "drafts" && $data['draft'] != 1 && $publish != false) {
         	if ($table == "entries") {
         		$pageId = $data["page"];
         		$entryId = $data["id"];
@@ -153,6 +168,31 @@
         	$result = mysql_query($query, $con);
         	print(mysql_error());
         }
+    }
+    
+    //** Function to revert a draft to its published state **//
+    function revert_data($con, $data) {
+    	$pageId = $data['page_id'];
+    	$entryId = $data['entry_id'];
+    	
+    	$query = "DELETE FROM drafts WHERE page_id = $pageId AND entry_id = $entryId;";
+		print($query . "\n");
+		$result = mysql_query($query, $con);
+		print(mysql_error());
+		
+		// Now change draft to equal 0
+		$dataToModify = Array();
+		$dataToModify['draft'] = 0;
+		if ($entryId == -1) {
+			$dataToModify['type'] = "pages";
+			$dataToModify['id'] = $pageId;
+		} else {
+			$dataToModify['type'] = "entries";
+			$dataToModify['id'] = $entryId;
+			$dataToModify['page'] = $pageId;
+		}
+		
+		modify_data($con, $dataToModify, false);
     }
     
 ?>

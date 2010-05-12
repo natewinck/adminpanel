@@ -217,7 +217,7 @@ NW.io = {
                     //console.log(ajax.responseText);
                 }
             }
-		*/
+		}*/
 		var name = obj.textContent;
 		var id = NW.filesystem.createId(null, null);
 		
@@ -295,7 +295,30 @@ NW.io = {
 		
 		if (!selected) return false;
 		
-		NW.io.save(null, false);
+		var file = NW.filesystem.parseId(selected.id);
+		
+		ajax = null;
+        if (window.XMLHttpRequest) {
+            ajax = new XMLHttpRequest();
+        } else {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if (ajax != null) {
+            var entryString = "";
+			if (file.entryId) entryString = "&entry=" + file.entryId;
+            
+            ajax.open("GET", "./php/saver.php?data=1&page=" + file.pageId + entryString + "&revert=true", true);
+            ajax.send(null);
+            ajax.onreadystatechange=function()
+            {
+                if(ajax.readyState==4) {
+					// When done saving, close the loading window
+					NW.io.open(file.pageId, file.entryId);
+                    //console.log(ajax.responseText);
+                }
+            }
+        }
 		
 		NW.filesystem.restoreFileAppearance();
 		
