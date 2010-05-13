@@ -54,9 +54,9 @@ h2 {
 
 <body>
 <h3>The html5 page template</h3>
-<p class="newspaper NWEditable NWFieldnewspaperNWZ"><?php if ($data["newspaper"]) echo $data["newspaper"]; ?></p>
+<div class="newspaper NWEditable NWFieldnewspaperNWZ"><?php if ($data["newspaper"]) echo $data["newspaper"]; ?></div>
 <h2 class="NWEditable NWFieldheaderNWZ"><?php if ($data["header"]) echo $data["header"]; ?></h2>
-<p class="NWEditable NWFieldnameNWZ"><?php if($data["name"]) echo $data["name"]; ?></p>
+<span class="NWEditable NWFieldnameNWZ"><?php if($data["name"]) echo $data["name"]; ?></span>
 <h3>Separate Fonts</h3>
 <p class="threeHourTour">Some text that will be used for separate fonts</p>
 </body>

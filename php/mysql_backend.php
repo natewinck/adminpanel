@@ -120,7 +120,7 @@
     }
     
     //** Function to draft an entry **//
-    function modify_data($con, $data, $publish)
+    function modify_data($con, $data)
     {
         $table = $data['type'];
         unset($data['type']);
@@ -154,7 +154,7 @@
         print(mysql_error());
         
         // Now delete the draft of the page or entry
-        if ($table != "drafts" && $data['draft'] != 1 && $publish != false) {
+        if ($table != "drafts" && $data['draft'] == 0) {
         	if ($table == "entries") {
         		$pageId = $data["page"];
         		$entryId = $data["id"];
@@ -192,7 +192,7 @@
 			$dataToModify['page'] = $pageId;
 		}
 		
-		modify_data($con, $dataToModify, false);
+		modify_data($con, $dataToModify);
     }
     
 ?>
