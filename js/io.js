@@ -60,13 +60,10 @@ NW.io = {
         {
             var file = new Array();
             file['list'] = parseInt(files.getElementsByTagName('list')[i].childNodes[0].nodeValue);
-            // This is completely temporary: using the cat to distinguish if it uses the listEditor (the page in the left sidebar doesn't need the id, since it's not loading a page, only a category of entries.  The reason why is on wave
-            // Ideally, this would actually check file["list"] to detect if it needs the listEditor
             file['id'] = parseInt(files.getElementsByTagName('id')[i].childNodes[0].nodeValue);
             file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
-            // Again, this is completely temporary: using the cat to distinguish if it uses the listEditor.  The reason why is on wave
-            // This should actually check file["list"] to detect if it needs the listEditor
-            //file['list'] = (file['cat'] == "entries");
+            file['draft'] = parseInt(files.getElementsByTagName('draft')[i].childNodes[0].nodeValue);
+            file['locked'] = parseInt(files.getElementsByTagName('locked')[i].childNodes[0].nodeValue);
             filesArray.push(file);
         }
 		return filesArray;
@@ -97,7 +94,7 @@ NW.io = {
 									NW.filesystem.createId(lastOpenFile.pageId, null, true)
 							);
 			NW.filesystem.select(null, entryButton);
-			NW.filesystem.showListEditor($(entryButton));
+			//NW.filesystem.showListEditor($(entryButton));
 			
 			var openedEntry = document.getElementById(NW.filesystem.createId(lastOpenFile.pageId, lastOpenFile.entryId));
 			if (openedEntry) NW.filesystem.select(null, openedEntry);
@@ -270,10 +267,10 @@ NW.io = {
 			var entryString = "";
 			if (file.entryId) entryString = "&entry=" + file.entryId;
 			
-            // DAVID: I put entryId in this as well; not sure if this is how it should be
-            // Also, I have a feeling "cat=drafts" is outdated, but I'm not sure
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&page=" + file.pageId + entryString + "&draft=true", true); // DAVID: Not sure if you wanted cat to equal draft (which it was) or drafts (what I changed it to).  It can now save a draft, but it can't load it.
-            ajax.send(null);
+			var postData = "data=" + dstring + "&page=" + file.pageId + entryString + "&draft=true";
+            ajax.open("POST", "./php/saver.php", true);
+            ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			ajax.send(postData);
             ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4) {
@@ -308,8 +305,10 @@ NW.io = {
             var entryString = "";
 			if (file.entryId) entryString = "&entry=" + file.entryId;
             
-            ajax.open("GET", "./php/saver.php?data=1&page=" + file.pageId + entryString + "&revert=true", true);
-            ajax.send(null);
+            var postData = "data=1&page=" + file.pageId + entryString + "&revert=true";
+            ajax.open("POST", "./php/saver.php", true);
+            ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			ajax.send(postData);
             ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4) {
@@ -379,12 +378,10 @@ NW.io = {
 			var entryString = "";
 			if (file.entryId) entryString = "&entry=" + file.entryId;
 			
-            // DAVID: I put entryId in this as well; not sure if this is how it should be
-            // Also, I have a feeling "cat=drafts" is outdated, but I'm not sure
-            //ajax.open("GET", "./php/saver.php?data=" + dstring + "&page=" + file.pageId + entryString + draftString, false);
-           	// DAVID: I'm pretty sure this shouldn't have "cat=drafts"
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&page=" + pageId + entryString/* + $(".NWSelected").attr("cat")*/, true);
-            ajax.send(null);
+            var postData = "data=" + dstring + "&page=" + pageId + entryString;
+            ajax.open("POST", "./php/saver.php", true);
+            ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			ajax.send(postData);
             ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4){
@@ -418,6 +415,9 @@ NW.io = {
 						// When done publishing, close the loading window and restore appearance
 						NW.filesystem.restoreFileAppearance();
 						if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
+						NW.filesystem.updateFileData(selected, {
+							name: data.name
+						});
                 	}
                     //console.log(ajax.responseText);
                 }

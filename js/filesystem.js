@@ -148,12 +148,43 @@ NW.filesystem = {
 		
 		return entriesHeadersArray;
 	},
+	updateFileData: function(obj, data) {
+		var obj = obj || NW.filesystem.getSelected();
+		if (!obj) return false;
+		if ($(obj).hasClass("NWRowCategoryHeader")) return false;
+		if (data.name) {
+			data.name = data.name.replace(/(<([^>]+)>)/ig,"");
+			obj.name = data.name;
+			obj.innerHTML = "";
+			var divElement = document.createElement("div");
+			divElement.className = (data.draft) ? "NWDraft" : "NWFile";
+			obj.appendChild(divElement);
+			
+			obj.innerHTML = obj.innerHTML + data.name;
+			/*var textElement = document.createTextNode(data.name);
+			obj.appendChild(textElement);*/
+		}
+	},
 	restoreFileAppearance: function(obj) {
 		var obj = obj || NW.filesystem.getSelected();
 		if (!obj) return false;
 		if ($(obj).hasClass("NWRowCategoryHeader")) return false;
 		
 		$(obj).removeClass("NWUnsaved").children("div").removeClass().addClass("NWFile");
+	},
+	changeToDraft: function() {
+		// If this function is called, that means the file has been edited
+		// Thus, I need to change a class name
+		var selected = NW.filesystem.getSelected();
+		if (selected
+			//&& !$(selected).children(".NWDraft")[0]
+			&& !$(selected).hasClass("NWUnsaved")
+			//&& $(selected).children(".NWFile")[0]
+			&& !$(selected).hasClass("NWRowCategoryHeader")
+		) {
+			$(selected).children(".NWFile").removeClass("NWFile").addClass("NWDraft");
+			$(selected).addClass("NWUnsaved");
+		}
 	},
 	lock: function(id) {
 		$("#" + id).addClass("NWNonSelectable").children("div:first").removeClass().addClass("NWLocked");

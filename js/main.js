@@ -1163,6 +1163,8 @@ NW = {
 				iframe.contentDocument.addEventListener("click", NW.editor.checkQueryState, false);
 				iframe.contentDocument.addEventListener("mousedown", NW.editor.checkQueryState, false);
 				iframe.contentDocument.addEventListener("mouseup", NW.editor.checkQueryState, false);
+				iframe.contentDocument.addEventListener("drag", NW.filesystem.changeToDraft, false);
+				iframe.contentDocument.addEventListener("keydown", NW.filesystem.changeToDraft, false);
 				iframe.contentDocument.addEventListener("keydown", NW.editor.functions.arrowKeysCheck, false);
 				iframe.contentDocument.addEventListener("keyup", NW.editor.functions.arrowKeysCheck, false);
 				iframe.contentDocument.addEventListener("keypress", NW.editor.functions.arrowKeysCheck, false);
@@ -2086,20 +2088,6 @@ NW.editor.checkQueryState = function () {
 	//// BRING BACK console.log(NWEditPage.document.queryCommandIndeterm("justifyLeft"));
 	//// BRING BACK console.log(document.getElementById("NWEditPage"));
 	//// BRING BACK console.log(NWEditPage.document.queryCommandValue("fontsize"));
-	
-	// If this function is called, that means the file has been edited
-	// Thus, I need to change a class name
-	var selected = NW.filesystem.getSelected();
-	
-	if (selected
-		//&& !$(selected).children(".NWDraft")[0]
-		&& !$(selected).hasClass("NWUnsaved")
-		//&& $(selected).children(".NWFile")[0]
-		&& !$(selected).hasClass("NWRowCategoryHeader")
-	) {
-		$(selected).children(".NWFile").removeClass("NWFile").addClass("NWDraft");
-		$(selected).addClass("NWUnsaved");
-	}
 	
 	// Get Selection
 	if(NWEditPage.document.getSelection)

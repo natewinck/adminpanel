@@ -54,7 +54,7 @@ h2 {
 
 <body>
 <h3>The movies page template</h3>
-<p class="newspaper NWEditable NWFieldnewspaperNWZ"><?php if ($data["newspaper"]) $data["newspaper"]; ?></p>
+<div class="newspaper NWEditable NWFieldnewspaperNWZ"><?php if ($data["newspaper"]) $data["newspaper"]; ?></div>
 <h2 class="NWEditable NWFieldheaderNWZ"><?php if ($data["header"]) $data["header"]; ?></h2>
 <h3>Separate Fonts</h3>
 <p class="threeHourTour">Some text that will be used for separate fonts</p>
