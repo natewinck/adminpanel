@@ -1227,13 +1227,26 @@ a.NWButton.NWDone {
 
 /* NWFontColor */
 
+#NWEditPanel .NWEditPanelGroup .NWEditControls.NWFontColor a {
+	background-image: url(../images/NWEditPanel/color-none.png);
+}
+
 #NWEditPanel .NWEditPanelGroup .NWEditControls.NWFontColor a.NWFontColor {
-	background-image: url(../images/NWEditPanel/color.png);
 	background-position: 0px 0px;
+}
+
+#NWEditPanel .NWEditPanelGroup .NWEditControls.NWFontColor a.NWFontColorInherit {
+	background-position: -30px 0px;
+	width: 15px;
 }
 
 #NWEditPanel .NWEditPanelGroup .NWEditControls.NWFontColor a.NWFontColor:active {
 	background-position: 0px -21px;
+}
+
+#NWEditPanel .NWEditPanelGroup .NWEditControls.NWFontColor a.NWFontColorInherit:active {
+	background-position: -30px -21px;
+	width: 15px;
 }
 
 #NWEditPanel .NWEditPanelGroup .NWEditControls.NWFontColor a.NWFontColor span {

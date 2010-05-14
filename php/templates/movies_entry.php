@@ -54,8 +54,8 @@ h2 {
 
 <body>
 <h3>The movies entry template</h3>
-<div class="newspaper NWEditable NWFieldnewspaperNWZ"><?php if ($data["newspaper"]) echo $data["newspaper"]; ?></div>
-<h2 class="NWEditable NWFieldheaderNWZ"><?php if ($data["header"]) echo $data["header"]; ?></h2>
-<p class="NWEditable NWFieldnameNWZ"><?php if($data["name"]) echo $data["name"]; ?></p>
+<div class="newspaper NWEditable NWFieldnewspaperNWZ" <?php if ($data["newspaperStyle"]) echo "style=\"" . $data["newspaperStyle"] . "\""; ?>><?php if ($data["newspaper"]) echo $data["newspaper"]; ?></div>
+<h2 class="NWEditable NWFieldheaderNWZ" <?php if ($data["newspaperStyle"]) echo "style=\"" . $data["newspaperStyle"] . "\""; ?>><?php if ($data["header"]) echo $data["header"]; ?></h2>
+<p class="NWEditable NWFieldnameNWZ" <?php if ($data["newspaperStyle"]) echo "style=\"" . $data["newspaperStyle"] . "\""; ?>><?php if($data["name"]) echo $data["name"]; ?></p>
 </body>
 </html>

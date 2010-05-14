@@ -97,13 +97,10 @@ NW.windows = {
 		}
 		
 		var text = theWindow.getElementsByTagName("input")[0].value;
-		NWEditPage.document.execCommand(command,false,text + extra);
+		NW.editor.functions.fireCommand(command,false,text + extra);
 		
 		theWindow.style.display = "none";
 		theWindow.getElementsByTagName("input")[0].value = originalVal;
-		
-		NW.editor.checkQueryState();
-		document.getElementById("NWEditPage").focus();
 		
 		// Disable the click so it doesn't keep adding up
 		theWindow.getElementsByClassName("NWDone")[0].onclick = null;

@@ -170,7 +170,7 @@ NW.io = {
             var file = new Array();
             file['id'] = files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
             file['pageId'] = files.getElementsByTagName('page')[i].childNodes[0].nodeValue;
-            file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
+            file['name'] = (files.getElementsByTagName('name')[i].childNodes[0]) ? files.getElementsByTagName('name')[i].childNodes[0].nodeValue : "";
             file['author'] = files.getElementsByTagName('author')[i].childNodes[0].nodeValue;
             file['draft'] = parseInt(files.getElementsByTagName('draft')[i].childNodes[0].nodeValue);
             file['locked'] = parseInt(files.getElementsByTagName('locked')[i].childNodes[0].nodeValue);
@@ -188,9 +188,9 @@ NW.io = {
 		
 		var parsedId = NW.filesystem.parseId(selectedEntriesRow[0].id);
 		var pageId = parsedId.pageId;
-		if (!pageId) return null;
+		if (pageId == null) return null;
 		
-		/*ajax = null;
+		ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
         } else {
@@ -203,22 +203,36 @@ NW.io = {
             // Serialize it for php
             //var dstring = escape(NW.io.serialize_data(data));
             
-            ajax.open("GET", "./php/saver.php?data=" + dstring + "&page=" + file.pageId + entryString + "&draft=true", true);
-            ajax.send(null);
-            ajax.onreadystatechange=function()
-            {
-                if(ajax.readyState==4) {
-					// When done saving, close the loading window
-					NW.editor.functions.closeLoadingWindow();
-					$(selected).removeClass("NWUnsaved");
-                    //console.log(ajax.responseText);
-                }
-            }
-		}*/
-		var name = obj.textContent;
-		var id = NW.filesystem.createId(null, null);
+            // Create the data
+            var data = [];
+            data["name"] = "Untitled Entry";
+            // Serialize it for php
+            var dstring = escape(NW.io.serialize_data(data));
+            
+            var postData = "data=" + dstring + "&page=" + pageId + "&add=true";
+            ajax.open("POST", "./php/saver.php", false);
+            ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			ajax.send(postData);
+		}
+		if (ajax.readyState == 4) {
+			var entryId = ajax.responseText;
+		}
+		if (entryId == null || entryId == "") return null;
+		entryId = parseInt(entryId);
+		if (isNaN(entryId)) return null;
 		
+		var id = NW.filesystem.createId(pageId, entryId);
 		return id;
+	},
+	deleteListEntry: function(obj) {
+		if (!obj) return false;
+		var parsedId = NW.filesystem.parseId(obj.id);
+		if (parsedId.pageId == null || parsedId.entryId == null) return false;
+		
+		var postData = "data=1" + "&page=" + parsedId.pageId + "&entry=" + parsedId.entryId + "&delete=true";
+		ajax.open("POST", "./php/saver.php", true);
+		ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		ajax.send(postData);
 	},
 	save: function(obj, useLoadingWindow) {
 		// Find the selected object

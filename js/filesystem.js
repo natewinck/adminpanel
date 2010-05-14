@@ -299,8 +299,8 @@ NW.filesystem = {
 		$(selected).remove();
 		if (nextSelectedElement) NW.filesystem.select(null, nextSelectedElement);
 		
-		// Code here for deleting the entry from the database
-		
+		// Officially delete the entry from the database
+		NW.io.deleteListEntry(selected);
 	},
 	
 	//NW.filesystem.triangleClick = false;

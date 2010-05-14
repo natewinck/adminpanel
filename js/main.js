@@ -34,8 +34,15 @@ NW = {
 		****/
 		functions: {
 			fireCommand: function(command, useCss, text) {
-				NWEditPage.document.execCommand(command, useCss, text);
+				var succeeded = NWEditPage.document.execCommand(command, useCss, text);
+				if (succeeded) {
+					NW.editor.functions.refreshEditor();
+				}
+			},
+			refreshEditor: function() {
 				NW.editor.checkQueryState();
+				NW.filesystem.changeToDraft();
+				document.getElementById("NWEditPage").blur();
 				document.getElementById("NWEditPage").focus();
 			},
 			setNWLeftSidebarNormalWidth: function(args) {
@@ -236,12 +243,11 @@ NW = {
 				var command = this.rel;
 				if (command == "inserthtml" || command == "createLink" || command.indexOf("_") >= 0 || !command)
 					return;
-				NWEditPage.document.execCommand(command,false,null);
+				NW.editor.functions.fireCommand(command,false,null);
 				//document.getElementById("NWEditPage").contentWindow.document.execCommand(command, false, null);
-				NW.editor.checkQueryState();
 				
-				document.getElementById("NWEditPage").blur();
-				document.getElementById("NWEditPage").focus();
+				//document.getElementById("NWEditPage").blur();
+				//document.getElementById("NWEditPage").focus();
 				
 				return false;
 				//});
@@ -258,9 +264,8 @@ NW = {
 					//fieldName = $(this)[0].id;
 					
 					data = $(this)[0].innerHTML;
-					console.log(fieldName);
-					console.log(data);
 					fieldsArray[fieldName] = data;
+					fieldsArray[fieldName + "Style"] = this.style.cssText;
 				});
 				
 				return fieldsArray;
@@ -287,8 +292,23 @@ NW = {
 					rangeObject = range;
 				}
 				
-				if (command.applyToParent && false) {
+				NW.filesystem.changeToDraft();
+				
+				if (command.applyToParent) {
 					var foundElement = false;
+					
+					if ($(userSelection.focusNode).hasClass("NWEditable")
+						|| (NW.browserDetect.browser != "Safari" && $(userSelection.focusNode).css("display") != "inline")) {
+						console.log("in here");
+						/*var divElement = NWEditPage.document.createElement("div");
+						divElement.innerHTML = userSelection.focusNode.innerHTML;
+						userSelection.focusNode.innerHTML = "";
+						$(divElement).css(command.css, command.value);
+						userSelection.focusNode.appendChild(divElement);
+						foundElement = true;*/
+						$(userSelection.focusNode).css(command.css, command.value);
+						foundElement = true;
+					}
 					$(userSelection.focusNode).parents().each(function() {
 						// if the element is already found, no need to keep looking
 						if (!foundElement) {
@@ -299,6 +319,7 @@ NW = {
 							) {
 								$(this).css(command.css, command.value);
 								foundElement = true;
+								return;
 							}
 						}
 					});
@@ -322,6 +343,11 @@ NW = {
 						}
 					});*/
 				}
+				
+				NW.editor.checkQueryState();
+				NW.filesystem.changeToDraft();
+				document.getElementById("NWEditPage").blur();
+				document.getElementById("NWEditPage").focus();
 			},
 			alignText: function(e) {
 				var textAlign = this.rel.replace("_justify", "");
@@ -416,8 +442,7 @@ NW = {
 							break;
 					}
 				}
-				NWEditPage.document.execCommand(command,false,value);
-				NW.editor.checkQueryState();
+				NW.editor.functions.fireCommand(command,false,value);
 				// BRING BACK console.log('hi');
 				
 				return false;

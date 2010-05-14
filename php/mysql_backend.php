@@ -62,15 +62,15 @@
     {
         if($start == NULL)
         {
-            $query = "SELECT * FROM entries WHERE page='$page'"; //SQL Statement
+            $query = "SELECT * FROM entries WHERE page='$page' ORDER BY id DESC"; //SQL Statement
         }
         else if($max == NULL)
         {
-            $query = "SELECT * FROM entries WHERE page='$page' LIMIT $start"; //SQL Statement
+            $query = "SELECT * FROM entries WHERE page='$page' ORDER BY id DESC LIMIT $start"; //SQL Statement
         }
         else
         {
-            $query = "SELECT * FROM entries WHERE page='$page' LIMIT $start, $max"; //SQL Statement
+            $query = "SELECT * FROM entries WHERE page='$page' ORDER BY id DESC LIMIT $start, $max"; //SQL Statement
         }
         //echo $query;
         $result = mysql_query($query, $con); //Run the Statement
@@ -149,36 +149,81 @@
         $values = substr_replace($values, "", -1);
         $update = substr_replace($update, "", -1);
         $query = $query . "$fields) VALUES ($values) ON DUPLICATE KEY UPDATE $update;";
-        print($query . "\n");
+        //print($query . "\n");
         $result = mysql_query($query, $con);
+        $autoIncrementId = mysql_insert_id();
         print(mysql_error());
         
-        // Now delete the draft of the page or entry
-        if ($table != "drafts" && $data['draft'] == 0) {
+        
+         // If you are adding an entry...
+        if (isset($data['page']) && !isset($data['id'])) {
+        	echo $autoIncrementId;
+        	// Save the new entry as a draft
+        	$data['type'] = "drafts";
+        	unset($data['draft']);
+        	$data['page_id'] = $data['page'];
+        	unset($data['page']);
+        	$data['entry_id'] = $autoIncrementId;
+        	unset($data['display']);
+        	modify_data($con, $data);
+        } else if ($table != "drafts" && $data['draft'] == 0) {
+        	// If you are publishing, delete the draft of the page or entry
+        	$deleteData['type'] = "drafts";
         	if ($table == "entries") {
-        		$pageId = $data["page"];
-        		$entryId = $data["id"];
+        		$deleteData['page_id'] = $data["page"];
+        		$deleteData['entry_id'] = $data["id"];
         	} else {
-        		$pageId = $data["id"];
-        		$entryId = -1;
+        		$deleteData['page_id'] = $data["id"];
+        		$deleteData['entry_id'] = -1;
         	}
-        	
-        	$query = "DELETE FROM drafts WHERE page_id=" . $pageId . " AND entry_id=$entryId;";
-        	print($query . "\n");
-        	$result = mysql_query($query, $con);
-        	print(mysql_error());
+        	delete_data($con, $deleteData);
         }
+    }
+    
+    //** Function to delete an entry or page **//
+    function delete_data($con, $data) {
+    	$table = $data['type'];
+    	unset($data['type']);
+    	unset($data['data']);
+    	unset($data['name']);
+    	
+    	$query = "DELETE FROM $table WHERE ";
+        $where = "";
+        foreach($data as $field => $value) {
+            if(is_numeric($value)) {
+				$where = $where . "$field=$value AND ";
+            } else {
+				$where = $where . "$field=\"$value\" AND ";
+            }
+        }
+        $where = substr_replace($where, "", -5);
+        $query = $query . $where . ";";
+        $result = mysql_query($query, $con);
+		print(mysql_error());
+		
+		if ($table == "entries") {
+			$data['type'] = "drafts";
+			$data['entry_id'] = $data['id'];
+			unset($data['id']);
+			$data['page_id'] = $data['page'];
+			unset($data['page']);
+			delete_data($con, $data);
+		} else if ($table == "pages") {
+			$data['type'] = "drafts";
+			$data['entry_id'] = -1;
+			$data['page_id'] = $data['id'];
+			unset($data['page']);
+			delete_data($con, $data);
+		}
     }
     
     //** Function to revert a draft to its published state **//
     function revert_data($con, $data) {
-    	$pageId = $data['page_id'];
-    	$entryId = $data['entry_id'];
+    	$deleteData['type'] = "drafts";
+    	$pageId = $deleteData['page_id'] = $data['page_id'];
+    	$entryId = $deleteData['entry_id'] = $data['entry_id'];
     	
-    	$query = "DELETE FROM drafts WHERE page_id = $pageId AND entry_id = $entryId;";
-		print($query . "\n");
-		$result = mysql_query($query, $con);
-		print(mysql_error());
+    	delete_data($con, $deleteData);
 		
 		// Now change draft to equal 0
 		$dataToModify = Array();

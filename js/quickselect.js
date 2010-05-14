@@ -837,9 +837,7 @@ NW.quickSelect = {
 			if (!selectedButton.command) return false;
 		}
 		
-		NWEditPage.document.execCommand(command,false,null);
-		
-		NW.editor.checkQueryState();
+		NW.editor.functions.fireCommand(command,false,null);
 	},
 	
 	onmouseup: function(e) {
