@@ -1,14 +1,220 @@
 // Color Picker
 NW.colors = {
-	colorChange: function(type) {
-		var color = "";
-		$("a.NWColorPicker").each(function() {
-			if( $(this).attr("rel") == type )
-				color = $(this).children().css("background-color");
-		});
-		NWEditPage.document.execCommand(type,false,color);
-		$("#NWEditPage").focus();
+	colorChange: function(type, color) {
+		var color = (color) ? color : null;
+		if (!color) {
+			$("a.NWColorPicker").each(function() {
+				if( $(this).attr("rel") == type )
+					color = $(this).children().css("background-color");
+			});
+		}
+		
+		NW.editor.functions.fireCommand(type,false,color);
+		//NW.colors.colorizeSelection(color);
 	},
+	/*
+	getNextLeaf: function(node) {
+		while (!node.nextSibling) {
+			node = node.parentNode;
+			if (!node) {
+				return node;
+			}
+		}
+		var leaf = node.nextSibling;
+		while (leaf.firstChild) {
+			leaf = leaf.firstChild;
+		}
+		return leaf;
+	},
+
+	getPreviousLeaf: function(node) {
+		while (!node.previousSibling) {
+			node = node.parentNode;
+			if (!node) {
+				return node;
+			}
+		}
+		var leaf = node.previousSibling;
+		while (leaf.lastChild) {
+			leaf = leaf.lastChild;
+		}
+		return leaf;
+	},
+
+		// If the text content of an element contains white-spaces only, then does not need to colorize
+	isTextVisible: function(text) {
+		for (var i = 0; i < text.length; i++) {
+			if (text[i] != ' ' && text[i] != '\t' && text[i] != '\r' && text[i] != '\n')
+				return true;
+		}
+		return false;
+	},
+
+	colorizeLeaf: function(node, color) {
+		if (!NW.colors.isTextVisible (node.textContent))
+			return;
+		
+		var parentNode = node.parentNode;
+			// if the node does not have siblings and the parent is a span element, then modify its color
+		if (!node.previousSibling && !node.nextSibling) {
+			if (parentNode.tagName.toLowerCase () == "span") {
+				if (color == null || color == "") {
+					parentNode.style.removeProperty ("color");
+				} else {
+					parentNode.style.color = color;
+				}
+				return;
+			}
+		}
+
+			// Create a span element around the node
+		var span = NWEditPage.document.createElement ("span");
+		if (color == null || color == "") {
+			span.style.removeProperty ("color");
+		} else {
+			span.style.color = color;
+		}
+		var nextSibling = node.nextSibling;
+		parentNode.removeChild (node);
+		span.appendChild (node);
+		parentNode.insertBefore (span, nextSibling);
+	},
+
+	colorizeLeafFromTo: function(node, color, from, to) {
+		var text = node.textContent;
+		if (!NW.colors.isTextVisible (text))
+			return;
+		
+		if (from < 0)
+			from = 0;
+		if (to < 0)
+			to = text.length;
+
+		if (from == 0 && to >= text.length) {
+				// to avoid unnecessary span elements
+			NW.colors.colorizeLeaf (node, color);
+			return;
+		}
+
+		var part1 = text.substring (0, from);
+		var part2 = text.substring (from, to);
+		var part3 = text.substring (to, text.length);
+
+		var parentNode = node.parentNode;
+		var nextSibling = node.nextSibling;
+
+		parentNode.removeChild (node);
+		if (part1.length > 0) {
+			var textNode = NWEditPage.document.createTextNode (part1);
+			parentNode.insertBefore (textNode, nextSibling);
+		}
+		if (part2.length > 0) {
+			var span = NWEditPage.document.createElement ("span");
+			if (color == null || color == "") {
+				span.style.removeProperty ("color");
+			} else {
+				span.style.color = color;
+			}
+			var textNode = NWEditPage.document.createTextNode (part2);
+			span.appendChild (textNode);
+			parentNode.insertBefore (span, nextSibling);
+		}
+		if (part3.length > 0) {
+			var textNode = NWEditPage.document.createTextNode (part3);
+			parentNode.insertBefore (textNode, nextSibling);
+		}
+	},
+	
+	colorizeNode: function(node, color) {
+		var childNode = node.firstChild;
+		if (!childNode) {
+			NW.colors.colorizeLeaf (node, color);
+			return;
+		}
+
+		while (childNode) {
+				// store the next sibling of the childNode, because colorizing modifies the DOM structure
+			var nextSibling = childNode.nextSibling;
+			NW.colors.colorizeNode (childNode, color);
+			childNode = nextSibling;
+		}
+	},
+
+	colorizeNodeFromTo: function(node, color, from, to) {
+		var childNode = node.firstChild;
+		if (!childNode) {
+			NW.colors.colorizeLeafFromTo (node, color, from, to);
+			return;
+		}
+
+		for (var i = from; i < to; i++) {
+			NW.colors.colorizeNode (node.childNodes[i], color);
+		}
+	},
+
+	colorizeSelection: function(color) {
+		if (window.getSelection) {        // Firefox, Opera, Safari
+			var selectionRange = NWEditPage.getSelection();
+
+			if (!selectionRange.isCollapsed) {
+				var range = selectionRange.getRangeAt (0);
+					// store the start and end points of the current selection, because the selection will be removed
+				var startContainer = range.startContainer;
+				var startOffset = range.startOffset;
+				var endContainer = range.endContainer;
+				console.log(range);
+				console.log(startContainer);
+				console.log("end container:");
+				console.log(endContainer);
+				var endOffset = range.endOffset;
+					// because of Opera, we need to remove the selection before modifying the DOM hierarchy
+				selectionRange.removeAllRanges ();
+				
+				if (startContainer == endContainer) {
+					NW.colors.colorizeNodeFromTo (startContainer, color, startOffset, endOffset);
+				}
+				else {
+					if (startContainer.firstChild) {
+						var startLeaf = startContainer.childNodes[startOffset];
+						console.log(startLeaf);
+					}
+					else {
+						var startLeaf = NW.colors.getNextLeaf (startContainer);
+						NW.colors.colorizeLeafFromTo (startContainer, color, startOffset, -1);
+						console.log(startLeaf);
+					}
+					
+					if (endContainer.firstChild) {
+						if (endOffset > 0) {
+							var endLeaf = endContainer.childNodes[endOffset - 1];
+							console.log(endLeaf);
+						}
+						else {
+							var endLeaf = NW.colors.getPreviousLeaf (endContainer);
+							console.log(endLeaf);
+						}
+					}
+					else {
+						var endLeaf = NW.colors.getPreviousLeaf (endContainer);
+						NW.colors.colorizeLeafFromTo (endContainer, color, 0, endOffset);
+						console.log(endLeaf);
+					}
+
+					while (startLeaf) {
+						var nextLeaf = NW.colors.getNextLeaf (startLeaf);
+						if (!$(startLeaf).parents(".NWEditable")[0]) break;
+						console.log(startLeaf);
+						NW.colors.colorizeLeaf (startLeaf, color);
+						if (startLeaf == endLeaf) {
+							break;
+						}
+						startLeaf = nextLeaf;
+					}
+				}
+			}
+		}
+	},
+	*/
 	RGB: function(rgbval){
 		var s = rgbval.match(/rgb\s*\x28((?:25[0-5])|(?:2[0-4]\d)|(?:[01]?\d?\d))\s*,\s*((?:25[0-5])|(?:2[0-4]\d)|(?:[01]?\d?\d))\s*,\s*((?:25[0-5])|(?:2[0-4]\d)|(?:[01]?\d?\d))\s*\x29/);
 		
@@ -360,5 +566,8 @@ $(document).ready(function() {
 	$("a.NWColorNone").click(function() {
 		$(this).prev().children().css("background-color", "transparent");
 		NW.colors.colorChange( $(this).prev().attr("rel") );
+	});
+	$("a.NWColorInherit").click(function() {
+		NW.colors.colorChange( $(this).prev().attr("rel"), "inherit" );
 	});
 });

@@ -14,6 +14,9 @@ NW.keystrokes = {
 		}
 	],
 	general: [
+		NW.listener.bindKey("CMD", Key.Z, NW.history.undo, "Undo"),
+		NW.listener.bindKey("CMD SHIFT", Key.Z, NW.history.redo, "Redo"),
+		
 		NW.listener.bindKey("CMD", Key.S, NW.io.save, "Save open file"),
 		
 		NW.listener.bindKey("CMD", Key.E, NW.editor.functions.toggleEditPanel, "Close Edit Panel"),
