@@ -1864,7 +1864,7 @@ NW.listener = {
 		}*/
 		// This prevents the default action from happening (though Safari likes to keep the basic ones such as bold
 		// If the action is not to pass through, prevent it
-		if (!action.passThrough) e.preventDefault();
+		if (action.passThrough != true) e.preventDefault();
 		return false;
 			//}
 		//}

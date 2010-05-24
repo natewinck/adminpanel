@@ -267,9 +267,10 @@ NW.io = {
         }
         */
 	},
-	save: function(obj, useLoadingWindow) {
+	save: function(obj, useLoadingWindow, synchronous) {
 		// Find the selected object
 		if (obj && obj.target) obj = null;
+		var synchronous = (synchronous == null) ? true : synchronous; 
 		var selected = obj || null;
 		if (!selected) {
 			selected = NW.filesystem.getSelected();
@@ -315,18 +316,23 @@ NW.io = {
 			if (file.entryId) entryString = "&entry=" + file.entryId;
 			
 			var postData = "data=" + dstring + "&page=" + file.pageId + entryString + "&draft=true";
-            ajax.open("POST", "./php/saver.php", true);
+            ajax.open("POST", "./php/saver.php", synchronous);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
             ajax.onreadystatechange=function()
             {
                 if(ajax.readyState==4) {
 					// When done saving, close the loading window
-					NW.editor.functions.closeLoadingWindow();
+					if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
 					$(selected).removeClass("NWUnsaved");
                     //console.log(ajax.responseText);
                 }
             }
+        }
+        
+        if (!synchronous) {
+        	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
+			$(selected).removeClass("NWUnsaved");
         }
 		
 		// When done saving, close the loading window
@@ -471,116 +477,176 @@ NW.io = {
             }
         }
 	},
-	publishSite: function() {
+	publishSite: function(useLoadingWindow) {
+		// Code for publishing the site (just drafts)
+		// Open the loading window
+		var useLoadingWindow = (useLoadingWindow == false) ? useLoadingWindow : true;
+		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Publishing Site...");
+		
+		NW.io.save(null, false, false);
+		
+		ajax = null;
+        if (window.XMLHttpRequest) {
+            ajax = new XMLHttpRequest();
+        } else {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if (ajax != null) {
+        	// Publish the drafts
+			var postData = "site=true&data=0&page=-1";
+            ajax.open("POST", "./php/saver.php", true);
+            ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			ajax.send(postData);
+            ajax.onreadystatechange = function() {
+                if(ajax.readyState==4) {
+                	// The publish worked
+                	var rawDraftData = ajax.responseText;
+                	if (rawDraftData) {
+                		// Update the names of the files
+                		rawDraftData = NW.io.unserialize_data(rawDraftData);
+                		for (var i = 0; rawDraftData[i]; i++) {
+                			var currentRawDraft = rawDraftData[i];
+                			var data = {name: currentRawDraft["name"]};
+                			if (currentRawDraft["type"] == "pages") {
+                				var objId = NW.filesystem.createId(currentRawDraft["id"]);
+                				var obj = document.getElementById(objId);
+                			} else {
+                				var objId = NW.filesystem.createId(currentRawDraft["page"], currentRawDraft["id"]);
+                				var obj = document.getElementById(objId);
+                			}
+                			
+                			if (obj) NW.filesystem.updateFileData(obj, data);
+                		}
+                	}
+                	
+                	var drafts = NW.filesystem.getDrafts();
+                	var draft;
+                	for (var i = 0; i < drafts.length; i++) {
+                		NW.filesystem.restoreFileAppearance(drafts[i]);
+                	}
+                	
+                	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
+                } else if (ajax.readyState == 0) {
+                	// The publish didn't work
+                	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
+                }
+            }
+        } else {
+        	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
+        }
+		
+		// Old Code that used javascript rather than php:
+		
 		// DAVID: I believe I have completed this function, and you shouldn't even have to touch it,
-		// Right now, this function loops through all the drafts and then publishes each draft by calling the NW.io.publishPage() function
-		NW.editor.functions.openLoadingWindow("Publishing Site...");
-		NW.io.save(null, false);
-		NW.filesystem.lastPage = null;
-		NW.filesystem.allDraftsForPublish = null;
-		NW.filesystem.allDraftsForPublish = [];
-		var publishArray = [];
-		// Code for publishing
-		// The difference between this and save is that save just saves the current state of the page...
-		// Publish actually puts the page out onto the web to viewed
-		// Publishing only publishes the drafts, since that is the only thing that has changed
-		
-		// The drafts array gets all the files in the left sidebar that are drafts
-		var draftsArray = NW.filesystem.getDrafts();
-		// Now loop throught the draftsArray and publish them
-		var currentDraft;
-		for (var i = 0; i < draftsArray.length; i++) {
-			currentDraft = draftsArray[i];
-			publishArray[currentDraft.id] = {name: currentDraft.textContent, id: currentDraft.id};
-			
-			/*NW.filesystem.lastPage = document.createElement("li");
-			NW.filesystem.lastPage.id = currentDraft.id;
-			
-			NW.io.publishPage(currentDraft.id, false);
-			NW.filesystem.restoreFileAppearance(document.getElementById(currentDraft["id"]));*/
-		}
-		// The entries headers array gets all the "Entries" buttons and loads them into an array
-		// This does not actually contain the data inside (the actual entries), since they haven't been loaded into the list editor
-		var entriesHeaders = NW.filesystem.getEntriesHeaders();
-		var entryDraftsArray = entriesHeaders;
-		for (var i = 0; i < entriesHeaders.length; i++) {
-			//entriesHeaders[i].listEntries = [];
-			entriesHeaders[i].listEntries = NW.io.getListEntriesArray(entriesHeaders[i].id);
-		}
-		/* entriesHeaders Structure
-		 * entriesHeaders = array of DOM objects
-		 * entriesHeaders[].listEntries = multi-dimensional array of entries for the given group (found by the id)
-		 * entriesHeaders[].listEntries[] = name array to access different aspects of the list
-		 *
-		 * Example: entriesHeaders[1].listEntries[2]["name"]
-		 * Example: entriesHeaders[3].id
-		 */
-		
-		var listEntryDraftNum = 0;
-		var currentEntry;
-		for (var i = 0; i < entriesHeaders.length; i++) {
-			for (var x = 0; x < entriesHeaders[i].listEntries.length; x++) {
-				if (entriesHeaders[i].listEntries[x]["draft"] && !entriesHeaders[i].listEntries[x]["locked"]) {
-					entryDraftsArray[i].listEntries[listEntryDraftNum] = entriesHeaders[i].listEntries[x];
-					currentEntry = entryDraftsArray[i].listEntries[listEntryDraftNum];
-					publishArray[currentEntry["id"]] = {name: currentEntry["name"], id: currentEntry["id"]};
-					
-					/*//entryArgs = NW.filesystem.parseId(currentEntry["id"]);
-					NW.filesystem.lastPage = document.createElement("li");
-					NW.filesystem.lastPage.id = currentEntry["id"];
-					
-					// Run this function
-					// (NW.filesystem.restoreFileAppearance())
-					// and get the current list object by doing getElementById() and put it in as the argument, as below
-					NW.io.publishPage(currentEntry["id"], false);
-					NW.filesystem.restoreFileAppearance(document.getElementById(currentEntry["id"]));*/
-					
-					listEntryDraftNum++;
-				}
-			}
-		}
-		/* entryDraftsArray Structure
-		 * entryDraftsArray = array of DOM objects
-		 * entryDraftsArray[].listEntries = multi-dimensional array of entries that are drafts and not locked for the given group
-		 * entryDraftsArray[].listEntries[] = name array to access different aspects of the list
-		 *
-		 * Example: entryDraftsArray[1].listEntries[2]["name"]
-		 * Example: entryDraftsArray[3].id
-		 */
-		 
-		// Look for any unsaved drafts in the list editor that are not gotten by the NW.filesystem.getEntriesHeaders() function and the array under it
-		$("#NWListEditor .NWRowsSelectable li.NWUnsaved").each(function() {
-			publishArray[$(this).attr("id")] = {name: $(this).text(), id: $(this).attr("id")};
-		});
-		
-		// Convert the dictionary array into a number array
-		var draft = null;
-		var tempArray = [];
-		var i = 0;
-		for (draft in publishArray) {
-			tempArray[i] = publishArray[draft];
-			i++;
-		}
-		
-		publishArray = null;
-		publishArray = tempArray;
-		// Create a local array so it doesn't keep getting edited
-		// Unfortunately, I can't use something = somethingElse, since the two variables are now attached
-		// e.g. if I make a change to something, it changes on somethingElse as well
-		for (var draft in publishArray) {
-				NW.filesystem.allDraftsForPublish[draft] = publishArray[draft];
-		}
-		
-		draft = null;
-		for (draft in publishArray) {
-			NW.io.publishPage(publishArray[draft].id, false);
-		}
-		
-		// Code for publishing all the drafts
-		
-		// Use the function inside here when the readyState equals 4, like the others that I have done
-		//setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
-		//NW.editor.functions.closeLoadingWindow();
+// 		// Right now, this function loops through all the drafts and then publishes each draft by calling the NW.io.publishPage() function
+// 		NW.editor.functions.openLoadingWindow("Publishing Site...");
+// 		NW.io.save(null, false);
+// 		NW.filesystem.lastPage = null;
+// 		NW.filesystem.allDraftsForPublish = null;
+// 		NW.filesystem.allDraftsForPublish = [];
+// 		var publishArray = [];
+// 		// Code for publishing
+// 		// The difference between this and save is that save just saves the current state of the page...
+// 		// Publish actually puts the page out onto the web to viewed
+// 		// Publishing only publishes the drafts, since that is the only thing that has changed
+// 		
+// 		// The drafts array gets all the files in the left sidebar that are drafts
+// 		var draftsArray = NW.filesystem.getDrafts();
+// 		// Now loop throught the draftsArray and publish them
+// 		var currentDraft;
+// 		for (var i = 0; i < draftsArray.length; i++) {
+// 			currentDraft = draftsArray[i];
+// 			publishArray[currentDraft.id] = {name: currentDraft.textContent, id: currentDraft.id};
+// 			
+// 			/*NW.filesystem.lastPage = document.createElement("li");
+// 			NW.filesystem.lastPage.id = currentDraft.id;
+// 			
+// 			NW.io.publishPage(currentDraft.id, false);
+// 			NW.filesystem.restoreFileAppearance(document.getElementById(currentDraft["id"]));*/
+// 		}
+// 		// The entries headers array gets all the "Entries" buttons and loads them into an array
+// 		// This does not actually contain the data inside (the actual entries), since they haven't been loaded into the list editor
+// 		var entriesHeaders = NW.filesystem.getEntriesHeaders();
+// 		var entryDraftsArray = entriesHeaders;
+// 		for (var i = 0; i < entriesHeaders.length; i++) {
+// 			//entriesHeaders[i].listEntries = [];
+// 			entriesHeaders[i].listEntries = NW.io.getListEntriesArray(entriesHeaders[i].id);
+// 		}
+// 		/* entriesHeaders Structure
+// 		 * entriesHeaders = array of DOM objects
+// 		 * entriesHeaders[].listEntries = multi-dimensional array of entries for the given group (found by the id)
+// 		 * entriesHeaders[].listEntries[] = name array to access different aspects of the list
+// 		 *
+// 		 * Example: entriesHeaders[1].listEntries[2]["name"]
+// 		 * Example: entriesHeaders[3].id
+// 		 */
+// 		
+// 		var listEntryDraftNum = 0;
+// 		var currentEntry;
+// 		for (var i = 0; i < entriesHeaders.length; i++) {
+// 			for (var x = 0; x < entriesHeaders[i].listEntries.length; x++) {
+// 				if (entriesHeaders[i].listEntries[x]["draft"] && !entriesHeaders[i].listEntries[x]["locked"]) {
+// 					entryDraftsArray[i].listEntries[listEntryDraftNum] = entriesHeaders[i].listEntries[x];
+// 					currentEntry = entryDraftsArray[i].listEntries[listEntryDraftNum];
+// 					publishArray[currentEntry["id"]] = {name: currentEntry["name"], id: currentEntry["id"]};
+// 					
+// 					/*//entryArgs = NW.filesystem.parseId(currentEntry["id"]);
+// 					NW.filesystem.lastPage = document.createElement("li");
+// 					NW.filesystem.lastPage.id = currentEntry["id"];
+// 					
+// 					// Run this function
+// 					// (NW.filesystem.restoreFileAppearance())
+// 					// and get the current list object by doing getElementById() and put it in as the argument, as below
+// 					NW.io.publishPage(currentEntry["id"], false);
+// 					NW.filesystem.restoreFileAppearance(document.getElementById(currentEntry["id"]));*/
+// 					
+// 					listEntryDraftNum++;
+// 				}
+// 			}
+// 		}
+// 		/* entryDraftsArray Structure
+// 		 * entryDraftsArray = array of DOM objects
+// 		 * entryDraftsArray[].listEntries = multi-dimensional array of entries that are drafts and not locked for the given group
+// 		 * entryDraftsArray[].listEntries[] = name array to access different aspects of the list
+// 		 *
+// 		 * Example: entryDraftsArray[1].listEntries[2]["name"]
+// 		 * Example: entryDraftsArray[3].id
+// 		 */
+// 		 
+// 		// Look for any unsaved drafts in the list editor that are not gotten by the NW.filesystem.getEntriesHeaders() function and the array under it
+// 		$("#NWListEditor .NWRowsSelectable li.NWUnsaved").each(function() {
+// 			publishArray[$(this).attr("id")] = {name: $(this).text(), id: $(this).attr("id")};
+// 		});
+// 		
+// 		// Convert the dictionary array into a number array
+// 		var draft = null;
+// 		var tempArray = [];
+// 		var i = 0;
+// 		for (draft in publishArray) {
+// 			tempArray[i] = publishArray[draft];
+// 			i++;
+// 		}
+// 		
+// 		publishArray = null;
+// 		publishArray = tempArray;
+// 		// Create a local array so it doesn't keep getting edited
+// 		// Unfortunately, I can't use something = somethingElse, since the two variables are now attached
+// 		// e.g. if I make a change to something, it changes on somethingElse as well
+// 		for (var draft in publishArray) {
+// 				NW.filesystem.allDraftsForPublish[draft] = publishArray[draft];
+// 		}
+// 		
+// 		draft = null;
+// 		for (draft in publishArray) {
+// 			NW.io.publishPage(publishArray[draft].id, false);
+// 		}
+// 		
+// 		// Code for publishing all the drafts
+// 		
+// 		// Use the function inside here when the readyState equals 4, like the others that I have done
+// 		//setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
+// 		//NW.editor.functions.closeLoadingWindow();
 	},
 	preview: function() {
 		// Code for previewing current page
@@ -732,5 +798,200 @@ NW.io = {
         }
 
         return utftext;
-    }
+    },
+    unserialize_data: function(data) {
+		// Takes a string representation of variable and recreates it  
+		// 
+		// version: 1004.2314
+		// discuss at: http://phpjs.org/functions/unserialize
+		// +     original by: Arpad Ray (mailto:arpad@php.net)
+		// +     improved by: Pedro Tainha (http://www.pedrotainha.com)
+		// +     bugfixed by: dptr1988
+		// +      revised by: d3x
+		// +     improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+		// +        input by: Brett Zamir (http://brett-zamir.me)
+		// +     improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+		// +     improved by: Chris
+		// +     improved by: James
+		// +        input by: Martin (http://www.erlenwiese.de/)
+		// +     bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+		// +     improved by: Le Torbi
+		// +     input by: kilops
+		// +     bugfixed by: Brett Zamir (http://brett-zamir.me)
+		// -      depends on: NW.io.utf8_decode
+		// %            note: We feel the main purpose of this function should be to ease the transport of data between php & js
+		// %            note: Aiming for PHP-compatibility, we have to translate objects to arrays
+		// *       example 1: unserialize('a:3:{i:0;s:5:"Kevin";i:1;s:3:"van";i:2;s:9:"Zonneveld";}');
+		// *       returns 1: ['Kevin', 'van', 'Zonneveld']
+		// *       example 2: unserialize('a:3:{s:9:"firstName";s:5:"Kevin";s:7:"midName";s:3:"van";s:7:"surName";s:9:"Zonneveld";}');
+		// *       returns 2: {firstName: 'Kevin', midName: 'van', surName: 'Zonneveld'}
+		var that = this;
+		var utf8Overhead = function(chr) {
+			// http://phpjs.org/functions/unserialize:571#comment_95906
+			var code = chr.charCodeAt(0);
+			if (code < 0x0080) {
+				return 0;
+			}
+			if (code < 0x0800) {
+				 return 1;
+			}
+			return 2;
+		};
+	 
+	 
+		var error = function (type, msg, filename, line){throw new that.window[type](msg, filename, line);};
+		var read_until = function (data, offset, stopchr){
+			var buf = [];
+			var chr = data.slice(offset, offset + 1);
+			var i = 2;
+			while (chr != stopchr) {
+				if ((i+offset) > data.length) {
+					error('Error', 'Invalid');
+				}
+				buf.push(chr);
+				chr = data.slice(offset + (i - 1),offset + i);
+				i += 1;
+			}
+			return [buf.length, buf.join('')];
+		};
+		var read_chrs = function (data, offset, length){
+			var buf;
+	 
+			buf = [];
+			for (var i = 0;i < length;i++){
+				var chr = data.slice(offset + (i - 1),offset + i);
+				buf.push(chr);
+				length -= utf8Overhead(chr); 
+			}
+			return [buf.length, buf.join('')];
+		};
+		var _unserialize = function (data, offset){
+			var readdata;
+			var readData;
+			var chrs = 0;
+			var ccount;
+			var stringlength;
+			var keyandchrs;
+			var keys;
+	 
+			if (!offset) {offset = 0;}
+			var dtype = (data.slice(offset, offset + 1)).toLowerCase();
+	 
+			var dataoffset = offset + 2;
+			var typeconvert = function(x) {return x;};
+	 
+			switch (dtype){
+				case 'i':
+					typeconvert = function (x) {return parseInt(x, 10);};
+					readData = read_until(data, dataoffset, ';');
+					chrs = readData[0];
+					readdata = readData[1];
+					dataoffset += chrs + 1;
+				break;
+				case 'b':
+					typeconvert = function (x) {return parseInt(x, 10) !== 0;};
+					readData = read_until(data, dataoffset, ';');
+					chrs = readData[0];
+					readdata = readData[1];
+					dataoffset += chrs + 1;
+				break;
+				case 'd':
+					typeconvert = function (x) {return parseFloat(x);};
+					readData = read_until(data, dataoffset, ';');
+					chrs = readData[0];
+					readdata = readData[1];
+					dataoffset += chrs + 1;
+				break;
+				case 'n':
+					readdata = null;
+				break;
+				case 's':
+					ccount = read_until(data, dataoffset, ':');
+					chrs = ccount[0];
+					stringlength = ccount[1];
+					dataoffset += chrs + 2;
+	 
+					readData = read_chrs(data, dataoffset+1, parseInt(stringlength, 10));
+					chrs = readData[0];
+					readdata = readData[1];
+					dataoffset += chrs + 2;
+					if (chrs != parseInt(stringlength, 10) && chrs != readdata.length){
+						error('SyntaxError', 'String length mismatch');
+					}
+	 
+					// Length was calculated on an utf-8 encoded string
+					// so wait with decoding
+					readdata = that.utf8_decode(readdata);
+				break;
+				case 'a':
+					readdata = {};
+	 
+					keyandchrs = read_until(data, dataoffset, ':');
+					chrs = keyandchrs[0];
+					keys = keyandchrs[1];
+					dataoffset += chrs + 2;
+	 
+					for (var i = 0; i < parseInt(keys, 10); i++){
+						var kprops = _unserialize(data, dataoffset);
+						var kchrs = kprops[1];
+						var key = kprops[2];
+						dataoffset += kchrs;
+	 
+						var vprops = _unserialize(data, dataoffset);
+						var vchrs = vprops[1];
+						var value = vprops[2];
+						dataoffset += vchrs;
+	 
+						readdata[key] = value;
+					}
+	 
+					dataoffset += 1;
+				break;
+				default:
+					error('SyntaxError', 'Unknown / Unhandled data type(s): ' + dtype);
+				break;
+			}
+			return [dtype, dataoffset - offset, typeconvert(readdata)];
+		};
+		
+		return _unserialize((data+''), 0)[2];
+	},
+	utf8_decode: function(str_data) {
+		// Converts a UTF-8 encoded string to ISO-8859-1  
+		// 
+		// version: 1004.2314
+		// discuss at: http://phpjs.org/functions/NW.io.utf8_decode
+		// +   original by: Webtoolkit.info (http://www.webtoolkit.info/)
+		// +      input by: Aman Gupta
+		// +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+		// +   improved by: Norman "zEh" Fuchs
+		// +   bugfixed by: hitwork
+		// +   bugfixed by: Onno Marsman
+		// +      input by: Brett Zamir (http://brett-zamir.me)
+		// +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+		// *     example 1: NW.io.utf8_decode('Kevin van Zonneveld');
+		// *     returns 1: 'Kevin van Zonneveld'
+		var tmp_arr = [], i = 0, ac = 0, c1 = 0, c2 = 0, c3 = 0;
+		
+		str_data += '';
+		
+		while ( i < str_data.length ) {
+			c1 = str_data.charCodeAt(i);
+			if (c1 < 128) {
+				tmp_arr[ac++] = String.fromCharCode(c1);
+				i++;
+			} else if ((c1 > 191) && (c1 < 224)) {
+				c2 = str_data.charCodeAt(i+1);
+				tmp_arr[ac++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63));
+				i += 2;
+			} else {
+				c2 = str_data.charCodeAt(i+1);
+				c3 = str_data.charCodeAt(i+2);
+				tmp_arr[ac++] = String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+				i += 3;
+			}
+		}
+	 
+		return tmp_arr.join('');
+	}
 };
