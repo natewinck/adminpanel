@@ -14,8 +14,8 @@ NW.keystrokes = {
 		}
 	],
 	general: [
-		NW.listener.bindKey("CMD", Key.Z, NW.history.undo, "Undo"),
-		NW.listener.bindKey("CMD SHIFT", Key.Z, NW.history.redo, "Redo"),
+		//NW.listener.bindKey("CMD", Key.Z, NW.history.undo, "Undo"),
+		//NW.listener.bindKey("CMD SHIFT", Key.Z, NW.history.redo, "Redo"),
 		
 		NW.listener.bindKey("CMD", Key.S, NW.io.save, "Save open file"),
 		
@@ -33,6 +33,10 @@ NW.keystrokes = {
 		
 		// Assign a shortcut for all functions that use Escape
 		NW.listener.bindKey("", Key.ESCAPE, NW.onescapepress, "Escape Press"),
+		
+		// Assign a shortcut for all functions that use Delete or Backspace
+		NW.listener.bindKey("", Key.DELETE, NW.ondeletedown, "Delete Press", null, "page", true),
+		NW.listener.bindKey("", Key.BACKSPACE, NW.ondeletedown, "Backspace Press", null, "page", true),
 		
 		NW.listener.bindKey("ALT", "", NW.onoptiondown, "Option Press", "keydown"),
 		NW.listener.bindKey("ALT", "", NW.onoptionup, "Option Press", "keyup"),

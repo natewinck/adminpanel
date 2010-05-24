@@ -102,8 +102,6 @@ NW.io = {
 			var openedPage = document.getElementById(NW.filesystem.createId(lastOpenFile.pageId));
 			if (openedPage) NW.filesystem.select(null, openedPage);
 		}
-		
-		NW.io.open(lastOpenFile.cat, lastOpenFile.id);
 	},
 	open: function(pageId, entryId) {
 		if (pageId == null) return false;
@@ -233,6 +231,41 @@ NW.io = {
 		ajax.open("POST", "./php/saver.php", true);
 		ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		ajax.send(postData);
+	},
+	lock: function(obj) {
+		// Find the selected object
+		if (obj && obj.target) obj = null;
+		var selected = obj || null;
+		if (!selected) {
+			selected = NW.filesystem.getSelected();
+		}
+		
+		var file = NW.filesystem.parseId(selected.id);
+		
+		// Code for locking
+		/*
+		ajax = null;
+        if (window.XMLHttpRequest) {
+            ajax = new XMLHttpRequest();
+        } else {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if (ajax != null) {
+			var entryString = "";
+			if (file.entryId) entryString = "&entry=" + file.entryId;
+			
+			var postData = "page=" + file.pageId + entryString + "&lock=true";
+            ajax.open("POST", "./php/saver.php", true);
+            ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			ajax.send(postData);
+            ajax.onreadystatechange = function() {
+                if(ajax.readyState==4) {
+                	// The lock worked
+                }
+            }
+        }
+        */
 	},
 	save: function(obj, useLoadingWindow) {
 		// Find the selected object
