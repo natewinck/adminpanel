@@ -43,6 +43,8 @@ NW.filesystem = {
 		
 		//$(".NWSites .NWSelected").removeClass("NWSelected");
 		obj.addClass("NWSelected");
+		NW.filesystem.autosave();
+		NW.filesystem.autoLock();
 		
 		if (obj.hasClass("listEditor")) {
 			NW.filesystem.showListEditor(obj);
@@ -196,6 +198,24 @@ NW.filesystem = {
 	unlock: function(id, isDraft) {
 		var className = (isDraft) ? "NWDraft" : "NWFile";
 		$("#" + id).removeClass("NWNonSelectable").children("div:first").removeClass().addClass(className);
+	},
+	autosave: function() {
+		if (NW.filesystem.autosave.id != null) {
+			clearInterval(NW.filesystem.autosave.id);
+			NW.filesystem.autosave.id = null;
+		}
+		var autosaveInterval = 60; // In seconds
+		var autosaveIntervalMilli = 1000 * autosaveInterval; // In milliseconds
+		NW.filesystem.autosave.id = setInterval("NW.io.save(null, false);", autosaveIntervalMilli);
+	},
+	autoLock: function() {
+		if (NW.filesystem.autoLock.id != null) {
+			clearInterval(NW.filesystem.autoLock.id);
+			NW.filesystem.autoLock.id = null;
+		}
+		var autoLockInterval = 60; // In seconds
+		var autoLockIntervalMilli = 1000 * autoLockInterval; // In milliseconds
+		NW.filesystem.autoLock.id = setInterval("NW.io.lock();", autoLockIntervalMilli);
 	},
 	fillListEditor: function(pageId) {
 		// Get list array via ajax

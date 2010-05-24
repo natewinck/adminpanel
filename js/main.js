@@ -255,15 +255,55 @@ NW = {
 			getFieldsDataArray: function() {
 				var fieldsArray = [];
 				var fieldClassName, startFieldPos, endFieldPos, fieldName, data;
-				$(NWEditPage.document.body).children(".NWEditable").each(function() {
+				var startDataTypePos, endDataTypePos, dataType;
+				$(NWEditPage.document.body).find(".NWEditable, .NWEditableData").each(function() {
+					data = null;
+					
 					fieldClassName = $(this)[0].className;
+					
+					// Data type
+					startDataTypePos = fieldClassName.indexOf("NWData") + 6;
+					endDataTypePos = fieldClassName.indexOf("NWdataZ");
+					dataType = fieldClassName.substring(startDataTypePos, endDataTypePos);
+					switch (dataType) {
+						case "image":
+							var startAttrData = fieldClassName.indexOf("NWEditableAttr") + 14;
+							var endAttrData = fieldClassName.indexOf("NWAttrZ");
+							var attrData = fieldClassName.substring(startAttrData, endAttrData).split("_");
+							var attrVal;
+							data = [];
+							for (var i = 0; i < attrData.length; i++) {
+								attrVal = $(this).attr(attrData[i]);
+								data[attrData[i]] = attrVal;
+							}
+							break;
+						default: // Defaults as field
+							var imageId = 0; // Does not correspond to the images actual id
+							var imgsIds = [];
+							// Go through first of all and delete the id's and other things from the imgs
+							$(this).find("img").each(function() {
+								imgsIds[imageId] = this.id;
+								this.removeAttribute("id");
+								this.style.removeProperty("cursor");
+								imageId++;
+							});
+							
+							data = $(this)[0].innerHTML;
+							
+							// Now go back through and replace the id's from the imgs
+							imageId = 0;
+							$(this).find("img").each(function() {
+								this.id = imgsIds[imageId];
+								imageId++;
+							});
+							break;
+					};
 					
 					startFieldPos = fieldClassName.indexOf("NWField") + 7;
 					endFieldPos = fieldClassName.indexOf("NWZ");
 					fieldName = fieldClassName.substring(startFieldPos, endFieldPos);
 					//fieldName = $(this)[0].id;
 					
-					data = $(this)[0].innerHTML;
 					fieldsArray[fieldName] = data;
 					fieldsArray[fieldName + "Style"] = this.style.cssText;
 				});
@@ -510,28 +550,52 @@ NW = {
 			alignImageLeft: function() {
 				// If there is no image, no need to go on
 				if (!NW.selectedImage) return false;
+				if (!NW.selectedImage.allowedAttributes.align) return false;
 				
-				// No need to align the image again
-				if (NW.selectedImage.align == "left") return false;
+				// If the image is already aligned, that means that the person doesn't want it aligned
+				if (NW.selectedImage.align == "left") {
+					NW.selectedImage.removeAttribute("align");
+					
+					NW.editor.functions.swapPrimaryImageMargin();
+					NW.editor.functions.removeImageInfo();
+					NW.editor.functions.addImageInfo();
+					
+					NW.filesystem.changeToDraft();
+					return false;
+				}
 				
 				NW.selectedImage.align = "left";
 				
 				NW.editor.functions.swapPrimaryImageMargin();
 				NW.editor.functions.removeImageInfo();
 				NW.editor.functions.addImageInfo();
+				
+				NW.filesystem.changeToDraft();
 			},
 			alignImageRight: function() {
 				// If there is no image, no need to go on
 				if (!NW.selectedImage) return false;
+				if (!NW.selectedImage.allowedAttributes.align) return false;
 				
-				// No need to align the image again
-				if (NW.selectedImage.align == "right") return false;
+				// If the image is already aligned, that means that the person doesn't want it aligned
+				if (NW.selectedImage.align == "right") {
+					NW.selectedImage.removeAttribute("align");
+					
+					NW.editor.functions.swapPrimaryImageMargin();
+					NW.editor.functions.removeImageInfo();
+					NW.editor.functions.addImageInfo();
+					
+					NW.filesystem.changeToDraft();
+					return false;
+				}
 				
 				NW.selectedImage.align = "right";
 				
 				NW.editor.functions.swapPrimaryImageMargin();
 				NW.editor.functions.removeImageInfo();
 				NW.editor.functions.addImageInfo();
+				
+				NW.filesystem.changeToDraft();
 
 			},
 			mouseoverImage: function() {
@@ -582,19 +646,36 @@ NW = {
 				
 				// BRING BACK console.log("---------dragend---------");
 			},
-			addImageEvents: function(image) {
+			addImageEvents: function(image, init) {
 				// BRING BACK console.log(image);
 				if (!NW.selectedImage && !image) return false;
 				// BRING BACK console.log("ADDING EVENTS");
+				
+				if (init) {
+					if (!NW.imageId) NW.imageId = 0;
+					image.id = "NWImage" + NW.imageId;
+					NW.imageId++;
+				}
+				
 				// Since the image seems to disappear from the DOM once it is drug, I need to get it by id again
 				var image = NWEditPage.document.getElementById(image.id);
+				if (!image) {
+					NW.selectedImage = null;
+					NW.editor.functions.removeImageInfo();
+					NW.filesystem.changeToDraft();
+					return false;
+				}
+				
 				//// BRING BACK console.log(image);
 				//// BRING BACK console.log("270");
+				
 				// Add click event to this image
 				// Remove all the events before adding new ones (this functions will be fired every
 				// time the image is moved) 
-				NW.editor.functions.clickImage(image); // Fire this function first
-				NW.editor.functions.offclickImage(); // Fire this function to compensate for the NW.imageClick variable
+				if (!init) {
+					NW.editor.functions.clickImage(image); // Fire this function first
+					NW.editor.functions.offclickImage(); // Fire this function to compensate for the NW.imageClick variable
+				}
 				
 				image.removeEventListener("click", NW.editor.functions.clickImage, false);
 				image.addEventListener("click", NW.editor.functions.clickImage, false);
@@ -638,19 +719,32 @@ NW = {
 				if (!NW.selectedImage) return false;
 				
 				var image = NW.selectedImage;
+				if (image.nodeName != "IMG") {
+					// Something has been deleted
+					NW.editor.functions.removeImageInfo();
+					NW.selectedImage = null;
+					NW.filesystem.changeToDraft();
+					return false;
+				}
 				
 				// BRING BACK console.log(image);
-				
 				// Fill in the information on the sidebar
-				$(".NWEditControls.NWInsertImageURL input").val(image.src);
-				(image.align == "left") ? $(".NWEditControls.NWObjectWrap .NWObjectWrapLeft").addClass("NWSelected")
-										: $(".NWEditControls.NWObjectWrap .NWObjectWrapRight").addClass("NWSelected");
+				if (image.allowedAttributes.src) $(".NWEditControls.NWInsertImageURL input").val(image.getAttribute("src"));
+				if (image.allowedAttributes.align) {
+					if (image.align == "left") {
+						$(".NWEditControls.NWObjectWrap .NWObjectWrapLeft").addClass("NWSelected");
+					} else if (image.align == "right") {
+						$(".NWEditControls.NWObjectWrap .NWObjectWrapRight").addClass("NWSelected");
+					}
+				}
 				
-				NW.editor.functions.updateImageSizeInput("width");
-				NW.editor.functions.updateImageSizeInput("height");
+				if (image.allowedAttributes.width) NW.editor.functions.updateImageSizeInput("width");
+				if (image.allowedAttributes.height) NW.editor.functions.updateImageSizeInput("height");
 				
-				$(".NWEditControls.NWResizeProportional .NWResizeLink").addClass("NWSelected");
-				NW.imageResizeLink = true;
+				if (image.allowedAttributes.width && image.allowedAttributes.height) {
+					$(".NWEditControls.NWResizeProportional .NWResizeLink").addClass("NWSelected");
+					NW.imageResizeLink = true;
+				}
 				
 				NW.editor.functions.updateImageMarginInput();
 			},
@@ -659,8 +753,8 @@ NW = {
 				$(".NWEditControls.NWInsertImageURL input").val("");
 				$(".NWEditControls.NWObjectWrap .NWSelected").removeClass("NWSelected");
 				
-				NW.editor.functions.updateImageSizeInput("width");
-				NW.editor.functions.updateImageSizeInput("height");
+				NW.editor.functions.updateImageSizeInput("width", true);
+				NW.editor.functions.updateImageSizeInput("height", true);
 				
 				$(".NWEditControls.NWResizeProportional .NWResizeLink").removeClass("NWSelected");
 				NW.imageResizeLink = false;
@@ -670,19 +764,46 @@ NW = {
 				NW.imageClick = true;
 				
 				var image = this;
-				if (extraThis.src) image = extraThis;
+				if (extraThis && extraThis.src) image = extraThis;
 				//// BRING BACK console.log(image);
 				//// BRING BACK console.log("321");
 				// Assign the image to a global variable so I can access it for functions
 				NW.selectedImage = image;
 				
+				NW.selectedImage.allowedAttributes = {
+					"alt": true,
+					"src": true,
+					"align": true,
+					"height": true,
+					"width": true,
+					"margin": true,
+					"padding": true,
+					"border": true
+				};
+				// Add the attributes that can only be used to edit the image
+				if ($(image).hasClass("NWEditableData")) {
+					var imageClasses = image.className;
+					
+					var startAttrData = imageClasses.indexOf("NWEditableAttr") + 14;
+					var endAttrData = imageClasses.indexOf("NWAttrZ");
+					var attrData = imageClasses.substring(startAttrData, endAttrData).split("_");
+					
+					var attributes = [];
+					for (var i = 0; i < attrData.length; i++) {
+						attributes[attrData[i]] = true;
+					}
+					
+					NW.selectedImage.allowedAttributes = attributes;
+				}
+				
 				// Fill in the info in the sidebar
+				NW.editor.functions.removeImageInfo();
 				NW.editor.functions.addImageInfo();
 			},
 			offclickImage: function() {
 				
 				// If no image is selected, no use going any further since this will just delete information
-				if ($(".NWEditControls.NWInsertImageURL input").val == "") return true;
+				//if ($(".NWEditControls.NWInsertImageURL input").val == "") return true;
 				
 				// If an image is being selected, don't go any further
 				if (NW.imageClick) {
@@ -690,6 +811,9 @@ NW = {
 					NW.imageClick = false;
 					return true;
 				}
+				
+				if (!NW.selectedImage) return true;
+				
 				// BRING BACK console.log("selected is null");
 				// Delete the image from the global variable
 				NW.selectedImage = null;
@@ -747,14 +871,20 @@ NW = {
 				// Shortcut so I don't have to keep using images[0]
 				var image = images[0];
 				
+				if (!image) return false;
+				
 				// Clear the selected text (if any)
 				cursorPos.deleteContents();
 				
-				
+				// Adjust the src for the offset
+				var imageSrc = image.getAttribute("src");
+				for (var i = 0; i < NW.imagePathOffset; i++) {
+					imageSrc = "../" + imageSrc;
+				}
 				
 				// Create the image
 				var imageTag = NWEditPage.document.createElement("img");
-				imageTag.src = image.src;		// Give the img tag a src
+				imageTag.setAttribute("src", imageSrc);		// Give the img tag a src
 				imageTag.height = image.height;	// Set height
 				imageTag.width = image.width;	// Set width
 				imageTag.align = "left";		// Default to aligning to left
@@ -817,6 +947,9 @@ NW = {
 				// Increment the image id
 				NW.imageId++;
 				
+				// Tell the editor that this file is now a draft
+				NW.filesystem.changeToDraft();
+				
 				//if (cursorPos)
 				//NW.editor.functions.fireCommand("insertimage", false, images[0].src);
 			},
@@ -826,14 +959,36 @@ NW = {
 				
 				// Make sure an image isn't already selected, in which case it would just change the source
 				if (NW.selectedImage) {
-					if (NW.selectedImage.src != url) NW.selectedImage.src = url;
+					if (NW.selectedImage.getAttribute("src") != url) {
+						NW.selectedImage.onload = NW.editor.functions.resetImageSize;
+						NW.selectedImage.setAttribute("src", url);
+						console.log(url);
+						
+						NW.filesystem.changeToDraft();
+					}
 					return false;
 				}
 				
+				if (url.target) return false;
+				
 				// BRING BACK console.log(url);
+				
 				var image = [];
 				image[0] = url;
+				for (var i = 0; i < NW.phpPathOffset; i++) {
+					if (image[0].indexOf("../") == 0) {
+						image[0] = image[0].substr(3);
+					}
+				}
+				NW.imagePathOffset = i;
 				var imageSet = new ImagePreloader(image, NW.editor.functions.placePreviewImage);
+				
+				/*
+				var imgElement = NWEditPage.document.createElement("img");
+				imgElement.setAttribute("src", url);
+				image[0] = imgElement;
+				NW.editor.functions.placePreviewImage(image, 1);
+				*/
 				
 				//document.getElementById("NWInsertImagePreview").children[0].src = url;
 			},
@@ -907,8 +1062,8 @@ NW = {
 				//NW.editor.functions.fireCommand("insertimage", false, "http://localhost/~nathanielwinckler/AdminPanel/images/NWToolbar/add_page.png");
 			//},*/
 			
-			updateImageSizeInput: function(direction) {
-				if (!NW.selectedImage) {
+			updateImageSizeInput: function(direction, clear) {
+				if (!NW.selectedImage || clear) {
 					$(".NWEditControls.NWDragNumber .NWDragNumber").val("");
 					$(".NWEditControls.NWDragNumber .NWDragNumber").val("");
 					return false;
@@ -924,6 +1079,7 @@ NW = {
 					// This needs to be more specific!
 					$(".NWEditControls.NWDragNumber .NWDragNumber.NWResizeHeight").val(height);
 				}
+				NW.filesystem.changeToDraft();
 			},
 			changeImageSize: function(args, direction, numAdded, setNum) {
 				if (!NW.selectedImage) return false;
@@ -949,18 +1105,18 @@ NW = {
 				var num = (numAdded != null) ? numAdded : setNum;
 				//// BRING BACK console.log(num);
 				if (numAdded != null) {
-					if (direction == "width") {
+					if (direction == "width" && NW.selectedImage.allowedAttributes.width) {
 						var width = NW.selectedImage.width;
 						width += num;
-					} else {
+					} else if (NW.selectedImage.allowedAttributes.height) {
 						var height = NW.selectedImage.height;
 						height += num;
 					}
 				} else {
-					if (direction == "width") {
+					if (direction == "width" && NW.selectedImage.allowedAttributes.width) {
 						var width = NW.selectedImage.width;
 						width = num;
-					} else {
+					} else if (NW.selectedImage.allowedAttributes.height) {
 						var height = NW.selectedImage.height;
 						height = num;
 					}
@@ -968,7 +1124,7 @@ NW = {
 				
 				if (width) {
 					// Constrain proportions
-					if (NW.imageResizeLink) {
+					if (NW.imageResizeLink && NW.selectedImage.allowedAttributes.height) {
 						// new height = (original height / orig width) * new width
 						NW.selectedImage.height =
 							Math.round((NW.selectedImage.naturalHeight / NW.selectedImage.naturalWidth) * width);
@@ -979,7 +1135,7 @@ NW = {
 					NW.selectedImage.width = (width < 0) ? 0 : width;
 				} else if (height) {
 					// Constrain proportions
-					if (NW.imageResizeLink) {
+					if (NW.imageResizeLink && NW.selectedImage.allowedAttributes.width) {
 						// new width = (orig width / orig height) * new height
 						NW.selectedImage.width =
 							Math.round((NW.selectedImage.naturalWidth / NW.selectedImage.naturalHeight) * height);
@@ -991,12 +1147,24 @@ NW = {
 				}
 				
 				// For Firefox:
-				NW.selectedImage.style.width = "";
-				NW.selectedImage.style.height = "";
+				if (NW.selectedImage.allowedAttributes.width) NW.selectedImage.style.width = "";
+				if (NW.selectedImage.allowedAttributes.height) NW.selectedImage.style.height = "";
 				
-				NW.editor.functions.updateImageSizeInput(direction);
+				if (NW.selectedImage.allowedAttributes.width || NW.selectedImage.allowedAttributes.height) NW.editor.functions.updateImageSizeInput(direction);
+			},
+			resetImageSize: function() {
+				if (!NW.selectedImage) return false;
+				if (!NW.selectedImage.allowedAttributes.width || !NW.selectedImage.allowedAttributes.height) return false;
+				
+				NW.selectedImage.removeAttribute("width");
+				NW.selectedImage.removeAttribute("height");
+				
+				NW.editor.functions.updateImageSizeInput("width");
+				NW.editor.functions.updateImageSizeInput("height");
 			},
 			imageSizeLink: function() {
+				if (!NW.selectedImage) return false;
+				if (!NW.selectedImage.allowedAttributes.width && !NW.selectedImage.allowedAttributes.height) return false;
 				if ($(this).hasClass("NWSelected")) {
 					NW.imageResizeLink = false;
 					$(this).removeClass("NWSelected");
@@ -1007,13 +1175,20 @@ NW = {
 			},
 			swapPrimaryImageMargin: function() {
 				if (NW.selectedImage.align == "right") {
-					var prevPrimaryMargin = NW.selectedImage.style.marginRight;
+					var prevPrimaryMargin = $(NW.selectedImage).css("margin-right");
 					NW.selectedImage.style.marginLeft = prevPrimaryMargin;
 					NW.selectedImage.style.marginRight = "0px";
-				} else {
-					var prevPrimaryMargin = NW.selectedImage.style.marginLeft;
+				} else if (NW.selectedImage.align == "left") {
+					var prevPrimaryMargin = $(NW.selectedImage).css("margin-left");
 					NW.selectedImage.style.marginRight = prevPrimaryMargin;
 					NW.selectedImage.style.marginLeft = "0px";
+				} else {
+					var prevPrimaryMargin = (parseInt($(NW.selectedImage).css("margin-left")) > parseInt($(NW.selectedImage).css("margin-right")))
+											? $(NW.selectedImage).css("margin-left")
+											: $(NW.selectedImage).css("margin-right");
+					
+					NW.selectedImage.style.marginLeft = prevPrimaryMargin;
+					NW.selectedImage.style.marginRight = prevPrimaryMargin;
 				}
 			},
 			updateImageMarginInput: function() {
@@ -1022,10 +1197,11 @@ NW = {
 					obj.val("");
 					return false;
 				}
+				if (!NW.selectedImage.allowedAttributes.margin) return false;
 				// BRING BACK console.log(NW.selectedImage.align);
 				var margin = (NW.selectedImage.align == "left")
-					? NW.selectedImage.style.marginRight
-					: NW.selectedImage.style.marginLeft;
+					? $(NW.selectedImage).css("margin-right")
+					: $(NW.selectedImage).css("margin-left");
 				
 				/*// BRING BACK console.log(parseInt(NW.selectedImage.style.marginRight) > 0);
 				var margin = (parseInt(NW.selectedImage.style.marginRight) > 0)
@@ -1034,6 +1210,7 @@ NW = {
 				margin = parseInt(margin);
 				// BRING BACK console.log(margin);
 				obj.val(margin);
+				NW.filesystem.changeToDraft();
 			},
 			updateImageMargin: function() {
 				//// BRING BACK console.log("update function called");
@@ -1043,10 +1220,10 @@ NW = {
 				// BRING BACK console.log("UPDATING MARGIN");
 				
 				if (NW.selectedImage.align == "left") {
-					var currentMargin = NW.selectedImage.style.marginRight;
+					var currentMargin = $(NW.selectedImage).css("margin-right");
 					var useRightMargin = true;
 				} else {
-					var currentMargin = NW.selectedImage.style.marginLeft;
+					var currentMargin = $(NW.selectedImage).css("margin-left");
 				}
 				currentMargin = parseInt(currentMargin);
 				
@@ -1080,6 +1257,7 @@ NW = {
 			},
 			changeImageMargin: function(args) {
 				if (!NW.selectedImage) return false;
+				if (!NW.selectedImage.allowedAttributes.margin) return false;
 				
 				var numAdded = args.numAdded;
 				var setNum = args.setNum;
@@ -1087,10 +1265,20 @@ NW = {
 				var num = (numAdded != null) ? numAdded : setNum;
 				
 				if (NW.selectedImage.align == "left") {
-					var currentMargin = NW.selectedImage.style.marginRight;
+					var currentMargin = $(NW.selectedImage).css("margin-right");
 					var useRightMargin = true;
+				} else if (NW.selectedImage.align == "right") {
+					var currentMargin = $(NW.selectedImage).css("margin-left");
+					var useLeftMargin = true;
 				} else {
-					var currentMargin = NW.selectedImage.style.marginLeft;
+					var currentMargin = (parseInt($(NW.selectedImage).css("margin-left"))
+										> parseInt($(NW.selectedImage).css("margin-right"))
+										)
+											? $(NW.selectedImage).css("margin-left")
+											: $(NW.selectedImage).css("margin-right");
+					
+					var useRightMargin = true;
+					var useLeftMargin = true;
 				}
 				currentMargin = parseInt(currentMargin);
 				
@@ -1119,7 +1307,7 @@ NW = {
 						: Math.round(.8 * newMargin) // if it's not at the bottom
 					,
 					// Check to see if image is aligned left or right
-					left: (useRightMargin) ? 0 : Math.round(newMargin)
+					left: (useLeftMargin) ? Math.round(newMargin) : 0
 				};
 				//console.log(NW.whitespace.first_child(NW.selectedImage.parentNode));
 				// BRING BACK console.log(margin);
@@ -1153,6 +1341,11 @@ NW = {
 				//$("#NWEditPage .NWEditable").attr("contenteditable", "true");
 				var editables = $("#NWEditPage").contents().find(".NWEditable");
 				editables.attr("contenteditable", "true");
+				
+				// Make all editable images able to be seen by the image editor
+				$("#NWEditPage").contents().find("img.NWEditableData, .NWEditable img").each(function() {
+					NW.editor.functions.addImageEvents(this, true);
+				});
 				
 				// Disable all links inside the iframe
 				var links = $("#NWEditPage").contents().find("a");
@@ -1473,6 +1666,9 @@ NW = {
 	onoptionup: function() {
 		NW.editor.functions.togglePublishPage();
 	},
+	ondeletedown: function() {
+		NW.editor.functions.offclickImage();
+	},
 	onresize: function() {
 		NW.window.resize();
 	},
@@ -1502,6 +1698,9 @@ NW = {
 		
 		// Expand or collapse triangles
 		NW.filesystem.init();
+		
+		// The path offset from the templates and the AdminPanel
+		NW.phpPathOffset = 1;
 		
 		/*Range.prototype.surroundContents = function (newNode) {
 			console.log("it worked");
@@ -1538,10 +1737,10 @@ window.onresize = NW.onresize;
 // Set up all keystrokes
 NW.listener = {
 	actions: [],
-	bindKey: function(modifiers, keyCode, action, name, event) {
-		this.actions[this.createActionId(null, modifiers, keyCode, event)] = {name: name, modifiers: modifiers, keyCode: keyCode, action: action, event: event};
+	bindKey: function(modifiers, keyCode, action, name, event, scope, passThrough) {
+		this.actions[this.createActionId(null, scope, modifiers, keyCode, event)] = {name: name, modifiers: modifiers, keyCode: keyCode, action: action, event: event, scope: scope, passThrough: passThrough};
 	},
-	createActionId: function(e, modifiers, keyCode, event) {
+	createActionId: function(e, scope, modifiers, keyCode, event) {
 		var actionId = "";
 		if (e) {
 			var modifierArray = [];
@@ -1600,6 +1799,7 @@ NW.listener = {
 			}
 			
 			actionId += " " + e.type;
+			if (scope) actionId += " " + scope.toLowerCase();
 		} else {
 			if (modifiers) {
 				var modifierArray = modifiers.split(" ");
@@ -1620,14 +1820,23 @@ NW.listener = {
 			}
 			
 			(event) ? actionId += " " + event : actionId += " " + "keydown";
+			if (scope) actionId += " " + scope.toLowerCase();
 		}
 		
 		return actionId;
 	},
-	listener: function(e) {
-		var actionId = NW.listener.createActionId(e);
+	listener: function(e, scope) {
+		// Try to make the id with a scope first
+		var actionId = NW.listener.createActionId(e, scope);
 		var action = NW.listener.actions[actionId];
+		// If the one with the scope didn't work, try it without the scope
+		if (!action) {
+			actionId = NW.listener.createActionId(e);
+			action = NW.listener.actions[actionId];
+		}
+		
 		if (!action) return false;
+		
 		//for (var i = 0; i < NW.listener.actions.length; i++) {
 			//var action = NW.listener.actions[i];
 			//var keystroke = NW.keystrokes.checkKeystroke(action.modifiers, action.keyCode, "", e);
@@ -1642,18 +1851,20 @@ NW.listener = {
 				
 		// Check to see if the function returns a value
 		// That value shows if the browser should also get the key command
+		
 		var passToBrowser;
 		if (typeof(action.action) == "string") {
 			eval(action.action);
 		} else {
 			passToBrowser = action.action();
 		}
-		if (passToBrowser != null) {
+		/*if (passToBrowser != null) {
 			if (!passToBrowser) e.preventDefault();
 			return passToBrowser;
-		}
+		}*/
 		// This prevents the default action from happening (though Safari likes to keep the basic ones such as bold
-		e.preventDefault();
+		// If the action is not to pass through, prevent it
+		if (!action.passThrough) e.preventDefault();
 		return false;
 			//}
 		//}
@@ -1662,12 +1873,12 @@ NW.listener = {
 		window: function() {
 			// If I use the addEventListener, the browser also saves since this code is just
 			// adding a listner, not replacing it
-			window.addEventListener("keydown", NW.listener.listener, false);
+			window.addEventListener("keydown", function(e) {NW.listener.listener(e, "window");}, false);
 			//window.onkeydown = NW.listener.listener;
 		},
 		page: function(page) {
 			// Look at the reason above for why I'm using onkeydown instead of addEventListener
-			page.addEventListener("keydown", NW.listener.listener, false);
+			page.addEventListener("keydown", function(e) {NW.listener.listener(e, "page");}, false);
 			//page.onkeydown = NW.listener.listener;
 		}
 	},
@@ -1675,12 +1886,12 @@ NW.listener = {
 		window: function() {
 			// If I use the addEventListener, the browser also saves since this code is just
 			// adding a listner, not replacing it
-			window.addEventListener("keyup", NW.listener.listener, false);
+			window.addEventListener("keyup", function(e) {NW.listener.listener(e, "window");}, false);
 			//window.onkeydown = NW.listener.listener;
 		},
 		page: function(page) {
 			// Look at the reason above for why I'm using onkeydown instead of addEventListener
-			page.addEventListener("keyup", NW.listener.listener, false);
+			page.addEventListener("keyup", function(e) {NW.listener.listener(e, "page");}, false);
 			//page.onkeydown = NW.listener.listener;
 		}
 	},
