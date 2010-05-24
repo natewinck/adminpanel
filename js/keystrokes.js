@@ -42,10 +42,10 @@ NW.keystrokes = {
 		NW.listener.bindKey("ALT", "", NW.onoptionup, "Option Press", "keyup"),
 		
 		// Templates Window Keystrokes
-		NW.listener.bindKey("", Key.LEFT_ARROW, NW.templates.moveSelectorLeft, "Move Selector Left"),
-		NW.listener.bindKey("", Key.RIGHT_ARROW, NW.templates.moveSelectorRight, "Move Selector Right"),
-		NW.listener.bindKey("", Key.UP_ARROW, NW.templates.moveSelectorUp, "Move Selector Up"),
-		NW.listener.bindKey("", Key.DOWN_ARROW, NW.templates.moveSelectorDown, "Move Selector Down")
+		NW.listener.bindKey("", Key.LEFT_ARROW, NW.templates.moveSelectorLeft, "Move Selector Left", null, null, true),
+		NW.listener.bindKey("", Key.RIGHT_ARROW, NW.templates.moveSelectorRight, "Move Selector Right", null, null, true),
+		NW.listener.bindKey("", Key.UP_ARROW, NW.templates.moveSelectorUp, "Move Selector Up", null, null, true),
+		NW.listener.bindKey("", Key.DOWN_ARROW, NW.templates.moveSelectorDown, "Move Selector Down", null, null, true)
 	],
 
 	checkKeystroke: function(modifiers, keyCode, click, e) {

@@ -119,6 +119,19 @@
         return $entries[0]; //Return it
     }
     
+    //** Function to get all drafts **//
+    function get_drafts($con)
+    {
+    	$query = "SELECT * FROM drafts"; // SQL Statement for getting the template
+        $result = mysql_query($query, $con);
+        $drafts = Array();
+        while ($row = mysql_fetch_assoc($result)) {
+        	$drafts[] = $row;
+        }
+        
+        return $drafts; // Return them
+    }
+    
     //** Function to draft an entry **//
     function modify_data($con, $data)
     {

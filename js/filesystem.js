@@ -129,7 +129,7 @@ NW.filesystem = {
 	getDrafts: function() {
 		var draftsArray = [];
 		var i = 0;
-		$(".NWSites > .NWRowCategory > .NWRows > li").each(function() {
+		$(".NWSites > .NWRowCategory > .NWRows > li, #NWListEditor #NWListEditorBox .NWRows > li").each(function() {
 			if ($(this).children(".NWDraft")[0]) {
 				draftsArray[i] = $(this)[0];
 				i++;
@@ -155,7 +155,9 @@ NW.filesystem = {
 		if (!obj) return false;
 		if ($(obj).hasClass("NWRowCategoryHeader")) return false;
 		if (data.name) {
+			// Get rid of any html stuff that we don't want
 			data.name = data.name.replace(/(<([^>]+)>)/ig,"");
+			
 			obj.name = data.name;
 			obj.innerHTML = "";
 			var divElement = document.createElement("div");

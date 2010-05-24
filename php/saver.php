@@ -44,6 +44,28 @@
 			$draftData['draft'] = 1;
 			//unset($data['id']);
 		}
+		else if(isset($_POST['site']))
+		{
+			$publishSite = true;
+			$draftsOrig = get_drafts(get_connection());
+			$drafts = Array();
+			foreach($draftsOrig as $draft) {
+				$tempDraft['data'] = $draft['data'];
+				$tempDraft['name'] = $draft['name'];
+				$tempDraft['draft'] = 0;
+				if ($draft['entry_id'] == -1) { // If the draft is a page
+					$tempDraft['id'] = $draft['page_id'];
+					$tempDraft['type'] = "pages";
+				} else { // If the draft is an entry
+					$tempDraft['id'] = $draft['entry_id'];
+					$tempDraft['page'] = $draft['page_id'];
+					$tempDraft['display'] = 1;
+					$tempDraft['type'] = "entries";
+				}
+				
+				array_push($drafts, $tempDraft);
+			}
+		}
         else if(isset($_POST['entry']) && !isset($_POST['draft']))  // Publish an entry
 		{
 			//echo "second";
@@ -86,6 +108,13 @@
         	revert_data($con, $revertData);
         } else if ($deleteData) {
         	delete_data($con, $deleteData);
+        } else if ($publishSite) {
+        	foreach($drafts as &$draft) {
+        		modify_data($con, $draft);
+        		unset($draft['data']);
+        	}
+        	// Return the array to the javascript side
+        	print(serialize($drafts));
         } else {
         	modify_data($con, $data);
         }
