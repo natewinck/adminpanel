@@ -14,6 +14,8 @@
     //** Function to get an array of data from the users table **//
     function get_user_data($con, $data)
     {
+    	$userId = NULL; // Get the logged in user id here
+    	
     	$query = "SELECT ";
         $fields = "";
         $values = "";
