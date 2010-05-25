@@ -65,6 +65,18 @@ html, body {
 	cursor: text;
 }
 
+#loginBox #loginFormBox #loginForm h2 {
+	width: 260px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	color: #ffffff;
+}
+#loginBox #loginFormBox #loginForm h4 {
+	width: 260px;
+	margin-top: 0px;
+	color: #dddddd;
+}
+
 #loginBox #loginFormBox #loginForm .placeholder span {
 	position: absolute;
 	line-height: 17px;
