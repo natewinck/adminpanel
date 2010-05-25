@@ -24,6 +24,7 @@ NW.keystrokes = {
 		//NW.listener.bindKey("CMD", Key.O, NW.io.openDialog, "Open File"),
 		
 		NW.listener.bindKey("CMD SHIFT", Key.P, NW.editor.functions.confirmPublishPage, "Publish File"),
+		NW.listener.bindKey("CMD ALT SHIFT", Key.P, NW.editor.functions.confirmPublishSite, "Publish Site"),
 		
 		NW.listener.bindKey("CMD", Key.B, function() { NW.editor.functions.fireCommand("bold", false, null); }, "Bold"),
 		NW.listener.bindKey("CMD", Key.L, NW.editor.functions.createLink, "Create Link"),

@@ -56,7 +56,7 @@ NW.io = {
         var parser = new DOMParser();
         var files = parser.parseFromString(filesXML, "text/xml");*/
         //console.log(files);
-        for(var i = 0; i < files.getElementsByTagName('name').length; i++)
+        /*for(var i = 0; i < files.getElementsByTagName('name').length; i++)
         {
             var file = new Array();
             file['list'] = parseInt(files.getElementsByTagName('list')[i].childNodes[0].nodeValue);
@@ -64,6 +64,17 @@ NW.io = {
             file['name'] = files.getElementsByTagName('name')[i].childNodes[0].nodeValue;
             file['draft'] = parseInt(files.getElementsByTagName('draft')[i].childNodes[0].nodeValue);
             file['locked'] = parseInt(files.getElementsByTagName('locked')[i].childNodes[0].nodeValue);
+            filesArray.push(file);
+        }*/
+        
+        for (var i = 0; i < files.getElementsByTagName("page").length; i++) {
+        	var xmlFile = $(files.getElementsByTagName("page")[i]);
+            var file = new Array();
+            file["list"] = parseInt(xmlFile.children("list").text());
+            file["id"] = parseInt(xmlFile.children("id").text());
+            file["name"] = xmlFile.children("name").text();
+            file["draft"] = parseInt(xmlFile.children("draft").text());
+            file["locked"] = parseInt(xmlFile.children("locked").text());
             filesArray.push(file);
         }
 		return filesArray;
@@ -163,7 +174,7 @@ NW.io = {
         //var parser = new DOMParser();
         //var files = parser.parseFromString(filesXML, "text/xml");
         //console.log(files.documentElement.children[0]); 
-        for(var i = 0; i < files.getElementsByTagName('id').length; i++)
+        /*for(var i = 0; i < files.getElementsByTagName('id').length; i++)
         {
             var file = new Array();
             file['id'] = files.getElementsByTagName('id')[i].childNodes[0].nodeValue;
@@ -172,6 +183,18 @@ NW.io = {
             file['author'] = files.getElementsByTagName('author')[i].childNodes[0].nodeValue;
             file['draft'] = parseInt(files.getElementsByTagName('draft')[i].childNodes[0].nodeValue);
             file['locked'] = parseInt(files.getElementsByTagName('locked')[i].childNodes[0].nodeValue);
+            filesArray.push(file);
+        }*/
+        
+        for (var i = 0; i < files.getElementsByTagName("entry").length; i++) {
+        	var xmlFile = $(files.getElementsByTagName("entry")[i]);
+            var file = new Array();
+            file["id"] = parseInt(xmlFile.children("id").text());
+            file["pageId"] = parseInt(xmlFile.children("page").text());
+            file["name"] = xmlFile.children("name").text();
+            file["author"] = xmlFile.children("author").text();
+            file["draft"] = parseInt(xmlFile.children("draft").text());
+            file["locked"] = parseInt(xmlFile.children("locked").text());
             filesArray.push(file);
         }
 		return filesArray;
@@ -231,6 +254,70 @@ NW.io = {
 		ajax.open("POST", "./php/saver.php", true);
 		ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		ajax.send(postData);
+	},
+	getChangedFiles: function() {
+		ajax = null;
+        if (window.XMLHttpRequest) {
+            ajax = new XMLHttpRequest();
+        } else {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if (ajax != null) {
+        	// Make a page string so that the script can check only the files that are visible
+        	// Thus, if the list editor is not even open, then the php side doesn't have to check any of the entries
+        	// But, if the list editor is open, the php side only has to check the specific page id
+			var pageString = "";
+			if ($("#NWListEditor").css("display") != "none") {
+				var selectedEntriesRow = $("#NWSidebarLeft .NWSelected.listEditor");
+				if (selectedEntriesRow[0]) {
+					var parsedId = NW.filesystem.parseId(selectedEntriesRow[0].id);
+					var pageId = parsedId.pageId;
+					if (pageId != null) pageString = "&pageId=" + pageId;
+				}
+			}
+			
+			ajax.open("GET", "./php/loader.php?changed=true" + pageString, true);
+            ajax.send(null);
+            ajax.onreadystatechange = function() {
+                if(ajax.readyState == 4) {
+                	// Change the files to show that they are either now locked or unlocked
+                	var files = ajax.responseXML;
+                	var filesArray = [];
+                	for (var i = 0; i < files.getElementsByTagName("file").length; i++) {
+						var xmlFile = $(files.getElementsByTagName("file")[i]);
+						var file = new Array();
+						file["name"] = xmlFile.children("name").text();
+						file["locked"] = parseInt(xmlFile.children("locked").text());
+						if (xmlFile.children("page")[0]) { // If this file is an entry
+							file["entryId"] = parseInt(xmlFile.children("id").text());
+							file["pageId"] = parseInt(xmlFile.children("page").text());
+							file["draft"] = parseInt(xmlFile.children("draft").text());
+							file["type"] = "entries";
+						} else if (xmlFile.children("entry_id")[0] || xmlFile.children("page_id")[0]) { // If this file is a draft
+							file["entryId"] = (parseInt(xmlFile.children("entry_id").text()) == -1) ? null : parseInt(xmlFile.children("entry_id").text());
+							file["pageId"] = parseInt(xmlFile.children("page_id").text());
+							file["draft"] = true;
+							file["type"] = (parseInt(xmlFile.children("entry_id").text()) == -1) ? "pages" : "entries";
+						} else { // If this file is a page
+							file["pageId"] = parseInt(xmlFile.children("id").text());
+							file["draft"] = parseInt(xmlFile.children("draft").text());
+							file["type"] = "pages";
+						}
+						
+						filesArray.push(file);
+					}
+					
+					for (var i = 0; i < filesArray.length; i++) {
+						var file = filesArray[i];
+						var objId = NW.filesystem.createId(file.pageId, file.entryId);
+						var obj = document.getElementById(objId);
+						if (!obj) continue;
+						NW.filesystem.updateFileData(obj, file);
+					}
+                }
+            }
+        }
 	},
 	lock: function(obj) {
 		// Find the selected object
@@ -325,6 +412,7 @@ NW.io = {
 					// When done saving, close the loading window
 					if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
 					$(selected).removeClass("NWUnsaved");
+					NW.io.getChangedFiles();
                     //console.log(ajax.responseText);
                 }
             }
