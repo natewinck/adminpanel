@@ -11,9 +11,33 @@
         return $con;
     }
     
+    //** Function to get an array of data from the users table **//
+    function get_user_data($con, $data)
+    {
+    	$query = "SELECT ";
+        $fields = "";
+        $values = "";
+        $update = "";
+        foreach($data as $field)
+        {
+            $fields = $fields . $field . ",";
+        }
+        $fields = substr_replace($fields, "", -1);
+        // "WHERE userid =": userid may not be the actual field, since this function was built in advance
+        $query = $query . $fields . " FROM users WHERE userid = $userId";
+        $result = mysql_query($query, $con); // Run the Statement
+        $userDataArray = Array(); // Create an empty array
+        while($userData = mysql_fetch_assoc($result)) // Loop through the results
+        {
+            $userDataArray[] = $userData; // Append them
+        }
+        return $userDataArray[0]; // Return them
+    }
+    
     //** Function to get a list of pages **//
     function get_pages($con)
     {
+    	// Code here for getting the user id
         $query = "SELECT * FROM pages";
         $result = mysql_query($query, $con); //Run the Statement
         $pages = Array(); //Create an empty array
@@ -139,6 +163,12 @@
     	// If pageId is not NULL, this function will add those entries into the array as well
     	
     	// Code here to get the last-checked timestamp and current user id
+    	$userData = Array("timestamp", "userid");
+    	$userData = get_user_data($con, $userData);
+    	$timestamp = $userData['timestamp'];
+    	$currentUserId = $userData['userid'];
+    	
+    	// For now, though...
     	$timestamp = 0;
     	$currentUserId = 0;
     	
