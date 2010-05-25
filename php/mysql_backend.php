@@ -132,6 +132,36 @@
         return $drafts; // Return them
     }
     
+    //**Function to get the changed files **//
+    function get_changed($con, $pageId=NULL)
+    {
+    	// If pageId is NULL, then this function will only get all changed pages (both in the pages table and in the drafts table)
+    	// If pageId is not NULL, this function will add those entries into the array as well
+    	
+    	// Code here to get the last-checked timestamp and current user id
+    	$timestamp = 0;
+    	$currentUserId = 0;
+    	
+    	// Now find the changed files
+    	$query = "(SELECT * FROM pages WHERE timestamp > $timestamp AND author != $currentUserId)";
+    	$query .= " UNION ";
+    	if ($pageId != NULL) {
+			$query .= "(SELECT * FROM entries WHERE page = $pageId AND timestamp > $timestamp AND author != $currentUserId)";
+			$query .= " UNION ";
+			$query .= "(SELECT * FROM drafts WHERE page_id = $pageId AND timestamp > $timestamp AND lockuid != $currentUserId)";
+		} else {
+    		$query .= "(SELECT * FROM drafts WHERE page_id = -1 AND timestamp > $timestamp AND lockuid != $currentUserId)";
+    	}
+    	$result = mysql_query($query, $con);
+    	$files = Array();
+    	while ($row = mysql_fetch_assoc($result)) {
+    		unset($row['data']);
+    		$files[] = $row;
+    	}
+    	
+    	return $files;  // Return them
+    }
+    
     //** Function to draft an entry **//
     function modify_data($con, $data)
     {

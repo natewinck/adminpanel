@@ -56,6 +56,19 @@
         
         include("entries_data_template.php");
     }
+    else if(isset($_GET['changed'])) // Get a list of changed files in XML form
+    {
+    	// This script will always check the pages, but not necessarily all the entries
+    	if(isset($_GET['pageId'])) // If there are entries to find too, add those to the array as well
+    	{
+    		$pageId = $_GET['pageId'];
+    	} else {
+    		$pageId = NULL;
+    	}
+    	$con = get_connection();
+        $data = get_changed($con, $pageId);
+    	include("files_data_template.php");
+    }
     else if(isset($_GET['pageId'])) //Get a single page
     {
         $con = get_connection();
@@ -104,6 +117,6 @@
     {
         $con = get_connection();
         $data = get_pages($con);
-        include("pages_template.php");
+        include("pages_data_template.php");
     }
 ?>

@@ -22,6 +22,9 @@ NW.filesystem = {
 			return false;
 		}
 		
+		// If the row is already selected, there is no need to select it again
+		if (obj.hasClass("NWSelected")) return true;
+		
 		//var topParents = $(".NWSelected").parents(".NWSelectable:last");
 		$(".NWSelected").each(function() {
 			var prevSelected = $(this);
@@ -167,6 +170,20 @@ NW.filesystem = {
 			obj.innerHTML = obj.innerHTML + data.name;
 			/*var textElement = document.createTextNode(data.name);
 			obj.appendChild(textElement);*/
+		}
+		if (data.draft != null) {
+			if (data.draft) { // If the file is a draft
+				$(obj).children(".NWFile").removeClass("NWFile").addClass("NWDraft");
+			} else { // If the file isn't a draft
+				$(obj).children(".NWDraft").removeClass("NWDraft").addClass("NWFile");
+			}
+		}
+		if (data.lock != null) {
+			if (data.lock) { // If the file needs to be locked
+				NW.filesystem.lock(obj.id);
+			} else { // If the file needs to be unlocked
+				NW.filesystem.unlock(obj.id, data.draft);
+			}
 		}
 	},
 	restoreFileAppearance: function(obj) {
