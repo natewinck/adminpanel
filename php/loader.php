@@ -5,6 +5,19 @@
     if(isset($_GET['pageId']) && is_numeric($_GET['pageId']) && isset($_GET['entryId'])) //Get a single Entry
     {
         $con = get_connection(); 
+        
+        // Check to see if the entry is locked
+        /*$lockData['id'] = $_GET['entryId'];
+        $lockData['page'] = $_GET['pageId'];
+        $lockData['type'] = "entries";
+        check_lock($con, $lockData);
+        
+        // Lock the entry
+        unset($lockData['type']);
+        $lockData['locked'] = 1;
+        
+        modify_data($con, $lockData);*/
+        
         $data = get_entry($con, $_GET['pageId'], 'id', $_GET['entryId']);
 		if($data['data'] != NULL)
 		{
@@ -42,6 +55,7 @@
         {
         	// No need for the data field when loading to fill in the entries
        		unset($row['data']);
+       		$row['name'] = str_replace("&nbsp;", " ", $row['name']);
 			/*if($row['data'] != NULL)
 			{
 				$data_col = unserialize(base64_decode($row['data'])); //Data array in the DB is serialized and B64d, so we need to undo it.
@@ -110,6 +124,7 @@
         {
         	// No need for the data field when loading to fill in the entries
        		unset($row['data']);
+       		$row['name'] = str_replace("&nbsp;", " ", $row['name']);
         }
         include("pages_data_template.php");
     }

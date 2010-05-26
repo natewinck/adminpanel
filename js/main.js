@@ -1334,6 +1334,10 @@ NW = {
 			iframeLoad: function() {
 					// BRING BACK console.log("File Loaded");
 				// Shorten typing
+				if (document.getElementById("NWEditPage").src == "") {
+					NWEditPage = null;
+					return false; // The iframe really didn't load anything
+				}
 				NWEditPage = document.getElementById("NWEditPage").contentWindow;
 				var iframe = document.getElementById("NWEditPage");
 				
@@ -2217,6 +2221,9 @@ NW.innerWindow = {
 
 //NWEditPage = document.getElementById("NWEditPage").contentWindow;
 NW.editor.checkQueryState = function () {
+	if (!NWEditPage) return false;
+	if (NWEditPage.document.body.innerHTML == "") return false;
+	
 	// Font Style
 	if(NWEditPage.document.queryCommandState('bold'))
 		$("div#NWEditPanel .NWEditPanelGroup .NWEditControls.NWFontStyle a.NWBold").addClass("NWSelected");

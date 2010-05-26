@@ -7,7 +7,24 @@
         $originalData = unserialize(urldecode(stripslashes($_POST['data'])));
         $data = Array();
 		//unset($data['timestamp']);
-		if(isset($_POST['entry']) && isset($_POST['revert'])) // Revert an entry
+		if(isset($_POST['unlock']) || isset($_POST['lock'])) // Lock a page
+		{
+			$data['timestamp'] = $draftData['timestamp'] = true;
+			$data['author'] = $draftData['lockuid'] = (isset($_POST['unlock'])) ? -1 : 0; // 0 NEEDS TO BE THE USER ID!!
+			$draftData['type'] = "drafts";
+			if (isset($_POST['entry'])) { // If the file is an entry
+				$data['type'] = "entries";
+				$data['page'] = $draftData['page_id'] = $_POST['page'];
+				$data['id'] = $draftData['entry_id'] = $_POST['entry'];
+			} else { // If the file is a page
+				$data['type'] = "pages";
+				$data['id'] = $draftData['page_id'] = $_POST['page'];
+				$draftData['entry_id'] = -1;
+			}
+			$con = get_connection();
+			if (!draft_exists($con, $_POST['page'], $_POST['entry'])) $draftData = NULL;
+		}
+		else if(isset($_POST['entry']) && isset($_POST['revert'])) // Revert an entry
 		{
 			$revertData['entry_id'] = $_POST['entry'];
 			$revertData['page_id'] = $_POST['page'];
@@ -37,19 +54,22 @@
 			$draftData = Array();
 			$data['entry_id'] = $draftData['id'] = $_POST['entry'];
 			$data['page_id'] = $draftData['page'] = $_POST['page'];
-			$data['lockuid'] = $originalData['author'];
+			$data['lockuid'] = $draftData['author'] = $originalData['author']; // The user id needs to be put here!!
 			//unset($data['author']);
 			$data['type'] = "drafts";
 			$draftData['type'] = "entries";
 			$draftData['draft'] = 1;
+			$draftData['locked'] = 1;
+			$draftData['timestamp'] = true; // Force the timestamp update
 			//unset($data['id']);
 		}
-		else if(isset($_POST['site']))
+		else if(isset($_POST['site'])) // Publish the site
 		{
 			$publishSite = true;
 			$draftsOrig = get_drafts(get_connection());
 			$drafts = Array();
 			foreach($draftsOrig as $draft) {
+				if ($draft['locked']) continue;
 				$tempDraft['data'] = $draft['data'];
 				$tempDraft['name'] = $draft['name'];
 				$tempDraft['draft'] = 0;
@@ -80,7 +100,7 @@
 			//echo "third";
 			$draftData = Array();
 			$data['page_id'] = $draftData['id'] = $_POST['page'];
-			$data['lockuid'] = $originalData['author'];
+			$data['lockuid'] = $draftData['author'] = $originalData['author']; // The user id needs to be put here!!
 			$data['name'] = $originalData['name'];
 			/*unset($data['author']);
 			unset($data['rank']);
@@ -90,6 +110,8 @@
 			$data['type'] = "drafts";
 			$draftData['type'] = "pages";
 			$draftData['draft'] = 1;
+			$draftData['locked'] = 1;
+			$draftData['timestamp'] = true; // Force the timestamp update
 			//unset($data['id']);
 		}
 		else if(!isset($_POST['drafts']) && !isset($_POST['entry'])) // Publish a page
@@ -99,7 +121,7 @@
 			$data['type'] = "pages";
 			$data['draft'] = 0;
 		}
-		$data['name'] = strip_tags($originalData['name']);
+		if (isset($originalData['name'])) $data['name'] = strip_tags($originalData['name']);
 		unset($originalData['name']);
 		if ($originalData) $data['data'] = base64_encode(serialize($originalData));
         //print_r($data);

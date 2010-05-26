@@ -32,10 +32,11 @@ NW.filesystem = {
 			if (prevSelected[0]) {
 				if (!prevSelected.hasClass("NWRowCategoryHeader")
 					&& !prevSelected.hasClass("listEditor")
-					&& !prevSelected.children(".NWFile")[0]
-					&& prevSelected.hasClass("NWUnsaved")
+					//&& !prevSelected.children(".NWFile")[0]
+					//&& prevSelected.hasClass("NWUnsaved")
 				) {
 					NW.io.save(prevSelected[0], false);
+					NW.io.unlock(prevSelected[0]);
 				}
 			}
 		});
@@ -43,6 +44,8 @@ NW.filesystem = {
 		var topParent = obj.parents(".NWSelectable:last");
 		var prevSelected = topParent.find(".NWSelected");
 		prevSelected.removeClass("NWSelected");
+		
+		NW.io.getChangedFiles();
 		
 		//$(".NWSites .NWSelected").removeClass("NWSelected");
 		obj.addClass("NWSelected");
@@ -134,6 +137,7 @@ NW.filesystem = {
 		var i = 0;
 		$(".NWSites > .NWRowCategory > .NWRows > li, #NWListEditor #NWListEditorBox .NWRows > li").each(function() {
 			if ($(this).children(".NWDraft")[0]) {
+				console.log($(this).children(":first")[0]);
 				draftsArray[i] = $(this)[0];
 				i++;
 			}
@@ -178,11 +182,12 @@ NW.filesystem = {
 				$(obj).children(".NWDraft").removeClass("NWDraft").addClass("NWFile");
 			}
 		}
-		if (data.lock != null) {
-			if (data.lock) { // If the file needs to be locked
-				NW.filesystem.lock(obj.id);
+		if (data.locked != null) {
+			if (data.locked) { // If the file needs to be locked
+				NW.filesystem.lock(obj);
 			} else { // If the file needs to be unlocked
-				NW.filesystem.unlock(obj.id, data.draft);
+				NW.filesystem.unlock(obj, data.draft);
+				
 			}
 		}
 	},
@@ -207,16 +212,16 @@ NW.filesystem = {
 			$(selected).addClass("NWUnsaved");
 		}
 	},
-	lock: function(id) {
-		$("#" + id).addClass("NWNonSelectable").children("div:first").removeClass().addClass("NWLocked");
-		if ($("#" + id).hasClass("NWSelected")) {
-			$("#" + id).removeClass("NWSelected");
+	lock: function(obj) {
+		$(obj).addClass("NWNonSelectable").children("div:first").removeClass().addClass("NWLocked");
+		if ($(obj).hasClass("NWSelected")) {
+			$(obj).removeClass("NWSelected");
 			NW.io.close();
 		}
 	},
-	unlock: function(id, isDraft) {
+	unlock: function(obj, isDraft) {
 		var className = (isDraft) ? "NWDraft" : "NWFile";
-		$("#" + id).removeClass("NWNonSelectable").children("div:first").removeClass().addClass(className);
+		$(obj).removeClass("NWNonSelectable").children("div:first").removeClass().addClass(className);
 	},
 	autosave: function() {
 		if (NW.filesystem.autosave.id != null) {
@@ -232,7 +237,7 @@ NW.filesystem = {
 			clearInterval(NW.filesystem.autoLock.id);
 			NW.filesystem.autoLock.id = null;
 		}
-		var autoLockInterval = 60; // In seconds
+		var autoLockInterval = 30; // In seconds
 		var autoLockIntervalMilli = 1000 * autoLockInterval; // In milliseconds
 		NW.filesystem.autoLock.id = setInterval("NW.io.lock();", autoLockIntervalMilli);
 	},
@@ -454,7 +459,7 @@ NW.filesystem = {
 				fileElement = document.createElement("li");
 				fileElement.title = file["name"];
 				fileElement.className = "NWRowCategoryHeader";
-				fileElement.id = NW.filesystem.createId(file["id"]);		// Create the id for the overall entries page
+				fileElement.id = NW.filesystem.createId(file["id"]);  // Create the id for the overall entries page
 				siteElement.appendChild(fileElement);
 				
 				divElement = document.createElement("div");

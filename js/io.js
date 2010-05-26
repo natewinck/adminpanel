@@ -141,6 +141,7 @@ NW.io = {
 	close: function() {
 		// This may need to be more specific eventually
 		document.getElementById("NWEditPage").src = "";
+		NWEditPage = null;
 	},
 	getListEntriesArray: function(pageId) {
 		// Code here for getting the array of all the entries
@@ -255,7 +256,8 @@ NW.io = {
 		ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		ajax.send(postData);
 	},
-	getChangedFiles: function() {
+	getChangedFiles: function(synchronous) {
+		var synchronous = (synchronous == null) ? true : synchronous;
 		ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
@@ -277,9 +279,9 @@ NW.io = {
 				}
 			}
 			
-			ajax.open("GET", "./php/loader.php?changed=true" + pageString, true);
+			ajax.open("GET", "./php/loader.php?changed=true" + pageString, synchronous);
             ajax.send(null);
-            ajax.onreadystatechange = function() {
+            var readyFunction = function() {
                 if(ajax.readyState == 4) {
                 	// Change the files to show that they are either now locked or unlocked
                 	var files = ajax.responseXML;
@@ -317,6 +319,10 @@ NW.io = {
 					}
                 }
             }
+            ajax.onreadystatechange = readyFunction;
+            if (!synchronous) {
+            	readyFunction();
+            }
         }
 	},
 	lock: function(obj) {
@@ -326,11 +332,10 @@ NW.io = {
 		if (!selected) {
 			selected = NW.filesystem.getSelected();
 		}
-		
+		if (!selected) return false;
 		var file = NW.filesystem.parseId(selected.id);
 		
 		// Code for locking
-		/*
 		ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
@@ -342,22 +347,51 @@ NW.io = {
 			var entryString = "";
 			if (file.entryId) entryString = "&entry=" + file.entryId;
 			
-			var postData = "page=" + file.pageId + entryString + "&lock=true";
+			var postData = "data=0&page=" + file.pageId + entryString + "&lock=true";
             ajax.open("POST", "./php/saver.php", true);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
             ajax.onreadystatechange = function() {
                 if(ajax.readyState==4) {
                 	// The lock worked
+                	NW.io.getChangedFiles();
                 }
             }
         }
-        */
+	},
+	unlock: function(obj) {
+		if (!obj) return false;
+		
+		var file = NW.filesystem.parseId(obj.id);
+		
+		// Code for unlocking
+		ajax = null;
+        if (window.XMLHttpRequest) {
+            ajax = new XMLHttpRequest();
+        } else {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if (ajax != null) {
+			var entryString = "";
+			if (file.entryId) entryString = "&entry=" + file.entryId;
+			
+			var postData = "data=0&page=" + file.pageId + entryString + "&unlock=true";
+            ajax.open("POST", "./php/saver.php", true);
+            ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			ajax.send(postData);
+            ajax.onreadystatechange = function() {
+                if(ajax.readyState==4) {
+                	// The unlock worked
+                	NW.io.getChangedFiles();
+                }
+            }
+        }
 	},
 	save: function(obj, useLoadingWindow, synchronous) {
 		// Find the selected object
 		if (obj && obj.target) obj = null;
-		var synchronous = (synchronous == null) ? true : synchronous; 
+		var synchronous = (synchronous == null) ? true : synchronous;
 		var selected = obj || null;
 		if (!selected) {
 			selected = NW.filesystem.getSelected();
@@ -410,17 +444,19 @@ NW.io = {
             {
                 if(ajax.readyState==4) {
 					// When done saving, close the loading window
-					if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
 					$(selected).removeClass("NWUnsaved");
-					NW.io.getChangedFiles();
+					NW.io.getChangedFiles(synchronous);
+					if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
+					
                     //console.log(ajax.responseText);
                 }
             }
         }
         
         if (!synchronous) {
+        	$(selected).removeClass("NWUnsaved");
+        	NW.io.getChangedFiles(synchronous);
         	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
-			$(selected).removeClass("NWUnsaved");
         }
 		
 		// When done saving, close the loading window
@@ -572,6 +608,7 @@ NW.io = {
 		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Publishing Site...");
 		
 		NW.io.save(null, false, false);
+		NW.io.getChangedFiles(false);
 		
 		ajax = null;
         if (window.XMLHttpRequest) {
