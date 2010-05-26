@@ -36,16 +36,90 @@
         return $userDataArray[0]; // Return them
     }
     
+    //** Function to get the lock status of a file **//
+    function get_lock($con, $table, $pageId, $entryId=-1)
+    {
+    	if (!isset($table)) return NULL;
+    	$query = "SELECT ";
+    	switch ($table) {
+    		case "pages":
+    			$query .= "author,";
+    			$where = "id=$pageId";
+    			$userIdField = "author";
+    			break;
+    		case "entries":
+    			$query .= "author,";
+    			$where = "id=$entryId AND page=$pageId";
+    			$userIdField = "author";
+    			break;
+    		case "drafts":
+    			$query .= "lockuid,";
+    			$where = "page_id=$pageId AND entry_id = $entryId";
+    			$userIdField = "lockuid";
+    			break;
+    	}
+    	$query .= "UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM $table WHERE $where";
+    	
+    	$result = mysql_query($query, $con); //Run the Statement
+        $files = Array(); //Create an empty array
+        while($file = mysql_fetch_assoc($result)) //Loop through the results
+        {
+        	$file['locked'] = check_lock($file['unix_timestamp'], $file[$userIdField]);
+            $files[] = $file; //Append them
+        }
+        if (!$files[0]) return NULL;
+        return $files[0]['locked'];
+    }
+    
+    //** Function to check the lock on a file **//
+    function check_lock($timestamp, $userId=NULL, $interval=60)
+    {
+    	// Interval is in seconds
+    	if ($timestamp == NULL) return NULL;
+    	
+    	if ($userId != NULL) {
+			// Code here to get the and current user id
+			$userData = Array("userid");
+			$userData = get_user_data($con, $userData);
+			$currentUserId = $userData['userid'];
+			
+			// For now, though...
+			$currentUserId = 0;
+		}
+		
+		$isLocked = NULL;
+		
+		if ($userId != NULL) {
+			if ($userId == $currentUserId
+				|| $userId == -1 // -1 means unlocked
+				|| ($userId != $currentUserId && time() - $timestamp > $interval)
+			) {
+				$isLocked = 0;
+			} else {
+				$isLocked = 1;
+			}
+		} else {
+			if (time() - $timestamp > $interval) {
+				$isLocked = 0;
+			} else {
+				$isLocked = 1;
+			}
+		}
+		
+    	return $isLocked;
+    }
+    
     //** Function to get a list of pages **//
     function get_pages($con)
     {
     	// Code here for getting the user id
-        $query = "SELECT * FROM pages";
+        $query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM pages";
         $result = mysql_query($query, $con); //Run the Statement
         $pages = Array(); //Create an empty array
         echo mysql_error();
         while($page = mysql_fetch_assoc($result)) //Loop through the results
         {
+        	$page['locked'] = check_lock($page['unix_timestamp'], $page['author']);
             $pages[] = $page; //Append them
         }
         return $pages; //Return them
@@ -54,8 +128,8 @@
     //** Function to get a single page **//
     function get_page($con, $page)
     {
-    	$draftQuery = "SELECT * FROM drafts WHERE page_id = '$page' AND entry_id = -1"; // SQL Statement for drafts
-    	$query = "SELECT * FROM pages WHERE id = '$page'"; // SQL Statement
+    	$draftQuery = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = '$page' AND entry_id = -1"; // SQL Statement for drafts
+    	$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM pages WHERE id = '$page'"; // SQL Statement
     	$result = mysql_query($draftQuery, $con); // Run the Statement for drafts
     	$isDraft = true;
     	if (mysql_num_rows($result) == 0) {
@@ -67,6 +141,9 @@
     	{
     		$pages[] = $currentPage;  // Append them
     	}
+    	
+    	$userIdField = ($isDraft) ? "lockuid" : "author";
+    	if (check_lock($pages[0]['unix_timestamp'], $pages[0][$userIdField])) return NULL;
     	
     	// Now get the template
     	if ($isDraft) {
@@ -88,15 +165,15 @@
     {
         if($start == NULL)
         {
-            $query = "SELECT * FROM entries WHERE page='$page' ORDER BY id DESC"; //SQL Statement
+            $query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries WHERE page='$page' ORDER BY id DESC"; //SQL Statement
         }
         else if($max == NULL)
         {
-            $query = "SELECT * FROM entries WHERE page='$page' ORDER BY id DESC LIMIT $start"; //SQL Statement
+            $query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries WHERE page='$page' ORDER BY id DESC LIMIT $start"; //SQL Statement
         }
         else
         {
-            $query = "SELECT * FROM entries WHERE page='$page' ORDER BY id DESC LIMIT $start, $max"; //SQL Statement
+            $query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries WHERE page='$page' ORDER BY id DESC LIMIT $start, $max"; //SQL Statement
         }
         //echo $query;
         $result = mysql_query($query, $con); //Run the Statement
@@ -104,6 +181,7 @@
         echo mysql_error();
         while($row = mysql_fetch_assoc($result)) //Loop through the results
         {
+        	$row['locked'] = check_lock($row['unix_timestamp'], $row['author']);
             $entries[] = $row; //Append them
         }
         return $entries; //Return them
@@ -114,23 +192,28 @@
     {
         if(is_numeric($value))
         {
-        	$draftQuery = "SELECT * FROM drafts WHERE entry_id = $value AND page_id = '$page' LIMIT 0,1"; //SQL Statement for drafts
-            $query = "SELECT * FROM entries WHERE $field = $value AND page = '$page' LIMIT 0,1"; //SQL Statement
+        	$draftQuery = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE entry_id = $value AND page_id = '$page' LIMIT 0,1"; //SQL Statement for drafts
+            $query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries WHERE $field = $value AND page = '$page' LIMIT 0,1"; //SQL Statement
         }
         else
         {
-        	$draftQuery = "SELECT * FROM drafts WHERE entry_id = '$value' AND page_id = '$page' LIMIT 0,1"; //SQL Statement for drafts
-            $query = "SELECT * FROM entries WHERE $field = '$value' AND page = '$page' LIMIT 0,1"; //SQL Statement
+        	$draftQuery = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE entry_id = '$value' AND page_id = '$page' LIMIT 0,1"; //SQL Statement for drafts
+            $query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries WHERE $field = '$value' AND page = '$page' LIMIT 0,1"; //SQL Statement
         }
         $result = mysql_query($draftQuery, $con); // Run the Statement for drafts
+        $isDraft = true;
         if (mysql_num_rows($result) == 0) {
         	$result = mysql_query($query, $con); //Run the Statement
+        	$isDraft = false;
         }
         $entries = Array(); //Create an empty array
         while($row = mysql_fetch_assoc($result)) //Loop through the results
         {
             $entries[] = $row; //Append them
         }
+        
+        $userIdField = ($isDraft) ? "lockuid" : "author";
+    	if (check_lock($entries[0]['unix_timestamp'], $entries[0][$userIdField])) return NULL;
         
         // Now get the template
         $query = "SELECT * FROM pages WHERE id = $page"; //SQL Statement for getting the template
@@ -148,14 +231,31 @@
     //** Function to get all drafts **//
     function get_drafts($con)
     {
-    	$query = "SELECT * FROM drafts"; // SQL Statement for getting the template
+    	$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts"; // SQL Statement for getting the drafts
         $result = mysql_query($query, $con);
         $drafts = Array();
         while ($row = mysql_fetch_assoc($result)) {
+        	$row['locked'] = check_lock($row['unix_timestamp'], $row['author']);
         	$drafts[] = $row;
         }
         
         return $drafts; // Return them
+    }
+    
+    //** Function to check to see if a draft exists **//
+    function draft_exists($con, $pageId, $entryId=-1)
+    {
+    	$query = "SELECT * FROM drafts WHERE page_id = $pageId AND entry_id = $entryId";
+    	$result = mysql_query($query, $con);
+    	$drafts = Array();
+        while ($row = mysql_fetch_assoc($result)) {
+        	$drafts[] = $row;
+        }
+        if ($drafts[0]) { // If there is a draft, return true
+        	return true;
+        } else { // If there isn't a draft, return false
+        	return false;
+        }
     }
     
     //**Function to get the changed files **//
@@ -175,20 +275,52 @@
     	$currentUserId = 0;
     	
     	// Now find the changed files
-    	$query = "(SELECT * FROM pages WHERE timestamp > $timestamp AND author != $currentUserId)";
-    	$query .= " UNION ";
-    	if ($pageId != NULL) {
-			$query .= "(SELECT * FROM entries WHERE page = $pageId AND timestamp > $timestamp AND author != $currentUserId)";
-			$query .= " UNION ";
-			$query .= "(SELECT * FROM drafts WHERE page_id = $pageId AND timestamp > $timestamp AND lockuid != $currentUserId)";
-		} else {
-    		$query .= "(SELECT * FROM drafts WHERE page_id = -1 AND timestamp > $timestamp AND lockuid != $currentUserId)";
-    	}
+    	$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM pages WHERE timestamp > $timestamp AND author != $currentUserId";
     	$result = mysql_query($query, $con);
     	$files = Array();
     	while ($row = mysql_fetch_assoc($result)) {
+    		$files[] = $row;
+    	}
+    	if ($pageId != NULL) {
+    		// Get the changed entries
+			$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries WHERE page = $pageId AND timestamp > $timestamp AND author != $currentUserId";
+			$result = NULL;
+			$result = mysql_query($query, $con);
+			while ($row = mysql_fetch_assoc($result)) {
+				$files[] = $row;
+			}
+			
+			// Get the changed files in the drafts table
+			$query = "(SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = $pageId AND timestamp > $timestamp AND lockuid != $currentUserId)";
+			$query .= " UNION ";
+			$query .= "(SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = -1 AND timestamp > $timestamp AND lockuid != $currentUserId)";
+			$result = NULL;
+			$result = mysql_query($query, $con);
+			while ($row = mysql_fetch_assoc($result)) {
+				$files[] = $row;
+			}
+		} else {
+			// Get the changed pages
+    		$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = -1 AND timestamp > $timestamp AND lockuid != $currentUserId";
+    		$result = NULL;
+			$result = mysql_query($query, $con);
+			while ($row = mysql_fetch_assoc($result)) {
+				$files[] = $row;
+			}
+    	}
+    	/*$result = mysql_query($query, $con);
+    	$files = Array();
+    	while ($row = mysql_fetch_assoc($result)) {
+    		print_r($row);
+    		$userIdField = (isset($row['page_id']) || isset($row['entry_id'])) ? "lockuid" : "author";
+    		$row['locked'] = check_lock($row['unix_timestamp'], $row[$userIdField]);
     		unset($row['data']);
     		$files[] = $row;
+    	}*/
+    	foreach ($files as &$file) {
+    		$userIdField = (isset($row['page_id']) || isset($file['entry_id'])) ? "lockuid" : "author";
+    		$file['locked'] = check_lock($file['unix_timestamp'], $file[$userIdField]);
+    		unset($file['data']);
     	}
     	
     	return $files;  // Return them
@@ -199,6 +331,18 @@
     {
         $table = $data['type'];
         unset($data['type']);
+        
+        if ($table == "entries") { // If it's an entry
+        	$pageId = $data['page'];
+        	$entryId = $data['id'];
+        } else if ($table == "pages") { // If it's a page
+        	$pageId = $data['id'];
+        	$entryId = NULL;
+        } else { // If it's a draft
+        	$pageId = $data['page_id'];
+        	$entryId = $data['entry_id'];
+        }
+        if (get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
         
         $query = "INSERT INTO $table (";
         $fields = "";
@@ -215,7 +359,11 @@
             }
             else
             {
-                $values = $values . "\"" . $value . "\",";
+                if($field != "timestamp") {
+                	$values = $values . "\"" . $value . "\",";
+                } else {
+                	$values = $values . "CURRENT_TIMESTAMP,";
+                }
                 //$update = $update . $field . "=\"" . $value . "\", ";
 				if($field != 'id') $update = "$update $field=VALUES($field),";
             }
