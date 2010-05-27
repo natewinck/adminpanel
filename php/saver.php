@@ -7,7 +7,7 @@
         $originalData = unserialize(urldecode(stripslashes($_POST['data'])));
         $data = Array();
 		//unset($data['timestamp']);
-		if(isset($_POST['unlock']) || isset($_POST['lock'])) // Lock a page
+		if(isset($_POST['unlock']) || isset($_POST['lock'])) // Lock or Unlock a page
 		{
 			$data['timestamp'] = $draftData['timestamp'] = true;
 			$data['author'] = $draftData['lockuid'] = (isset($_POST['unlock'])) ? -1 : 0; // 0 NEEDS TO BE THE USER ID!!

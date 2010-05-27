@@ -6,17 +6,33 @@
     {
         $con = get_connection(); 
         
-        // Check to see if the entry is locked
-        /*$lockData['id'] = $_GET['entryId'];
+        //// Check to see if the entry is locked - no more, checked by the get_entry function
+        $lockData['id'] = $_GET['entryId'];
         $lockData['page'] = $_GET['pageId'];
         $lockData['type'] = "entries";
-        check_lock($con, $lockData);
+        //check_lock($con, $lockData);
         
         // Lock the entry
-        unset($lockData['type']);
         $lockData['locked'] = 1;
+        $lockData['timestamp'] = true;
+        $lockData['author'] = 0; // CHANGE TO USER ID!!
+        modify_data($con, $lockData);
         
-        modify_data($con, $lockData);*/
+        // Lock the draft of the entry if it exists
+        if (draft_exists($con, $lockData['page'], $lockData['id'])) {
+        	$lockData['page_id'] = $lockData['page'];
+        	unset($lockData['page']);
+        	$lockData['entry_id'] = $lockData['id'];
+        	unset($lockData['id']);
+        	$lockData['lockuid'] = $lockData['author'];
+        	unset($lockData['author']);
+        	unset($lockData['locked']);
+        	$lockData['type'] = "drafts";
+        	
+        	modify_data($con, $lockData);
+        }
+        
+        
         
         $data = get_entry($con, $_GET['pageId'], 'id', $_GET['entryId']);
 		if($data['data'] != NULL)
@@ -86,6 +102,28 @@
     else if(isset($_GET['pageId'])) //Get a single page
     {
         $con = get_connection();
+        
+        // Lock the page
+        $lockData['id'] = $_GET['pageId'];
+        $lockData['type'] = "pages";
+        $lockData['locked'] = 1;
+        $lockData['timestamp'] = true;
+        $lockData['author'] = 0; // CHANGE TO USER ID!!
+        modify_data($con, $lockData);
+        
+        // Lock the draft of the page if it exists
+        if (draft_exists($con, $lockData['id'])) {
+        	$lockData['page_id'] = $lockData['id'];
+        	unset($lockData['id']);
+        	$lockData['entry_id'] = -1;
+        	$lockData['lockuid'] = $lockData['author'];
+        	unset($lockData['author']);
+        	unset($lockData['locked']);
+        	$lockData['type'] = "drafts";
+        	
+        	modify_data($con, $lockData);
+        }
+        
         /*if(isset($_GET['start']) && isset($_GET['max']))
         {
             $data = get_entries($con, $_GET['pageId'], $_GET['start'], $_GET['max']);

@@ -177,7 +177,7 @@ NW = {
 			},
 			confirmRevert: function() {
 				var selected = NW.filesystem.getSelected() || null;
-				if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+				//if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
 				if ($(selected).children(".NWFile")[0]) selected = null;
 				
 				if (!selected) return false;
@@ -202,7 +202,7 @@ NW = {
 			},
 			confirmPublishPage: function() {
 				var selected = NW.filesystem.getSelected() || null;
-				if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+				//if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
 				
 				if (!selected) return false;
 				
