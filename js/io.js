@@ -4,7 +4,7 @@ NW.io = {
 		var filesXML = null;
         var filesArray = new Array();
 
-        ajax = null;
+        var ajax = null;
         if(window.XMLHttpRequest)
         {
             ajax = new XMLHttpRequest();
@@ -120,6 +120,9 @@ NW.io = {
         //id is always an integer, cat is a string
         //IF id is left off then it gets multiple entries.
         //console.log(id);
+		
+		// Close the current page
+		NW.io.close();
         
         if (entryId != null) {
         	// Load an entry
@@ -149,7 +152,7 @@ NW.io = {
 		var filesXML = null;
         var filesArray = new Array();
 
-        ajax = null;
+        var ajax = null;
         if(window.XMLHttpRequest)
         {
             ajax = new XMLHttpRequest();
@@ -212,7 +215,7 @@ NW.io = {
 		var pageId = parsedId.pageId;
 		if (pageId == null) return null;
 		
-		ajax = null;
+		var ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
         } else {
@@ -251,14 +254,22 @@ NW.io = {
 		var parsedId = NW.filesystem.parseId(obj.id);
 		if (parsedId.pageId == null || parsedId.entryId == null) return false;
 		
-		var postData = "data=1" + "&page=" + parsedId.pageId + "&entry=" + parsedId.entryId + "&delete=true";
-		ajax.open("POST", "./php/saver.php", true);
-		ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-		ajax.send(postData);
+		var ajax = null;
+        if (window.XMLHttpRequest) {
+            ajax = new XMLHttpRequest();
+        } else {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+		if (ajax != null) {
+			var postData = "data=0" + "&page=" + parsedId.pageId + "&entry=" + parsedId.entryId + "&delete=true";
+			ajax.open("POST", "./php/saver.php", true);
+			ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			ajax.send(postData);
+		}
 	},
 	getChangedFiles: function(synchronous) {
 		var synchronous = (synchronous == null) ? true : synchronous;
-		ajax = null;
+		var ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
         } else {
@@ -281,7 +292,8 @@ NW.io = {
 			
 			ajax.open("GET", "./php/loader.php?changed=true" + pageString, synchronous);
             ajax.send(null);
-            var readyFunction = function() {
+            var readyFunction = function(e, ajax) {
+				var ajax = (e == null) ? ajax : e.target;
                 if(ajax.readyState == 4) {
                 	// Change the files to show that they are either now locked or unlocked
                 	var files = ajax.responseXML;
@@ -321,7 +333,7 @@ NW.io = {
             }
             ajax.onreadystatechange = readyFunction;
             if (!synchronous) {
-            	readyFunction();
+            	readyFunction(null, ajax);
             }
         }
 	},
@@ -336,7 +348,7 @@ NW.io = {
 		var file = NW.filesystem.parseId(selected.id);
 		
 		// Code for locking
-		ajax = null;
+		var ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
         } else {
@@ -351,7 +363,8 @@ NW.io = {
             ajax.open("POST", "./php/saver.php", true);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
-            ajax.onreadystatechange = function() {
+            ajax.onreadystatechange = function(e) {
+				var ajax = e.target;
                 if(ajax.readyState==4) {
                 	// The lock worked
                 	NW.io.getChangedFiles();
@@ -365,7 +378,7 @@ NW.io = {
 		var file = NW.filesystem.parseId(obj.id);
 		
 		// Code for unlocking
-		ajax = null;
+		var ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
         } else {
@@ -380,7 +393,8 @@ NW.io = {
             ajax.open("POST", "./php/saver.php", true);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
-            ajax.onreadystatechange = function() {
+            ajax.onreadystatechange = function(e) {
+				var ajax = e.target;
                 if(ajax.readyState==4) {
                 	// The unlock worked
                 	NW.io.getChangedFiles();
@@ -397,7 +411,7 @@ NW.io = {
 			selected = NW.filesystem.getSelected();
 		}
 		
-		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		//if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
 		if (!$(selected).hasClass("NWUnsaved")) selected = null;
 		
 		if (!selected) return false;
@@ -408,7 +422,7 @@ NW.io = {
 		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Saving Page as a Draft...");
 		
 		// Code for saving
-		ajax = null;
+		var ajax = null;
         if(window.XMLHttpRequest)
         {
             ajax = new XMLHttpRequest();
@@ -440,23 +454,26 @@ NW.io = {
             ajax.open("POST", "./php/saver.php", synchronous);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
-            ajax.onreadystatechange=function()
+            var readyFunction = function(e, selected, data)
             {
+				var ajax = (e.readyState) ? e : e.target;
                 if(ajax.readyState==4) {
 					// When done saving, close the loading window
 					$(selected).removeClass("NWUnsaved");
+					NW.filesystem.updateFileData(selected, {
+						name: data.name
+					});
 					NW.io.getChangedFiles(synchronous);
 					if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
 					
                     //console.log(ajax.responseText);
                 }
-            }
+            };
+            ajax.onreadystatechange = function(e) {readyFunction(e, selected, data);};
         }
         
-        if (!synchronous) {
-        	$(selected).removeClass("NWUnsaved");
-        	NW.io.getChangedFiles(synchronous);
-        	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
+        if (!synchronous && ajax.readyState == 4) {
+        	readyFunction(ajax, selected, data);
         }
 		
 		// When done saving, close the loading window
@@ -464,14 +481,14 @@ NW.io = {
 	},
 	revert: function() {
 		var selected = NW.filesystem.getSelected() || null;
-		if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+		//if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
 		if ($(selected).children(".NWFile")[0]) selected = null;
 		
 		if (!selected) return false;
 		
 		var file = NW.filesystem.parseId(selected.id);
 		
-		ajax = null;
+		var ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
         } else {
@@ -486,8 +503,9 @@ NW.io = {
             ajax.open("POST", "./php/saver.php", true);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
-            ajax.onreadystatechange=function()
+            ajax.onreadystatechange=function(e)
             {
+				var ajax = e.target;
                 if(ajax.readyState==4) {
 					// When done saving, close the loading window
 					NW.io.open(file.pageId, file.entryId);
@@ -507,7 +525,7 @@ NW.io = {
 		// Publish actually puts the page out onto the web to viewed
 		if (!objId) {
 			var selected = NW.filesystem.getSelected() || null;
-			if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
+			//if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
 			
 			if (!selected) return false;
 			
@@ -523,7 +541,7 @@ NW.io = {
 		var useLoadingWindow = (useLoadingWindow == false) ? useLoadingWindow : true;
 		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Publishing Page...");
 		
-		ajax = null;
+		var ajax = null;
         if(window.XMLHttpRequest)
         {
             ajax = new XMLHttpRequest();
@@ -559,8 +577,9 @@ NW.io = {
             ajax.open("POST", "./php/saver.php", true);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
-            ajax.onreadystatechange=function()
+            ajax.onreadystatechange=function(e)
             {
+				var ajax = e.target;
                 if(ajax.readyState==4){
                 	// Check to see if this is publishing all the drafts
                 	// If so, close the loading window only after the last page
@@ -610,7 +629,7 @@ NW.io = {
 		NW.io.save(null, false, false);
 		NW.io.getChangedFiles(false);
 		
-		ajax = null;
+		var ajax = null;
         if (window.XMLHttpRequest) {
             ajax = new XMLHttpRequest();
         } else {
@@ -623,7 +642,8 @@ NW.io = {
             ajax.open("POST", "./php/saver.php", true);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
-            ajax.onreadystatechange = function() {
+            ajax.onreadystatechange = function(e) {
+				var ajax = e.target;
                 if(ajax.readyState==4) {
                 	// The publish worked
                 	var rawDraftData = ajax.responseText;

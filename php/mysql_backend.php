@@ -120,6 +120,10 @@
         while($page = mysql_fetch_assoc($result)) //Loop through the results
         {
         	$page['locked'] = check_lock($page['unix_timestamp'], $page['author']);
+        	if ($page['draft']) {
+        		$draft = get_draft($con, $page['id']);
+        		$page['name'] = $draft['name'];
+        	}
             $pages[] = $page; //Append them
         }
         return $pages; //Return them
@@ -156,7 +160,7 @@
 			// Add the template data to the entries data
 			$pages[0]["template"] = $nonDraftPages[0]["template"];
 		}
-    	
+		
     	return $pages[0]; // Return it
     }
     
@@ -182,6 +186,10 @@
         while($row = mysql_fetch_assoc($result)) //Loop through the results
         {
         	$row['locked'] = check_lock($row['unix_timestamp'], $row['author']);
+        	if ($row['draft']) {
+        		$draft = get_draft($con, $row['page'], $row['id']);
+        		$row['name'] = $draft['name'];
+        	}
             $entries[] = $row; //Append them
         }
         return $entries; //Return them
@@ -226,6 +234,21 @@
         $entries[0]["template"] = $page[0]["template"];
         
         return $entries[0]; //Return it
+    }
+    
+    //** Funciton to get a single draft **//
+    function get_draft($con, $pageId, $entryId=-1) {
+    	if (!isset($pageId)) return NULL;
+    	
+    	$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = $pageId AND entry_id = $entryId"; // SQL Statement for getting a draft
+    	$result = mysql_query($query, $con);
+        $draft = Array();
+        while ($row = mysql_fetch_assoc($result)) {
+        	$row['locked'] = check_lock($row['unix_timestamp'], $row['author']);
+        	$draft[] = $row;
+        }
+        
+        return $draft[0];
     }
     
     //** Function to get all drafts **//
@@ -332,6 +355,7 @@
         $table = $data['type'];
         unset($data['type']);
         
+        // This checks to see if the page has been locked since the page was opened; it's almost redundant and can probably be deleted
         if ($table == "entries") { // If it's an entry
         	$pageId = $data['page'];
         	$entryId = $data['id'];
@@ -342,7 +366,11 @@
         	$pageId = $data['page_id'];
         	$entryId = $data['entry_id'];
         }
-        if (get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
+		if (get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
+        if ($table == "drafts") { // Check the original page or entry
+        	$lockTable = ($data['entry_id'] == -1) ? "pages" : "entries";
+        	if (get_lock($con, $lockTable, $pageId, $entryId)) return false; // It's locked so don't modify
+        }
         
         $query = "INSERT INTO $table (";
         $fields = "";
@@ -379,7 +407,7 @@
         
         
          // If you are adding an entry...
-        if (isset($data['page']) && !isset($data['id'])) {
+        if (isset($data['page']) && !isset($data['id']) && !isset($data['entry'])) {
         	echo $autoIncrementId;
         	// Save the new entry as a draft
         	$data['type'] = "drafts";
@@ -389,7 +417,7 @@
         	$data['entry_id'] = $autoIncrementId;
         	unset($data['display']);
         	modify_data($con, $data);
-        } else if ($table != "drafts" && $data['draft'] == 0) {
+        } else if ($table != "drafts" && isset($data['draft']) && $data['draft'] == 0) {
         	// If you are publishing, delete the draft of the page or entry
         	$deleteData['type'] = "drafts";
         	if ($table == "entries") {
@@ -410,6 +438,19 @@
     	unset($data['data']);
     	unset($data['name']);
     	
+    	// This checks to see if the page has been locked since the page was opened; it's almost redundant and can probably be deleted
+    	if ($table == "entries") { // If it's an entry
+        	$pageId = $data['page'];
+        	$entryId = $data['id'];
+        } else if ($table == "pages") { // If it's a page
+        	$pageId = $data['id'];
+        	$entryId = NULL;
+        } else { // If it's a draft
+        	$pageId = $data['page_id'];
+        	$entryId = $data['entry_id'];
+        }
+    	if (get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
+    	
     	$query = "DELETE FROM $table WHERE ";
         $where = "";
         foreach($data as $field => $value) {
@@ -421,6 +462,7 @@
         }
         $where = substr_replace($where, "", -5);
         $query = $query . $where . ";";
+		//echo $query . "\n";
         $result = mysql_query($query, $con);
 		print(mysql_error());
 		

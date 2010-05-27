@@ -26,12 +26,12 @@ NW.filesystem = {
 		if (obj.hasClass("NWSelected")) return true;
 		
 		//var topParents = $(".NWSelected").parents(".NWSelectable:last");
-		$(".NWSelected").each(function() {
+		$("#NWListEditor .NWSelected, .NWSites .NWSelected").each(function() {
 			var prevSelected = $(this);
 			// Save the previously selected page then remove the selected class
 			if (prevSelected[0]) {
-				if (!prevSelected.hasClass("NWRowCategoryHeader")
-					&& !prevSelected.hasClass("listEditor")
+				if (//!prevSelected.hasClass("NWRowCategoryHeader")
+					/*&&*/ !prevSelected.hasClass("listEditor")
 					//&& !prevSelected.children(".NWFile")[0]
 					//&& prevSelected.hasClass("NWUnsaved")
 				) {
@@ -132,6 +132,14 @@ NW.filesystem = {
 		
 		return selected;
 	},
+	isDraft: function(obj) {
+		if (!obj) return null;
+		if ($(obj).children("div:last").hasClass(".NWDraft")) {
+			return true;
+		} else {
+			return false;
+		}
+	},
 	getDrafts: function() {
 		var draftsArray = [];
 		var i = 0;
@@ -160,20 +168,33 @@ NW.filesystem = {
 	updateFileData: function(obj, data) {
 		var obj = obj || NW.filesystem.getSelected();
 		if (!obj) return false;
-		if ($(obj).hasClass("NWRowCategoryHeader")) return false;
 		if (data.name) {
 			// Get rid of any html stuff that we don't want
 			data.name = data.name.replace(/(<([^>]+)>)/ig,"");
+			var isDraft = NW.filesystem.isDraft(obj);
+			
+			if ($(obj).hasClass("NWRowCategoryHeader")) {
+				//var isOpen = ($(obj).children("div:first").hasClass("NWOpen")) ? true : false;
+				//var divElement = document.createElement("div");
+				//divElement.className = (isOpen) ? "NWOpen" : "NWClosed";
+				var divElement = $(obj).children(".NWOpen, .NWClosed")[0];
+			}
 			
 			obj.name = data.name;
 			obj.innerHTML = "";
+			
+			if ($(obj).hasClass("NWRowCategoryHeader")) {
+				obj.appendChild(divElement);
+				NW.listener.bindButton(divElement, "click", NW.filesystem.triangleSwitch);
+			}
+			
 			var divElement = document.createElement("div");
-			divElement.className = (data.draft) ? "NWDraft" : "NWFile";
+			divElement.className = (isDraft) ? "NWDraft" : "NWFile";
 			obj.appendChild(divElement);
 			
-			obj.innerHTML = obj.innerHTML + data.name;
-			/*var textElement = document.createTextNode(data.name);
-			obj.appendChild(textElement);*/
+			//obj.innerHTML = obj.innerHTML + data.name;
+			var textElement = document.createTextNode(data.name);
+			obj.appendChild(textElement);
 		}
 		if (data.draft != null) {
 			if (data.draft) { // If the file is a draft
@@ -194,9 +215,9 @@ NW.filesystem = {
 	restoreFileAppearance: function(obj) {
 		var obj = obj || NW.filesystem.getSelected();
 		if (!obj) return false;
-		if ($(obj).hasClass("NWRowCategoryHeader")) return false;
+		//if ($(obj).hasClass("NWRowCategoryHeader")) return false;
 		
-		$(obj).removeClass("NWUnsaved").children("div").removeClass().addClass("NWFile");
+		$(obj).removeClass("NWUnsaved").children("div:last").removeClass().addClass("NWFile");
 	},
 	changeToDraft: function() {
 		// If this function is called, that means the file has been edited
@@ -206,14 +227,14 @@ NW.filesystem = {
 			//&& !$(selected).children(".NWDraft")[0]
 			&& !$(selected).hasClass("NWUnsaved")
 			//&& $(selected).children(".NWFile")[0]
-			&& !$(selected).hasClass("NWRowCategoryHeader")
+			//&& !$(selected).hasClass("NWRowCategoryHeader")
 		) {
 			$(selected).children(".NWFile").removeClass("NWFile").addClass("NWDraft");
 			$(selected).addClass("NWUnsaved");
 		}
 	},
 	lock: function(obj) {
-		$(obj).addClass("NWNonSelectable").children("div:first").removeClass().addClass("NWLocked");
+		$(obj).addClass("NWNonSelectable").children("div:last").removeClass().addClass("NWLocked");
 		if ($(obj).hasClass("NWSelected")) {
 			$(obj).removeClass("NWSelected");
 			NW.io.close();
@@ -221,7 +242,7 @@ NW.filesystem = {
 	},
 	unlock: function(obj, isDraft) {
 		var className = (isDraft) ? "NWDraft" : "NWFile";
-		$(obj).removeClass("NWNonSelectable").children("div:first").removeClass().addClass(className);
+		$(obj).removeClass("NWNonSelectable").children("div:last").removeClass().addClass(className);
 	},
 	autosave: function() {
 		if (NW.filesystem.autosave.id != null) {
@@ -459,6 +480,7 @@ NW.filesystem = {
 				fileElement = document.createElement("li");
 				fileElement.title = file["name"];
 				fileElement.className = "NWRowCategoryHeader";
+				if (file["locked"]) fileElement.className += " NWNonSelectable";
 				fileElement.id = NW.filesystem.createId(file["id"]);  // Create the id for the overall entries page
 				siteElement.appendChild(fileElement);
 				
@@ -466,9 +488,19 @@ NW.filesystem = {
 				divElement.className = "NWOpen";
 				fileElement.appendChild(divElement);
 				
-				divElement = document.createElement("div");
-				divElement.className = "NWFile";
-				fileElement.appendChild(divElement);
+				if (file["locked"]) {
+					divElement = document.createElement("div");
+					divElement.className = "NWLocked";
+					fileElement.appendChild(divElement);
+				} else if (file["draft"]) {
+					divElement = document.createElement("div");
+					divElement.className = "NWDraft";
+					fileElement.appendChild(divElement);
+				} else {
+					divElement = document.createElement("div");
+					divElement.className = "NWFile";
+					fileElement.appendChild(divElement);
+				}
 				
 				textElement = document.createTextNode(file["name"]);
 				fileElement.appendChild(textElement);
