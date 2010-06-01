@@ -19,10 +19,11 @@
 			} else { // If the file is a page
 				$data['type'] = "pages";
 				$data['id'] = $draftData['page_id'] = $_POST['page'];
-				$draftData['entry_id'] = -1;
+				$draftData['entry_id'] = NULL;
 			}
 			$con = get_connection();
-			if (!draft_exists($con, $_POST['page'], $_POST['entry'])) $draftData = NULL;
+			if (!draft_exists($con, $draftData['page_id'], $draftData['entry_id'])) $draftData = NULL;
+			print_r($draftData);
 		}
 		else if(isset($_POST['entry']) && isset($_POST['revert'])) // Revert an entry
 		{
@@ -31,7 +32,7 @@
 		}
 		else if(!isset($_POST['entry']) && isset($_POST['revert'])) // Revert a page
 		{
-			$revertData['entry_id'] = -1;
+			$revertData['entry_id'] = NULL;
 			$revertData['page_id'] = $_POST['page'];
 		}
 		else if(isset($_POST['page']) && isset($_POST['add'])) // Add an entry
@@ -73,7 +74,7 @@
 				$tempDraft['data'] = $draft['data'];
 				$tempDraft['name'] = $draft['name'];
 				$tempDraft['draft'] = 0;
-				if ($draft['entry_id'] == -1) { // If the draft is a page
+				if ($draft['entry_id'] == NULL) { // If the draft is a page
 					$tempDraft['id'] = $draft['page_id'];
 					$tempDraft['type'] = "pages";
 				} else { // If the draft is an entry
@@ -100,7 +101,7 @@
 			//echo "third";
 			$draftData = Array();
 			$data['page_id'] = $draftData['id'] = $_POST['page'];
-			$data['lockuid'] = $draftData['author'] = $originalData['author']; // The user id needs to be put here!!
+			$data['lockuid'] = $draftData['author'] = 0; // The user id needs to be put here!!
 			$data['name'] = $originalData['name'];
 			/*unset($data['author']);
 			unset($data['rank']);

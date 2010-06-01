@@ -168,6 +168,7 @@ NW.filesystem = {
 	updateFileData: function(obj, data) {
 		var obj = obj || NW.filesystem.getSelected();
 		if (!obj) return false;
+		
 		if (data.name) {
 			// Get rid of any html stuff that we don't want
 			data.name = data.name.replace(/(<([^>]+)>)/ig,"");
@@ -217,7 +218,8 @@ NW.filesystem = {
 		if (!obj) return false;
 		//if ($(obj).hasClass("NWRowCategoryHeader")) return false;
 		
-		$(obj).removeClass("NWUnsaved").children("div:last").removeClass().addClass("NWFile");
+		$(obj).removeClass("NWUnsaved").children("div:last")[0].className = "";
+		$(obj).children("div:last").addClass("NWFile");
 	},
 	changeToDraft: function() {
 		// If this function is called, that means the file has been edited
@@ -261,6 +263,15 @@ NW.filesystem = {
 		var autoLockInterval = 30; // In seconds
 		var autoLockIntervalMilli = 1000 * autoLockInterval; // In milliseconds
 		NW.filesystem.autoLock.id = setInterval("NW.io.lock();", autoLockIntervalMilli);
+	},
+	autoUpdateFilesystem: function() {
+		if (NW.filesystem.autoUpdateFilesystem.id != null) {
+			clearInterval(NW.filesystem.autoUpdateFilesystem.id);
+			NW.filesystem.autoUpdateFilesystem.id = null;
+		}
+		var autoUpdateFilesystemInterval = 30; // In seconds
+		var autoUpdateFilesystemIntervalMilli = 1000 * autoUpdateFilesystemInterval; // In milliseconds
+		NW.filesystem.autoUpdateFilesystem.id = setInterval("NW.io.getChangedFiles();", autoUpdateFilesystemIntervalMilli);
 	},
 	fillListEditor: function(pageId) {
 		// Get list array via ajax
@@ -537,6 +548,9 @@ NW.filesystem = {
 		$(".NWRowCategoryHeader div.NWOpen").each(function() {
 			$(this).parent().next().show();
 		});
+		
+		// Set up the auto update for the filesystem
+		NW.filesystem.autoUpdateFilesystem();
 	},
 	
 	/* Everything as before except now on click */

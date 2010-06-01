@@ -73,7 +73,85 @@ NW = {
 				// Change the height of the iframe
 				NW.window.resize();
 			},
-			exitQuickSelectOptions: function () {
+			initRightSidebar: function() {
+				//$("#NWEditPanel").css("display", "block");
+				NW.editor.functions.selectRightSidebarCategory($("#NWEditPanel")[0]);
+			},
+			selectRightSidebarCategory: function(obj) {
+				var obj = (obj.target) ? obj.target : obj;
+				// If the object is not in the right place, don't do anything
+				if (!$(obj).parents("#NWSidebarRightCategoriesContainer")[0] && !$(obj).parents("#NWSidebarRightCategories")[0]) return false;
+				
+				
+				
+				if ($(obj).parents("#NWSidebarRightCategoriesContainer")[0]) { // If you are selecting via a category
+					// Hide the other categories
+					$("#NWSidebarRightCategoriesContainer > .NWSelected").removeClass("NWSelected").css("display", "none");
+					// Show the category
+					$(obj).addClass("NWSelected").css("display", "block");
+					
+					// Figure out the number of child this object is
+					var categoryNum = $(obj).prevAll().length;
+					
+					// Remove the NWSelected class from the elements
+					$("#NWSidebarRightCategories ul li a.NWSelected").removeClass("NWSelected");
+					// Select the correct button based on the order of the buttons
+					$("#NWSidebarRightCategories ul li:nth-child(" + (categoryNum + 1) + ") a").addClass("NWSelected");
+				} else { // If you are selecting via a button
+					// Deselect the other buttons
+					$("#NWSidebarRightCategories ul li a.NWSelected").removeClass("NWSelected");
+					// Select the button
+					$(obj).parent().addClass("NWSelected"); // For some reason, the obj is a span element
+					
+					// Figure out the number of child this object is
+					var categoryNum = $(obj).parent().parent().prevAll().length;
+					
+					// Remove the NWSelected class from the categories
+					$("#NWSidebarRightCategoriesContainer > .NWSelected").removeClass("NWSelected").css("display", "none");
+					// Show the correct category based on the order of the buttons
+					$("#NWSidebarRightCategoriesContainer > div:nth-child(" + (categoryNum + 1) + ")").addClass("NWSelected").css("display", "block");
+				}
+			},
+			addPageInfoRow: function(title, obj) {
+				if ((title && title == "") || !obj) return false;
+				var pageInfoTable = $("#NWPageInfo table")[0];
+				// First create the row
+				var row = pageInfoTable.insertRow(pageInfoTable.rows.length);
+				
+				// Add the title cell
+				var titleCell = row.insertCell(0);
+				titleCell.className = "NWPageInfoTitle";
+				var textNode = document.createTextNode(title + ":");
+				titleCell.appendChild(textNode);
+				
+				// Add the input cell
+				var inputCell = row.insertCell(1);
+				inputCell.className = "NWPageInfoInput";
+				var inputElement = document.createElement("input");
+				inputElement.type = "text";
+				inputElement.value = obj.textContent;
+				inputCell.appendChild(inputElement);
+				
+				// Add listeners
+				inputElement.addEventListener("keydown", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
+				// For some reason the keydown event is one step behind: it doesn't show the current value of the input
+				inputElement.addEventListener("keyup", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
+				inputElement.addEventListener("dragend", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
+				
+				return inputElement;
+			},
+			updatePageInfo: function(obj, text) { // Update the page
+				obj.innerHTML = "";
+				obj.textContent = text;
+				NW.filesystem.changeToDraft();
+			},
+			updatePageInfoInput: function(inputObj, text) { // Update the input
+				inputObj.value = text;
+			},
+			clearPageInfoRows: function() {
+				$("#NWPageInfo table")[0].innerHTML = "";
+			},
+			exitQuickSelectOptions: function() {
 				var theWindow = this.parentNode.parentNode.parentNode;
 				
 				var command = this.rel;
@@ -1351,6 +1429,24 @@ NW = {
 					NW.editor.functions.addImageEvents(this, true);
 				});
 				
+				// Make the page information editable in Page Information in the sidebar
+				NW.editor.functions.clearPageInfoRows();
+				$("#NWEditPage").contents().find(".NWEditablePageInfo").each(function() {
+					var className = this.className;
+					
+					var startTitlePos = className.indexOf("NWPageInfo") + 10;
+					var endTitlePos = className.indexOf("NWpageInfoZ");
+					var title = className.substring(startTitlePos, endTitlePos);
+					title = title.replace("_", " ");
+					
+					var inputElement = NW.editor.functions.addPageInfoRow(title, this);
+					if (inputElement) {
+						this.addEventListener("keydown", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
+						this.addEventListener("keyup", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
+						this.addEventListener("dragend", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
+					}
+				});
+				
 				// Disable all links inside the iframe
 				var links = $("#NWEditPage").contents().find("a");
 				links.each(function() {
@@ -1503,6 +1599,11 @@ NW = {
 				{
 					jquery: "div.NWChooseTemplate .NWTemplatesWindow .NWTemplatesWindowChoose",
 					action: function() { NW.templates.closeTemplatesWindow(); },
+					trigger: "click"
+				},
+				{
+					jquery: "#NWSidebarRightCategories > ul > li > a",
+					action: NW.editor.functions.selectRightSidebarCategory,
 					trigger: "click"
 				},
 				{
@@ -1702,6 +1803,9 @@ NW = {
 		
 		// Expand or collapse triangles
 		NW.filesystem.init();
+		
+		// Show the edit tools in the right sidebar
+		NW.editor.functions.initRightSidebar();
 		
 		// The path offset from the templates and the AdminPanel
 		NW.phpPathOffset = 1;
