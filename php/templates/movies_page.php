@@ -54,9 +54,9 @@ h2 {
 
 <body>
 <h3>The movies page template</h3>
+<span class="NWEditable NWFieldnameNWZ NWEditablePageInfo NWPageInfoNameNWpageInfoZ" <?php if ($data["nameStyle"]) echo "style=\"" . $data["nameStyle"] . "\""; ?>><?php if($data["name"]) echo $data["name"]; ?></span>
 <div class="newspaper NWEditable NWFieldnewspaperNWZ" <?php if ($data["newspaperStyle"]) echo "style=\"" . $data["newspaperStyle"] . "\""; ?>><?php if ($data["newspaper"]) echo $data["newspaper"]; ?></div>
 <h2 class="NWEditable NWFieldheaderNWZ" <?php if ($data["headerStyle"]) echo "style=\"" . $data["headerStyle"] . "\""; ?>><?php if ($data["header"]) echo $data["header"]; ?></h2>
-<p class="NWEditable NWFieldnameNWZ" <?php if ($data["nameStyle"]) echo "style=\"" . $data["nameStyle"] . "\""; ?>><?php if($data["name"]) echo $data["name"]; ?></p>
 <h3>Separate Fonts</h3>
 <p class="threeHourTour">Some text that will be used for separate fonts</p>
 </body>

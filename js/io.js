@@ -337,7 +337,8 @@ NW.io = {
             }
         }
 	},
-	lock: function(obj) {
+	lock: function(obj, synchronous) {
+		var synchronous = (synchronous == null) ? true : synchronous;
 		// Find the selected object
 		if (obj && obj.target) obj = null;
 		var selected = obj || null;
@@ -360,7 +361,7 @@ NW.io = {
 			if (file.entryId) entryString = "&entry=" + file.entryId;
 			
 			var postData = "data=0&page=" + file.pageId + entryString + "&lock=true";
-            ajax.open("POST", "./php/saver.php", true);
+            ajax.open("POST", "./php/saver.php", synchronous);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
             ajax.onreadystatechange = function(e) {
@@ -370,10 +371,15 @@ NW.io = {
                 	NW.io.getChangedFiles();
                 }
             }
+            
+            if (!synchronous) {
+            	NW.io.getChangedFiles();
+            }
         }
 	},
-	unlock: function(obj) {
+	unlock: function(obj, synchronous) {
 		if (!obj) return false;
+		var synchronous = (synchronous == null) ? true : synchronous;
 		
 		var file = NW.filesystem.parseId(obj.id);
 		
@@ -390,7 +396,7 @@ NW.io = {
 			if (file.entryId) entryString = "&entry=" + file.entryId;
 			
 			var postData = "data=0&page=" + file.pageId + entryString + "&unlock=true";
-            ajax.open("POST", "./php/saver.php", true);
+            ajax.open("POST", "./php/saver.php", synchronous);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
             ajax.onreadystatechange = function(e) {
@@ -399,6 +405,10 @@ NW.io = {
                 	// The unlock worked
                 	NW.io.getChangedFiles();
                 }
+            }
+            
+            if (!synchronous) {
+            	NW.io.getChangedFiles();
             }
         }
 	},
@@ -479,7 +489,8 @@ NW.io = {
 		// When done saving, close the loading window
 		//setTimeout("NW.editor.functions.closeLoadingWindow();", 3000);
 	},
-	revert: function() {
+	revert: function(useLoadingWindow) {
+		if (useLoadingWindow) NW.editor.functions.openLoadingWindow("Reverting...");
 		var selected = NW.filesystem.getSelected() || null;
 		//if ($(selected).hasClass("NWRowCategoryHeader")) selected = null;
 		if ($(selected).children(".NWFile")[0]) selected = null;
@@ -509,9 +520,15 @@ NW.io = {
                 if(ajax.readyState==4) {
 					// When done saving, close the loading window
 					NW.io.open(file.pageId, file.entryId);
+					NW.io.unlock(selected, false);
+					NW.io.getChangedFiles(false);
+					NW.io.lock(false);
+					if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
                     //console.log(ajax.responseText);
                 }
             }
+        } else {
+        	if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
         }
 		
 		NW.filesystem.restoreFileAppearance();
@@ -611,7 +628,7 @@ NW.io = {
 						// When done publishing, close the loading window and restore appearance
 						NW.filesystem.restoreFileAppearance();
 						if (useLoadingWindow) NW.editor.functions.closeLoadingWindow();
-						NW.filesystem.updateFileData(selected, {
+						NW.filesystem.updateFileData(null, {
 							name: data.name
 						});
                 	}

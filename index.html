@@ -338,226 +338,255 @@ ut labore et dolore magna aliqua.</p>
     <input class="hiddenValue callback" value="NW.editor.functions.setNWRightNormalWidth" placeholder="function" />
     <div id="NWRightResizeHandle" class="NWResizeHorizontalHandle NWResizeHandle"></div>
 	<div id="NWSidebarRight">
-    	<div id="NWEditPanel">
-        	<div class="NWTitle">Edit Options</div>
-        	<div class="NWEditPanelGroup">
-            	<div class="NWEditControls NWFontStyle">
-                    <a rel="bold" title="Bold" class="NWBold"></a>
-                    <a rel="italic" title="Italic" class="NWItalic"></a>
-                    <a rel="underline" title="Underline" class="NWUnderline"></a>
-                    <a rel="strikethrough" title="Strikethrough" class="NWStrikethrough"></a>
-            	</div>
-                <div class="NWEditControls NWFontColor">
-                    <div class="NWControlName">Font Color:</div><a rel="forecolor" title="Change the color of the text" class="NWColorPicker NWFontColor"><span></span></a>
-                    <a rel="inherit" title="Return the text to its original color" class="NWColorInherit NWFontColorInherit"></a>
-                    <a rel="hex" title="Change the color of the text with Hex" class="NWColorPickerManual NWColorHex"></a>
-                    <a rel="rgb" title="Change the color of the text with RGB" class="NWColorPickerManual NWColorRGB"></a>
-                    <a rel="hsl" title="Change the color of the text with HSL" class="NWColorPickerManual NWColorHSL"></a>
-                    <a rel="hsv" title="Change the color of the text with HSV" class="NWColorPickerManual NWColorHSV"></a>
-                    <div class="NWDraggable NWColorPickerWindow NWFontColor">
-                        <div class="NWDraggableToolbar">
-                            <div class="NWDraggableClose"></div>
-                            <div class="NWDraggableTitle">Text Color</div>
-                        </div>
-                        <div class="NWDraggableBody">
-                        	<div class="NWColorPicker"></div>
-                            <a class="NWButton NWDone"></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="NWEditControls NWHighlightColor">
-                    <div class="NWControlName">Highlight Color:</div><a rel="hilitecolor" title="Change the color of the background of the text" class="NWColorPicker NWHighlightColor"><span></span></a>
-                    <a rel="none" title="Clear the color of the background of the text" class="NWColorNone NWHighlightColorNone"></a>
-                    <a rel="hex" title="Change the color of the highlight with Hex" class="NWColorPickerManual NWColorHex"></a>
-                    <a rel="rgb" title="Change the color of the highlight with RGB" class="NWColorPickerManual NWColorRGB"></a>
-                    <a rel="hsl" title="Change the color of the highlight with HSL" class="NWColorPickerManual NWColorHSL"></a>
-                    <a rel="hsv" title="Change the color of the highlight with HSV" class="NWColorPickerManual NWColorHSV"></a>
-                    <div class="NWDraggable NWColorPickerWindow NWBackgroundColor">
-                        <div class="NWDraggableToolbar">
-                            <div class="NWDraggableClose"></div>
-                            <div class="NWDraggableTitle">Highlight Color</div>
-                        </div>
-                        <div class="NWDraggableBody">
-                        	<div class="NWColorPicker"></div>
-                            <a class="NWButton NWDone"></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="NWEditControls NWBackgroundColor">
-                    <div class="NWControlName">Background Color:</div><a rel="backcolor" title="Change the color of the background" class="NWColorPicker NWBackgroundColor"><span></span></a>
-                    <a rel="none" title="Clear the color of the background" class="NWColorNone NWBackgroundColorNone"></a>
-                    <a rel="hex" title="Change the color of the background with Hex" class="NWColorPickerManual NWColorHex"></a>
-                    <a rel="rgb" title="Change the color of the background with RGB" class="NWColorPickerManual NWColorRGB"></a>
-                    <a rel="hsl" title="Change the color of the background with HSL" class="NWColorPickerManual NWColorHSL"></a>
-                    <a rel="hsv" title="Change the color of the background with HSV" class="NWColorPickerManual NWColorHSV"></a>
-                    <div class="NWDraggable NWColorPickerWindow NWBackgroundColor">
-                        <div class="NWDraggableToolbar">
-                            <div class="NWDraggableClose"></div>
-                            <div class="NWDraggableTitle">Background Color</div>
-                        </div>
-                        <div class="NWDraggableBody">
-                        	<div class="NWColorPicker"></div>
-                            <a class="NWButton NWDone"></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="NWDraggable NWInputWindow NWHex">
-                    <div class="NWDraggableToolbar">
-                        <div class="NWDraggableClose"></div>
-                        <div class="NWDraggableTitle"></div>
-                    </div>
-                    <div class="NWDraggableBody">
-                        <div class="NWInputWindowInstructions">Please type in a hexadecimal value</div>
-                        <div>#<input type="text" /></div>
-                        <a class="NWButton NWDone"></a>                    </div>
-                </div>
-          <div class="NWDraggable NWInputWindow NWChangeColor NWRGB">
-                    <div class="NWDraggableToolbar">
-                        <div class="NWDraggableClose"></div>
-                        <div class="NWDraggableTitle"></div>
-                    </div>
-                    <div class="NWDraggableBody">
-                        <div class="NWInputWindowInstructions">Please type in an RGB value</div>
-                        <div><input type="text"/><input type="text" /><input type="text" /></div>
-                        <a class="NWButton NWDone"></a>                    </div>
-                </div>
-          <div class="NWDraggable NWInputWindow NWChangeColor NWHSL">
-                    <div class="NWDraggableToolbar">
-                        <div class="NWDraggableClose"></div>
-                        <div class="NWDraggableTitle"></div>
-                    </div>
-                    <div class="NWDraggableBody">
-                        <div class="NWInputWindowInstructions">Please type in an HSL value</div>
-                        <div><input type="text"/><input type="text" /><input type="text" /></div>
-                        <a class="NWButton NWDone"></a>                    </div>
-                </div>
-          <div class="NWDraggable NWInputWindow NWChangeColor NWHSV">
-                    <div class="NWDraggableToolbar">
-                        <div class="NWDraggableClose"></div>
-                        <div class="NWDraggableTitle"></div>
-                    </div>
-                    <div class="NWDraggableBody">
-                        <div class="NWInputWindowInstructions">Please type in an HSV value</div>
-                        <div><input type="text"/><input type="text" /><input type="text" /></div>
-                        <a class="NWButton NWDone"></a>                    </div>
-                </div>
-          <div class="NWEditControls NWTextPosition">
-                    <a rel="superscript" title="Superscript" class="NWTextSuper"></a>
-                    <a rel="subscript" title="Subscript" class="NWTextSub"></a>
-            	</div>
-                <div class="NWEditControls NWTextAlign">
-                	<a rel="_justifyleft" title="Align Left" class="NWAlignLeft"></a>
-                    <a rel="_justifycenter" title="Align Center" class="NWAlignCenter"></a>
-                    <a rel="_justifyright" title="Align Right" class="NWAlignRight"></a>
-                    <a rel="_justifyfull" title="Align Full" class="NWAlignFull"></a>
-                </div>
-                <div class="NWEditControls NWFontSize">
-                	<a rel="increasefontsize" title="Increase font size" class="NWIncreaseFontSize"></a>
-                    <a rel="decreasefontsize" title="Decrease font size" class="NWDecreaseFontSize"></a>
-                    <!--<input type="text" class="NWShowFontSize" value="" readonly title="The current font size" name="fontsize" />-->
-                    <select class="NWSetFontSize" title="Change the font size" name="fontsize">
-                        <option>10</option>
-                        <option selected>13</option>
-                        <option>16</option>
-                        <option>18</option>
-                        <option>24</option>
-                        <option>32</option>
-                        <option>48</option>
-                    </select>
-                    <!--<a href="#" onclick="return false;" rel="fontsize" title="Change the font size" class=""></a>-->
-                </div>
-                <div class="NWEditControls NWFontFamily">
-                	<select class="NWSetFontFamily" title="Change the font font" name="fontname">
-                        <option>Arial</option>
-                        <option>Courier</option>
-                        <option>Courier New</option>
-                        <option>Geneva</option>
-                        <option>Georgia</option>
-                        <option selected>Helvetica</option>
-                        <option>Lucida Grande</option>
-                        <option>monospace</option>
-                        <option>sans-serif</option>
-                        <option>serif</option>
-                        <option>Times</option>
-                        <option>Times New Roman</option>
-                        <option>Verdana</option>
-                    </select>
-                </div>
-                <div class="NWEditControls NWLink">
-                    <a rel="createLink" title="Create a link" class="NWCreateLink"></a>
-                    <a rel="unlink" title="Delete selected link" class="NWDeleteLink"></a>
-                    <div class="NWDraggable NWInputWindow">
-                        <div class="NWDraggableToolbar">
-                            <div class="NWDraggableClose"></div>
-                            <div class="NWDraggableTitle">Create a Link</div>
-                        </div>
-                        <div class="NWDraggableBody">
-                        	<div class="NWInputWindowInstructions">Please type in the full url of the web page you want to link to.</div>
-                            <div><input type="text" value="http://" /></div>
-                            <a class="NWButton NWDone"></a>                        </div>
-                    </div>
-           	  </div>
-            </div>
-            <div class="NWEditPanelGroup">
-             	<div class="NWEditControls NWListStyle">
-                	<a rel="insertunorderedlist" title="Insert a bulleted list" class="NWUnorderedList"></a>
-                    <a rel="insertorderedlist" title="Insert a numbered list" class="NWOrderedList"></a>
-                </div>
-                <div class="NWEditControls NWIndentOutdent">
-                	<a rel="indent" title="Indent" class="NWIndent"></a>
-                    <a rel="outdent" title="Outdent" class="NWOutdent"></a>
-                </div>
-            </div>
-            <div class="NWEditPanelGroup">
-            	<div class="NWEditControls NWCustomHTML">
-                	<a rel="insertparagraph" title="Insert a paragraph" class="NWInsertParagraph"></a>
-                    <a rel="inserthtml" title="Type in custom HTML" class="NWInsertCustomHTML"></a>
-                    <label><input type="checkbox" title="Replace selected text with the custom HTML" />Replace selected</label>
-                    <div class="NWDraggable NWInputWindow">
-                        <div class="NWDraggableToolbar">
-                            <div class="NWDraggableClose"></div>
-                            <div class="NWDraggableTitle">Insert Custom HTML</div>
-                        </div>
-                        <div class="NWDraggableBody">
-                        	<div class="NWInputWindowInstructions">Please type in a valid HTML snippet<br />e.g. &lt;span style="color: #ffffff;"&gt;</div>
-                            <div><input type="text" /></div>
-                            <a class="NWButton NWDone"></a>
-                    	</div>
-                    </div>
-                </div>
-            </div>
-            <div class="NWEditPanelGroup">
-            	<div class="NWEditControls NWInsertImageURL">
-                	<div><label>URL to image: <input type="text" /></label></div>
-                </div>
-                <div class="NWEditControls NWDragNumber">
-                	<span>Width:</span>
-                    <a title="Decrease width" class="NWDecreaseNumber" rel="_width" name="NW.editor.functions.changeImageSize"></a>
-                    <input readonly="readonly" title="Set width" class="NWDragNumber NWResizeWidth" name="NW.editor.functions.changeImageSize" />
-                    <a title="Increase width" class="NWIncreaseNumber" rel="_width" name="NW.editor.functions.changeImageSize"></a>
-                </div>
-                <div class="NWEditControls NWResizeProportional">
-                	<a title="Scale proportionally" class="NWResizeLink"></a>
-                </div>
-                <div class="NWEditControls NWDragNumber">
-                	<span>Height:</span>
-                    <a title="Decrease height" class="NWDecreaseNumber" rel="_height" name="NW.editor.functions.changeImageSize"></a>
-                    <input readonly="readonly" title="Set height" class="NWDragNumber NWResizeHeight" name="NW.editor.functions.changeImageSize" />
-                    <a title="Increase height" class="NWIncreaseNumber" rel="_height" name="NW.editor.functions.changeImageSize"></a>
-                </div>
-                <br />
-                <div class="NWEditControls NWObjectWrap">
-                    <a title="Align object to the left and wrap text around it" class="NWObjectWrapLeft"></a>
-                    <a title="Align object to the right and wrap text around it" class="NWObjectWrapRight"></a>
-                </div>
-                <div class="NWEditControls NWDragNumber NWChangeMargin">
-                	<span>Margin:</span>
-                    <a title="Decrease margin" class="NWDecreaseNumber" name="NW.editor.functions.changeImageMargin"></a>
-                    <input readonly="readonly" title="Set margin" class="NWDragNumber NWChangeMargin" name="NW.editor.functions.changeImageMargin" />
-                    <a title="Increase margin" class="NWIncreaseNumber" name="NW.editor.functions.changeImageMargin"></a>
-                </div>
-                <br />
-            </div>
+		<div id="NWSidebarRightCategories">
+			<ul>
+				<li><a><span class="NWSidebarRightButtonStart"></span><span class="NWSidebarRightButtonMiddle">Page Information</span><span class="NWSidebarRightButtonEnd"></span></a></li>
+				<li><a><span class="NWSidebarRightButtonStart"></span><span class="NWSidebarRightButtonMiddle">Edit Tools</span><span class="NWSidebarRightButtonEnd"></span></a></li>
+			</ul>
+		</div>
+		<div id="NWSidebarRightCategoriesContainer">
+			<div id="NWPageInfo">
+				<!--<ul id="NWPageInfoList">
+					<li><label>Name: <input type="text" /></label></li>
+					<li><label>Author: <input type="text" /></label></li>
+					<li><label>Date: <input type="text" /></label></li>
+				</ul>-->
+				<table>
+					<!--<tr>
+						<td class="NWPageInfoTitle">Name:</td>
+						<td class="NWPageInfoInput"><input type="text" /></td>
+					</tr>
+					<tr>
+						<td class="NWPageInfoTitle">Author:</td>
+						<td class="NWPageInfoInput"><input type="text" /></td>
+					</tr>
+					<tr>
+						<td class="NWPageInfoTitle">Date:</td>
+						<td class="NWPageInfoInput"><input type="text" /></td>
+					</tr>-->
+				</table>
+			</div>
+			<div id="NWEditPanel">
+				<!--<div class="NWTitle">Edit Options</div>-->
+				<div class="NWEditPanelGroup">
+					<div class="NWEditControls NWFontStyle">
+						<a rel="bold" title="Bold" class="NWBold"></a>
+						<a rel="italic" title="Italic" class="NWItalic"></a>
+						<a rel="underline" title="Underline" class="NWUnderline"></a>
+						<a rel="strikethrough" title="Strikethrough" class="NWStrikethrough"></a>
+					</div>
+					<div class="NWEditControls NWFontColor">
+						<div class="NWControlName">Font Color:</div><a rel="forecolor" title="Change the color of the text" class="NWColorPicker NWFontColor"><span></span></a>
+						<a rel="inherit" title="Return the text to its original color" class="NWColorInherit NWFontColorInherit"></a>
+						<a rel="hex" title="Change the color of the text with Hex" class="NWColorPickerManual NWColorHex"></a>
+						<a rel="rgb" title="Change the color of the text with RGB" class="NWColorPickerManual NWColorRGB"></a>
+						<a rel="hsl" title="Change the color of the text with HSL" class="NWColorPickerManual NWColorHSL"></a>
+						<a rel="hsv" title="Change the color of the text with HSV" class="NWColorPickerManual NWColorHSV"></a>
+						<div class="NWDraggable NWColorPickerWindow NWFontColor">
+							<div class="NWDraggableToolbar">
+								<div class="NWDraggableClose"></div>
+								<div class="NWDraggableTitle">Text Color</div>
+							</div>
+							<div class="NWDraggableBody">
+								<div class="NWColorPicker"></div>
+								<a class="NWButton NWDone"></a>
+							</div>
+						</div>
+					</div>
+					<div class="NWEditControls NWHighlightColor">
+						<div class="NWControlName">Highlight Color:</div><a rel="hilitecolor" title="Change the color of the background of the text" class="NWColorPicker NWHighlightColor"><span></span></a>
+						<a rel="none" title="Clear the color of the background of the text" class="NWColorNone NWHighlightColorNone"></a>
+						<a rel="hex" title="Change the color of the highlight with Hex" class="NWColorPickerManual NWColorHex"></a>
+						<a rel="rgb" title="Change the color of the highlight with RGB" class="NWColorPickerManual NWColorRGB"></a>
+						<a rel="hsl" title="Change the color of the highlight with HSL" class="NWColorPickerManual NWColorHSL"></a>
+						<a rel="hsv" title="Change the color of the highlight with HSV" class="NWColorPickerManual NWColorHSV"></a>
+						<div class="NWDraggable NWColorPickerWindow NWBackgroundColor">
+							<div class="NWDraggableToolbar">
+								<div class="NWDraggableClose"></div>
+								<div class="NWDraggableTitle">Highlight Color</div>
+							</div>
+							<div class="NWDraggableBody">
+								<div class="NWColorPicker"></div>
+								<a class="NWButton NWDone"></a>
+							</div>
+						</div>
+					</div>
+					<div class="NWEditControls NWBackgroundColor">
+						<div class="NWControlName">Background Color:</div><a rel="backcolor" title="Change the color of the background" class="NWColorPicker NWBackgroundColor"><span></span></a>
+						<a rel="none" title="Clear the color of the background" class="NWColorNone NWBackgroundColorNone"></a>
+						<a rel="hex" title="Change the color of the background with Hex" class="NWColorPickerManual NWColorHex"></a>
+						<a rel="rgb" title="Change the color of the background with RGB" class="NWColorPickerManual NWColorRGB"></a>
+						<a rel="hsl" title="Change the color of the background with HSL" class="NWColorPickerManual NWColorHSL"></a>
+						<a rel="hsv" title="Change the color of the background with HSV" class="NWColorPickerManual NWColorHSV"></a>
+						<div class="NWDraggable NWColorPickerWindow NWBackgroundColor">
+							<div class="NWDraggableToolbar">
+								<div class="NWDraggableClose"></div>
+								<div class="NWDraggableTitle">Background Color</div>
+							</div>
+							<div class="NWDraggableBody">
+								<div class="NWColorPicker"></div>
+								<a class="NWButton NWDone"></a>
+							</div>
+						</div>
+					</div>
+					<div class="NWDraggable NWInputWindow NWHex">
+						<div class="NWDraggableToolbar">
+							<div class="NWDraggableClose"></div>
+							<div class="NWDraggableTitle"></div>
+						</div>
+						<div class="NWDraggableBody">
+							<div class="NWInputWindowInstructions">Please type in a hexadecimal value</div>
+							<div>#<input type="text" /></div>
+							<a class="NWButton NWDone"></a>                    </div>
+					</div>
+			  <div class="NWDraggable NWInputWindow NWChangeColor NWRGB">
+						<div class="NWDraggableToolbar">
+							<div class="NWDraggableClose"></div>
+							<div class="NWDraggableTitle"></div>
+						</div>
+						<div class="NWDraggableBody">
+							<div class="NWInputWindowInstructions">Please type in an RGB value</div>
+							<div><input type="text"/><input type="text" /><input type="text" /></div>
+							<a class="NWButton NWDone"></a>                    </div>
+					</div>
+			  <div class="NWDraggable NWInputWindow NWChangeColor NWHSL">
+						<div class="NWDraggableToolbar">
+							<div class="NWDraggableClose"></div>
+							<div class="NWDraggableTitle"></div>
+						</div>
+						<div class="NWDraggableBody">
+							<div class="NWInputWindowInstructions">Please type in an HSL value</div>
+							<div><input type="text"/><input type="text" /><input type="text" /></div>
+							<a class="NWButton NWDone"></a>                    </div>
+					</div>
+			  <div class="NWDraggable NWInputWindow NWChangeColor NWHSV">
+						<div class="NWDraggableToolbar">
+							<div class="NWDraggableClose"></div>
+							<div class="NWDraggableTitle"></div>
+						</div>
+						<div class="NWDraggableBody">
+							<div class="NWInputWindowInstructions">Please type in an HSV value</div>
+							<div><input type="text"/><input type="text" /><input type="text" /></div>
+							<a class="NWButton NWDone"></a>                    </div>
+					</div>
+			  <div class="NWEditControls NWTextPosition">
+						<a rel="superscript" title="Superscript" class="NWTextSuper"></a>
+						<a rel="subscript" title="Subscript" class="NWTextSub"></a>
+					</div>
+					<div class="NWEditControls NWTextAlign">
+						<a rel="_justifyleft" title="Align Left" class="NWAlignLeft"></a>
+						<a rel="_justifycenter" title="Align Center" class="NWAlignCenter"></a>
+						<a rel="_justifyright" title="Align Right" class="NWAlignRight"></a>
+						<a rel="_justifyfull" title="Align Full" class="NWAlignFull"></a>
+					</div>
+					<div class="NWEditControls NWFontSize">
+						<a rel="increasefontsize" title="Increase font size" class="NWIncreaseFontSize"></a>
+						<a rel="decreasefontsize" title="Decrease font size" class="NWDecreaseFontSize"></a>
+						<!--<input type="text" class="NWShowFontSize" value="" readonly title="The current font size" name="fontsize" />-->
+						<select class="NWSetFontSize" title="Change the font size" name="fontsize">
+							<option>10</option>
+							<option selected>13</option>
+							<option>16</option>
+							<option>18</option>
+							<option>24</option>
+							<option>32</option>
+							<option>48</option>
+						</select>
+						<!--<a href="#" onclick="return false;" rel="fontsize" title="Change the font size" class=""></a>-->
+					</div>
+					<div class="NWEditControls NWFontFamily">
+						<select class="NWSetFontFamily" title="Change the font font" name="fontname">
+							<option>Arial</option>
+							<option>Courier</option>
+							<option>Courier New</option>
+							<option>Geneva</option>
+							<option>Georgia</option>
+							<option selected>Helvetica</option>
+							<option>Lucida Grande</option>
+							<option>monospace</option>
+							<option>sans-serif</option>
+							<option>serif</option>
+							<option>Times</option>
+							<option>Times New Roman</option>
+							<option>Verdana</option>
+						</select>
+					</div>
+					<div class="NWEditControls NWLink">
+						<a rel="createLink" title="Create a link" class="NWCreateLink"></a>
+						<a rel="unlink" title="Delete selected link" class="NWDeleteLink"></a>
+						<div class="NWDraggable NWInputWindow">
+							<div class="NWDraggableToolbar">
+								<div class="NWDraggableClose"></div>
+								<div class="NWDraggableTitle">Create a Link</div>
+							</div>
+							<div class="NWDraggableBody">
+								<div class="NWInputWindowInstructions">Please type in the full url of the web page you want to link to.</div>
+								<div><input type="text" value="http://" /></div>
+								<a class="NWButton NWDone"></a>                        </div>
+						</div>
+				  </div>
+				</div>
+				<div class="NWEditPanelGroup">
+					<div class="NWEditControls NWListStyle">
+						<a rel="insertunorderedlist" title="Insert a bulleted list" class="NWUnorderedList"></a>
+						<a rel="insertorderedlist" title="Insert a numbered list" class="NWOrderedList"></a>
+					</div>
+					<div class="NWEditControls NWIndentOutdent">
+						<a rel="indent" title="Indent" class="NWIndent"></a>
+						<a rel="outdent" title="Outdent" class="NWOutdent"></a>
+					</div>
+				</div>
+				<div class="NWEditPanelGroup">
+					<div class="NWEditControls NWCustomHTML">
+						<a rel="insertparagraph" title="Insert a paragraph" class="NWInsertParagraph"></a>
+						<a rel="inserthtml" title="Type in custom HTML" class="NWInsertCustomHTML"></a>
+						<label><input type="checkbox" title="Replace selected text with the custom HTML" />Replace selected</label>
+						<div class="NWDraggable NWInputWindow">
+							<div class="NWDraggableToolbar">
+								<div class="NWDraggableClose"></div>
+								<div class="NWDraggableTitle">Insert Custom HTML</div>
+							</div>
+							<div class="NWDraggableBody">
+								<div class="NWInputWindowInstructions">Please type in a valid HTML snippet<br />e.g. &lt;span style="color: #ffffff;"&gt;</div>
+								<div><input type="text" /></div>
+								<a class="NWButton NWDone"></a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="NWEditPanelGroup">
+					<div class="NWEditControls NWInsertImageURL">
+						<div><label>URL to image: <input type="text" /></label></div>
+					</div>
+					<div class="NWEditControls NWDragNumber">
+						<span>Width:</span>
+						<a title="Decrease width" class="NWDecreaseNumber" rel="_width" name="NW.editor.functions.changeImageSize"></a>
+						<input readonly="readonly" title="Set width" class="NWDragNumber NWResizeWidth" name="NW.editor.functions.changeImageSize" />
+						<a title="Increase width" class="NWIncreaseNumber" rel="_width" name="NW.editor.functions.changeImageSize"></a>
+					</div>
+					<div class="NWEditControls NWResizeProportional">
+						<a title="Scale proportionally" class="NWResizeLink"></a>
+					</div>
+					<div class="NWEditControls NWDragNumber">
+						<span>Height:</span>
+						<a title="Decrease height" class="NWDecreaseNumber" rel="_height" name="NW.editor.functions.changeImageSize"></a>
+						<input readonly="readonly" title="Set height" class="NWDragNumber NWResizeHeight" name="NW.editor.functions.changeImageSize" />
+						<a title="Increase height" class="NWIncreaseNumber" rel="_height" name="NW.editor.functions.changeImageSize"></a>
+					</div>
+					<br />
+					<div class="NWEditControls NWObjectWrap">
+						<a title="Align object to the left and wrap text around it" class="NWObjectWrapLeft"></a>
+						<a title="Align object to the right and wrap text around it" class="NWObjectWrapRight"></a>
+					</div>
+					<div class="NWEditControls NWDragNumber NWChangeMargin">
+						<span>Margin:</span>
+						<a title="Decrease margin" class="NWDecreaseNumber" name="NW.editor.functions.changeImageMargin"></a>
+						<input readonly="readonly" title="Set margin" class="NWDragNumber NWChangeMargin" name="NW.editor.functions.changeImageMargin" />
+						<a title="Increase margin" class="NWIncreaseNumber" name="NW.editor.functions.changeImageMargin"></a>
+					</div>
+					<br />
+				</div>
+			</div>
         </div>
     </div>
 </div>

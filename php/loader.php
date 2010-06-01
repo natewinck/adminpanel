@@ -115,7 +115,7 @@
         if (draft_exists($con, $lockData['id'])) {
         	$lockData['page_id'] = $lockData['id'];
         	unset($lockData['id']);
-        	$lockData['entry_id'] = -1;
+        	$lockData['entry_id'] = NULL;
         	$lockData['lockuid'] = $lockData['author'];
         	unset($lockData['author']);
         	unset($lockData['locked']);

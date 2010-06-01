@@ -37,7 +37,7 @@
     }
     
     //** Function to get the lock status of a file **//
-    function get_lock($con, $table, $pageId, $entryId=-1)
+    function get_lock($con, $table, $pageId, $entryId=NULL)
     {
     	if (!isset($table)) return NULL;
     	$query = "SELECT ";
@@ -54,7 +54,8 @@
     			break;
     		case "drafts":
     			$query .= "lockuid,";
-    			$where = "page_id=$pageId AND entry_id = $entryId";
+    			$where = "page_id=$pageId AND entry_id ";
+    			$where .= ($entryId == NULL) ? "IS NULL" : "= $entryId";
     			$userIdField = "lockuid";
     			break;
     	}
@@ -132,7 +133,7 @@
     //** Function to get a single page **//
     function get_page($con, $page)
     {
-    	$draftQuery = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = '$page' AND entry_id = -1"; // SQL Statement for drafts
+    	$draftQuery = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = '$page' AND entry_id IS NULL"; // SQL Statement for drafts
     	$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM pages WHERE id = '$page'"; // SQL Statement
     	$result = mysql_query($draftQuery, $con); // Run the Statement for drafts
     	$isDraft = true;
@@ -237,10 +238,11 @@
     }
     
     //** Funciton to get a single draft **//
-    function get_draft($con, $pageId, $entryId=-1) {
+    function get_draft($con, $pageId, $entryId=NULL) {
     	if (!isset($pageId)) return NULL;
     	
-    	$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = $pageId AND entry_id = $entryId"; // SQL Statement for getting a draft
+    	$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = $pageId AND entry_id ";
+    	$query .= ($entryId == NULL) ? "IS NULL" : "= $entryId"; // SQL Statement for getting a draft
     	$result = mysql_query($query, $con);
         $draft = Array();
         while ($row = mysql_fetch_assoc($result)) {
@@ -266,15 +268,16 @@
     }
     
     //** Function to check to see if a draft exists **//
-    function draft_exists($con, $pageId, $entryId=-1)
+    function draft_exists($con, $pageId, $entryId=NULL)
     {
-    	$query = "SELECT * FROM drafts WHERE page_id = $pageId AND entry_id = $entryId";
+    	$query = "SELECT 1 AS 'exists' FROM drafts WHERE page_id = $pageId AND entry_id";
+    	$query .= ($entryId == NULL) ? " IS NULL" : " = $entryId";
     	$result = mysql_query($query, $con);
     	$drafts = Array();
         while ($row = mysql_fetch_assoc($result)) {
         	$drafts[] = $row;
         }
-        if ($drafts[0]) { // If there is a draft, return true
+        if (isset($drafts[0])) { // If there is a draft, return true
         	return true;
         } else { // If there isn't a draft, return false
         	return false;
@@ -298,36 +301,51 @@
     	$currentUserId = 0;
     	
     	// Now find the changed files
-    	$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM pages WHERE timestamp > $timestamp AND author != $currentUserId";
+    	$query = "SELECT *, id AS pageId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 1 AS file_type FROM pages WHERE timestamp > $timestamp AND author != $currentUserId ORDER BY id ASC";
     	$result = mysql_query($query, $con);
     	$files = Array();
     	while ($row = mysql_fetch_assoc($result)) {
+    		$row['type'] = "pages";
     		$files[] = $row;
     	}
+    	$pagesLength = count($files);
     	if ($pageId != NULL) {
     		// Get the changed entries
-			$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries WHERE page = $pageId AND timestamp > $timestamp AND author != $currentUserId";
+			$query = "SELECT *, id AS entryId, page AS pageId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 3 AS file_type FROM entries WHERE page = $pageId AND timestamp > $timestamp AND author != $currentUserId ORDER BY page ASC, id ASC";
 			$result = NULL;
 			$result = mysql_query($query, $con);
 			while ($row = mysql_fetch_assoc($result)) {
+				$row['type'] = "entries";
 				$files[] = $row;
 			}
+			$entriesLength = count($files) - $pagesLength;
 			
 			// Get the changed files in the drafts table
-			$query = "(SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = $pageId AND timestamp > $timestamp AND lockuid != $currentUserId)";
+			$query = "(SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 4 AS file_type FROM drafts WHERE page_id = $pageId AND entry_id IS NOT NULL AND timestamp > $timestamp AND lockuid != $currentUserId ORDER BY page_id ASC, entry_id ASC)";
 			$query .= " UNION ";
-			$query .= "(SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = -1 AND timestamp > $timestamp AND lockuid != $currentUserId)";
+			$query .= "(SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 2 AS file_type FROM drafts WHERE entry_id IS NULL AND timestamp > $timestamp AND lockuid != $currentUserId ORDER BY page_id ASC)";
+			$query .= " ORDER BY file_type ASC";
 			$result = NULL;
+			$testFiles = Array();
+			$pages = $files;
 			$result = mysql_query($query, $con);
 			while ($row = mysql_fetch_assoc($result)) {
+				$row['type'] = "drafts";
 				$files[] = $row;
+				$testFiles[] = $row;
 			}
+			//print(mysql_error());
+			//array_intersect_uassoc($pages[0], $testFiles[0], "compare_drafts_array");
+			//print_r($pages);
+			//echo "\n";
+			//print_r($testFiles);
 		} else {
-			// Get the changed pages
-    		$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts WHERE page_id = -1 AND timestamp > $timestamp AND lockuid != $currentUserId";
+			// Get the changed draft pages
+    		$query = "SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 2 AS file_type FROM drafts WHERE entry_id IS NULL AND timestamp > $timestamp AND lockuid != $currentUserId ORDER BY page_id ASC";
     		$result = NULL;
 			$result = mysql_query($query, $con);
 			while ($row = mysql_fetch_assoc($result)) {
+				$row['type'] = "drafts";
 				$files[] = $row;
 			}
     	}
@@ -340,11 +358,38 @@
     		unset($row['data']);
     		$files[] = $row;
     	}*/
-    	foreach ($files as &$file) {
-    		$userIdField = (isset($row['page_id']) || isset($file['entry_id'])) ? "lockuid" : "author";
+    	
+    	
+    	// Sort the whole array by pageId, entryId, and then by if it's a draft, putting the draft version in front of the non-draft version
+    	foreach ($files as $key => $row) {
+    		$arrayPageId[$key] = $row['pageId'];
+    		$arrayEntryId[$key] = $row['entryId'];
+    		$arrayDraft[$key] = ($row['type'] == "drafts") ? 0 : 1;
+    	}
+    	array_multisort($arrayPageId, SORT_ASC, $arrayEntryId, SORT_ASC, $arrayDraft, SORT_ASC, $files);
+    	//print_r($files);
+    	foreach ($files as $key => &$file) {
+    		$userIdField = "";
+    		$userIdField = ($file['type'] == "drafts") ? "lockuid" : "author";
     		$file['locked'] = check_lock($file['unix_timestamp'], $file[$userIdField]);
     		unset($file['data']);
+    		
+    		// Check to see if this file is the draft of the next file; if it is, delete the next file
+    		// "current()" actually points to the next file
+    		$nextFile = current($files);
+    		if (isset($nextFile)
+    			&& $nextFile['type'] != "drafts"
+    			&& $file['pageId'] == $nextFile['pageId']
+    			&& (($nextFile['type'] == "entries" && $file['entryId'] == $nextFile['entryId'])
+    				|| $nextFile['type'] == "pages")
+    		) {
+    			unset($files[$key + 1]);
+    		}
     	}
+    	//print_r($files);
+    	
+    	// Reassign the keys
+    	$files = array_values($files);
     	
     	return $files;  // Return them
     }
@@ -368,38 +413,83 @@
         }
 		if (get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
         if ($table == "drafts") { // Check the original page or entry
-        	$lockTable = ($data['entry_id'] == -1) ? "pages" : "entries";
+        	$lockTable = ($data['entry_id'] == NULL) ? "pages" : "entries";
         	if (get_lock($con, $lockTable, $pageId, $entryId)) return false; // It's locked so don't modify
         }
         
-        $query = "INSERT INTO $table (";
-        $fields = "";
-        $values = "";
-        $update = "";
-        foreach($data as $field => $value)
-        {
-            $fields = $fields . $field . ",";
-            if(is_numeric($value))
-            {
-                $values = $values . $value . ",";
-                //$update = $update . $field . "=" . $value . ", ";
-				if($field != 'id') $update = "$update $field=VALUES($field),";
-            }
-            else
-            {
-                if($field != "timestamp") {
-                	$values = $values . "\"" . $value . "\",";
-                } else {
-                	$values = $values . "CURRENT_TIMESTAMP,";
-                }
-                //$update = $update . $field . "=\"" . $value . "\", ";
-				if($field != 'id') $update = "$update $field=VALUES($field),";
-            }
+        if ($table == "drafts" && (!isset($data['entry_id']) || (isset($data['entry_id']) && $data['entry_id'] == -1)) && draft_exists($con, $data['page_id'])) $isUpdateDraft = true;
+        
+        if (!$isUpdateDraft) {
+        	$query = "INSERT INTO $table (";
+        } else {
+        	$query = "UPDATE $table SET ";
         }
-        $fields = substr_replace($fields, "", -1);
-        $values = substr_replace($values, "", -1);
-        $update = substr_replace($update, "", -1);
-        $query = $query . "$fields) VALUES ($values) ON DUPLICATE KEY UPDATE $update;";
+        
+        if (!$isUpdateDraft) {
+        	$fields = "";
+        	$values = "";
+			$update = "";
+			foreach($data as $field => $value)
+			{
+				$fields = $fields . $field . ",";
+				if(is_numeric($value))
+				{
+					$values = $values . $value . ",";
+					//$update = $update . $field . "=" . $value . ", ";
+					if($field != 'id') $update = "$update $field=VALUES($field),";
+				}
+				else
+				{
+					if($field != "timestamp") {
+						$values = $values . "\"" . $value . "\",";
+					} else {
+						$values = $values . "CURRENT_TIMESTAMP,";
+					}
+					//$update = $update . $field . "=\"" . $value . "\", ";
+					if($field != 'id') $update = "$update $field=VALUES($field),";
+				}
+			}
+			$fields = substr_replace($fields, "", -1);
+			$values = substr_replace($values, "", -1);
+			$update = substr_replace($update, "", -1);
+			$query = $query . "$fields) VALUES ($values) ON DUPLICATE KEY UPDATE $update;";
+		} else {
+			$set = "";
+			foreach($data as $field => $value)
+			{
+				if ($field == 'page_id' || $field == 'entry_id') continue;
+				
+				$set = $set . $field . "=";
+				if(is_numeric($value))
+				{
+					$set = $set . $value . ",";
+				}
+				else
+				{
+					if($field != "timestamp") {
+						$set = $set . "\"" . $value . "\",";
+					} else {
+						$set = $set . "CURRENT_TIMESTAMP,";
+					}
+				}
+			}
+			$set = substr_replace($set, "", -1);
+			$where = "";
+			switch ($table) {
+				case "pages":
+					$where .= "id=" . $data['id'];
+					break;
+				case "entries":
+					$where .= "id=" . $data['id'] . " AND page=" . $data['page'];
+					break;
+				case "drafts":
+					$where .= "page_id=" . $data['page_id'] . " AND entry_id";
+					$where .= (!isset($data['entry_id']) || (isset($data['entry_id']) && $data['entry_id'] == NULL)) ? " IS NULL" : "=" . $data['entry_id'];
+					break;
+			}
+			// Make page_id and entry_id more independent (id, page, etc.)
+			$query = $query . "$set WHERE $where;";
+		}
         //print($query . "\n");
         $result = mysql_query($query, $con);
         $autoIncrementId = mysql_insert_id();
@@ -425,7 +515,7 @@
         		$deleteData['entry_id'] = $data["id"];
         	} else {
         		$deleteData['page_id'] = $data["id"];
-        		$deleteData['entry_id'] = -1;
+        		$deleteData['entry_id'] = NULL;
         	}
         	delete_data($con, $deleteData);
         }
@@ -455,13 +545,22 @@
         $where = "";
         foreach($data as $field => $value) {
             if(is_numeric($value)) {
-				$where = $where . "$field=$value AND ";
+				if ($value == NULL) {
+					$where = $where . "$field IS NULL AND ";
+				} else {
+					$where = $where . "$field=$value AND ";
+				}
             } else {
-				$where = $where . "$field=\"$value\" AND ";
+            	if ($value == NULL) {
+            		$where = $where . "$field IS NULL AND ";
+            	} else {
+					$where = $where . "$field=\"$value\" AND ";
+				}
             }
         }
         $where = substr_replace($where, "", -5);
         $query = $query . $where . ";";
+        print($query);
 		//echo $query . "\n";
         $result = mysql_query($query, $con);
 		print(mysql_error());
@@ -475,7 +574,7 @@
 			delete_data($con, $data);
 		} else if ($table == "pages") {
 			$data['type'] = "drafts";
-			$data['entry_id'] = -1;
+			$data['entry_id'] = NULL;
 			$data['page_id'] = $data['id'];
 			unset($data['page']);
 			delete_data($con, $data);
@@ -493,7 +592,7 @@
 		// Now change draft to equal 0
 		$dataToModify = Array();
 		$dataToModify['draft'] = 0;
-		if ($entryId == -1) {
+		if ($entryId == NULL) {
 			$dataToModify['type'] = "pages";
 			$dataToModify['id'] = $pageId;
 		} else {
