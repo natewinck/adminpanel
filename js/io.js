@@ -1,4 +1,26 @@
 NW.io = {
+	checkLogin: function() {
+		var ajax = null;
+        if (window.XMLHttpRequest) {
+            ajax = new XMLHttpRequest();
+        } else {
+            ajax = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        
+        if (ajax != null) {
+			ajax.open("GET", "./php/loader.php?checkLogin=true", false);
+			ajax.send(null);
+			if (ajax.readyState == 4) {
+				var isLoggedIn = parseInt(ajax.responseText);
+				var redirectUrl = "login.html";
+				if (!isLoggedIn) location.href = redirectUrl;
+			} else {
+				location.href = redirectUrl;
+			}
+		} else {
+			location.href = redirectUrl;
+		}
+	},
 	getFilesArray: function() {
 		// Code here for getting the array of all the files
 		var filesXML = null;
@@ -29,10 +51,11 @@ NW.io = {
             // For some reason, on my computer, it loads so fast in Firefox that the readyState never changes!
             // Strangely, though, it loads fine (normally) in Safari
             // So (hopefully just for now)....
-            if(ajax.readyState==4){
+            if (ajax.readyState==4){
 				files = ajax.responseXML; //NOT WORKING
 				//console.log(ajax.responseXML);
 			}
+			if (!files) return false;
 			
             /*console.log(ajax.responseText);
             filesText = ajax.responseText;
@@ -175,6 +198,7 @@ NW.io = {
             }*/
         }
         files = ajax.responseXML;
+        if (!files) return false;
         //var parser = new DOMParser();
         //var files = parser.parseFromString(filesXML, "text/xml");
         //console.log(files.documentElement.children[0]); 
@@ -246,6 +270,8 @@ NW.io = {
 		entryId = parseInt(entryId);
 		if (isNaN(entryId)) return null;
 		
+		NW.io.unlock();
+		
 		var id = NW.filesystem.createId(pageId, entryId);
 		return id;
 	},
@@ -297,6 +323,7 @@ NW.io = {
                 if(ajax.readyState == 4) {
                 	// Change the files to show that they are either now locked or unlocked
                 	var files = ajax.responseXML;
+                	if (!files || !files.getElementsByTagName("file")) return false;
                 	var filesArray = [];
                 	for (var i = 0; i < files.getElementsByTagName("file").length; i++) {
 						var xmlFile = $(files.getElementsByTagName("file")[i]);
@@ -309,10 +336,10 @@ NW.io = {
 							file["draft"] = parseInt(xmlFile.children("draft").text());
 							file["type"] = "entries";
 						} else if (xmlFile.children("entry_id")[0] || xmlFile.children("page_id")[0]) { // If this file is a draft
-							file["entryId"] = (parseInt(xmlFile.children("entry_id").text()) == -1) ? null : parseInt(xmlFile.children("entry_id").text());
+							file["entryId"] = (xmlFile.children("entry_id").text() == "") ? null : parseInt(xmlFile.children("entry_id").text());
 							file["pageId"] = parseInt(xmlFile.children("page_id").text());
 							file["draft"] = true;
-							file["type"] = (parseInt(xmlFile.children("entry_id").text()) == -1) ? "pages" : "entries";
+							file["type"] = (xmlFile.children("entry_id").text() == "") ? "pages" : "entries";
 						} else { // If this file is a page
 							file["pageId"] = parseInt(xmlFile.children("id").text());
 							file["draft"] = parseInt(xmlFile.children("draft").text());
@@ -326,10 +353,16 @@ NW.io = {
 						var file = filesArray[i];
 						var objId = NW.filesystem.createId(file.pageId, file.entryId);
 						var obj = document.getElementById(objId);
-						if (!obj) continue;
+						if (!obj) { // If this is a new file
+							NW.filesystem.createFile(file);
+							continue;
+						}
 						NW.filesystem.updateFileData(obj, file);
 					}
                 }
+                
+                // Check for deleted files
+                NW.filesystem.checkDeletedFiles();
             }
             ajax.onreadystatechange = readyFunction;
             if (!synchronous) {
@@ -378,10 +411,16 @@ NW.io = {
         }
 	},
 	unlock: function(obj, synchronous) {
-		if (!obj) return false;
 		var synchronous = (synchronous == null) ? true : synchronous;
 		
-		var file = NW.filesystem.parseId(obj.id);
+		if (obj && obj.target) obj = null;
+		var selected = obj || null;
+		if (!selected) {
+			selected = NW.filesystem.getSelected();
+		}
+		if (!selected) return false;
+		
+		var file = NW.filesystem.parseId(selected.id);
 		
 		// Code for unlocking
 		var ajax = null;

@@ -1,7 +1,11 @@
 <?php
+	//** Start the session if it hasn't been started yet **//
+	if (!isset($_SESSION)) {
+	  session_start();
+	}
 
     include "mysql_backend_config.php";
-
+	
     //** Connection Function **//
     function get_connection()
     {
@@ -14,7 +18,11 @@
     //** Function to get an array of data from the users table **//
     function get_user_data($con, $data)
     {
-    	$userId = NULL; // Get the logged in user id here
+    	//print_r($data);
+    	$userId = get_user_id(); // Get the logged in user id here
+    	//echo "userId: ";
+    	if ($userId == NULL) return NULL;
+    	//echo $userId;
     	
     	$query = "SELECT ";
         $fields = "";
@@ -24,16 +32,47 @@
         {
             $fields = $fields . $field . ",";
         }
-        $fields = substr_replace($fields, "", -1);
-        // "WHERE userid =": userid may not be the actual field, since this function was built in advance
-        $query = $query . $fields . " FROM users WHERE userid = $userId";
-        $result = mysql_query($query, $con); // Run the Statement
-        $userDataArray = Array(); // Create an empty array
-        while($userData = mysql_fetch_assoc($result)) // Loop through the results
-        {
-            $userDataArray[] = $userData; // Append them
-        }
+		//echo "FIELDS";
+		$fields = substr_replace($fields, "", -1);
+		// "WHERE userid =": userid may not be the actual field, since this function was built in advance
+		$query = $query . $fields . " FROM users WHERE id = $userId";
+		$result = mysql_query($query, $con); // Run the Statement
+		$userDataArray = Array(); // Create an empty array
+		while($userData = mysql_fetch_assoc($result)) // Loop through the results
+		{
+			$userDataArray[] = $userData; // Append them
+		}
+		//echo "\nGETTING DATA\n";
+        //echo "\n User data Array: ";
         return $userDataArray[0]; // Return them
+    }
+    
+    //** Function to get the current users user id **//
+    function get_user_id()
+    {
+    	if(isset($_SESSION['id'])) {
+    		return $_SESSION['id'];
+    	} else {
+    		return NULL;
+    	}
+    }
+    
+    //** Temporary function to check the username and password for logging in **//
+    function check_login($con, $username, $password)
+    {
+    	if (!isset($username) || !isset($password)) return NULL;
+    	
+    	$query = "SELECT id FROM users WHERE username = \"$username\" AND password = \"$password\"";
+    	$result = mysql_query($query, $con);
+    	$users = Array();
+        while ($row = mysql_fetch_assoc($result)) {
+        	$users[] = $row;
+        }
+        if (isset($users[0])) { // If there is a match to the username and password, return true
+        	return $users[0];
+        } else { // If there isn't a match to the username and password, return false
+        	return false;
+        }
     }
     
     //** Function to get the lock status of a file **//
@@ -80,12 +119,16 @@
     	
     	if ($userId != NULL) {
 			// Code here to get the and current user id
-			$userData = Array("userid");
+			$userData = Array("id");
+			$con = get_connection();
 			$userData = get_user_data($con, $userData);
-			$currentUserId = $userData['userid'];
+			$currentUserId = $userData['id'];
 			
+			//echo "\nChecking Lock--------\n";
+			//echo "Current User Id: " . $currentUserId . " ";
+			//echo "User id: " . $userId;
 			// For now, though...
-			$currentUserId = 0;
+			//$currentUserId = 0;
 		}
 		
 		$isLocked = NULL;
@@ -237,7 +280,7 @@
         return $entries[0]; //Return it
     }
     
-    //** Funciton to get a single draft **//
+    //** Function to get a single draft **//
     function get_draft($con, $pageId, $entryId=NULL) {
     	if (!isset($pageId)) return NULL;
     	
@@ -291,18 +334,25 @@
     	// If pageId is not NULL, this function will add those entries into the array as well
     	
     	// Code here to get the last-checked timestamp and current user id
-    	$userData = Array("timestamp", "userid");
+    	$userData = Array("timestamp", "id");
     	$userData = get_user_data($con, $userData);
     	$timestamp = $userData['timestamp'];
-    	$currentUserId = $userData['userid'];
+    	$currentUserId = $userData['id'];
     	
     	// For now, though...
-    	$timestamp = 0;
-    	$currentUserId = 0;
+    	//$timestamp = 0;
+    	//$currentUserId = 0;
+    	
+    	$interval = 60; // Interval for how long a file stays locked even if the author is still not -1
     	
     	// Now find the changed files
-    	$query = "SELECT *, id AS pageId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 1 AS file_type FROM pages WHERE timestamp > $timestamp AND author != $currentUserId ORDER BY id ASC";
+    	$query = "SELECT *, id AS pageId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM pages ";
+    	$query .= "HAVING (timestamp > \"$timestamp\" AND author != $currentUserId) ";
+    	$query .= "OR (" . time() . " - unix_timestamp > $interval AND author != $currentUserId AND author != -1) ";
+    	$query .= "ORDER BY id ASC";
     	$result = mysql_query($query, $con);
+    	//print(mysql_error());
+    	//echo $query;
     	$files = Array();
     	while ($row = mysql_fetch_assoc($result)) {
     		$row['type'] = "pages";
@@ -311,24 +361,37 @@
     	$pagesLength = count($files);
     	if ($pageId != NULL) {
     		// Get the changed entries
-			$query = "SELECT *, id AS entryId, page AS pageId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 3 AS file_type FROM entries WHERE page = $pageId AND timestamp > $timestamp AND author != $currentUserId ORDER BY page ASC, id ASC";
+			$query = "SELECT *, id AS entryId, page AS pageId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries ";
+			$query .= "HAVING page = $pageId AND (timestamp > \"$timestamp\" AND author != $currentUserId) ";
+			$query .= "OR (" . time() . " - unix_timestamp > $interval AND author != $currentUserId AND author != -1) ";
+			$query .= "ORDER BY page ASC, id ASC";
 			$result = NULL;
 			$result = mysql_query($query, $con);
+			//print(mysql_error());
 			while ($row = mysql_fetch_assoc($result)) {
 				$row['type'] = "entries";
 				$files[] = $row;
 			}
 			$entriesLength = count($files) - $pagesLength;
 			
-			// Get the changed files in the drafts table
-			$query = "(SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 4 AS file_type FROM drafts WHERE page_id = $pageId AND entry_id IS NOT NULL AND timestamp > $timestamp AND lockuid != $currentUserId ORDER BY page_id ASC, entry_id ASC)";
+			// Get the changed entries in the drafts table
+			$query = "(SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 3 AS file_type FROM drafts ";
+			$query .= "HAVING page_id = $pageId AND entry_id IS NOT NULL AND (timestamp > \"$timestamp\" AND lockuid != $currentUserId) ";
+			$query .= "OR (" . time() . " - unix_timestamp > $interval AND lockuid != $currentUserId AND lockuid != -1) ";
+			$query .= "ORDER BY page_id ASC, entry_id ASC)";
+			
 			$query .= " UNION ";
-			$query .= "(SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 2 AS file_type FROM drafts WHERE entry_id IS NULL AND timestamp > $timestamp AND lockuid != $currentUserId ORDER BY page_id ASC)";
+			// Get the changed pages in the drafts table
+			$query .= "(SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 2 AS file_type FROM drafts ";
+			$query .= "HAVING entry_id IS NULL AND (timestamp > \"$timestamp\" AND lockuid != $currentUserId) ";
+			$query .= "OR (" . time() . " - unix_timestamp > $interval AND lockuid != $currentUserId AND lockuid != -1) ";
+			$query .= "ORDER BY page_id ASC)";
 			$query .= " ORDER BY file_type ASC";
 			$result = NULL;
 			$testFiles = Array();
 			$pages = $files;
 			$result = mysql_query($query, $con);
+			//print(mysql_error());
 			while ($row = mysql_fetch_assoc($result)) {
 				$row['type'] = "drafts";
 				$files[] = $row;
@@ -341,9 +404,13 @@
 			//print_r($testFiles);
 		} else {
 			// Get the changed draft pages
-    		$query = "SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp, 2 AS file_type FROM drafts WHERE entry_id IS NULL AND timestamp > $timestamp AND lockuid != $currentUserId ORDER BY page_id ASC";
+    		$query = "SELECT *, page_id AS pageId, entry_id AS entryId, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM drafts ";
+    		$query .= "HAVING entry_id IS NULL AND (timestamp > \"$timestamp\" AND lockuid != $currentUserId) ";
+    		$query .= "OR (" . time() . " - unix_timestamp > $interval AND lockuid != $currentUserId AND lockuid != -1) ";
+    		$query .= "ORDER BY page_id ASC";
     		$result = NULL;
 			$result = mysql_query($query, $con);
+			//print(mysql_error());
 			while ($row = mysql_fetch_assoc($result)) {
 				$row['type'] = "drafts";
 				$files[] = $row;
@@ -391,6 +458,13 @@
     	// Reassign the keys
     	$files = array_values($files);
     	
+    	// Modify the users table so that the timestamp is updated
+    	$userUpdateData = Array();
+    	$userUpdateData['id'] = $currentUserId;
+    	$userUpdateData['timestamp'] = true;
+    	$userUpdateData['type'] = "users";
+    	modify_data($con, $userUpdateData);
+    	
     	return $files;  // Return them
     }
     
@@ -407,11 +481,14 @@
         } else if ($table == "pages") { // If it's a page
         	$pageId = $data['id'];
         	$entryId = NULL;
-        } else { // If it's a draft
+        } else if ($table == "drafts") { // If it's a draft
         	$pageId = $data['page_id'];
         	$entryId = $data['entry_id'];
+        } else {
+        	$passLockTest = true;
         }
-		if (get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
+        
+		if ($passLockTest && get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
         if ($table == "drafts") { // Check the original page or entry
         	$lockTable = ($data['entry_id'] == NULL) ? "pages" : "entries";
         	if (get_lock($con, $lockTable, $pageId, $entryId)) return false; // It's locked so don't modify

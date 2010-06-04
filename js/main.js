@@ -295,6 +295,14 @@ NW = {
 			confirmPublishSite: function() {
 				NW.editor.functions.openConfirmWindow("Are you sure you want to publish all drafts?", "This action cannot be undone.", NW.io.publishSite);
 			},
+			openSettings: function() {
+				NW.io.save(null, true, false);
+				location.href = "settings.php";
+			},
+			logOut: function() {
+				NW.io.save(null, true, false);
+				location.href = "php/logout.php";
+			},
 			toggleEditPanel: function() {
 				if ($("#NWLeft").hasClass("NWRightClosed")) {
 					$("#NWLeft").removeClass("NWRightClosed");
@@ -1032,8 +1040,14 @@ NW = {
 				//NW.editor.functions.fireCommand("insertimage", false, images[0].src);
 			},
 			loadImage: function(url) {
+				var e = (url.target) ? url : null;
+				if (e) {
+					if (e.type != "keydown" && !NW.keystrokes.checkKeystroke("", Key.ENTER, "", e)) return false;
+				}
 				// Do this just in case the function doesn't get an argument
 				var url = this.value || url;
+				
+				if (url == null) return false;
 				
 				// Make sure an image isn't already selected, in which case it would just change the source
 				if (NW.selectedImage) {
@@ -1582,6 +1596,16 @@ NW = {
 					trigger: "click"
 				},
 				{
+					className: "NWSettings",
+					action: NW.editor.functions.openSettings,
+					trigger: "click"
+				},
+				{
+					className: "NWLogOut",
+					action: NW.editor.functions.logOut,
+					trigger: "click"
+				},
+				{
 					jquery: "div.NWChooseTemplate .NWTemplatesWindow .NWTemplates ul li",
 					action: NW.templates.selectTemplate,
 					trigger: "click"
@@ -1663,6 +1687,11 @@ NW = {
 					jquery: ".NWEditControls.NWInsertImageURL input",
 					action: NW.editor.functions.loadImage,
 					trigger: "blur"
+				},
+				{
+					jquery: ".NWEditControls.NWInsertImageURL input",
+					action: NW.editor.functions.loadImage,
+					trigger: "keydown"
 				},
 				{
 					jquery: ".NWEditControls.NWDragNumber .NWDecreaseNumber",
@@ -1801,6 +1830,9 @@ NW = {
 		// Resize the window as soon as the page loads (should probably use jquery for this part)
 		NW.window.resize();
 		
+		// Check to see if the user has logged in
+		NW.io.checkLogin();
+		
 		// Expand or collapse triangles
 		NW.filesystem.init();
 		
@@ -1822,8 +1854,10 @@ NW = {
 	onbeforeunload: function(e) {
 		var selected = NW.filesystem.getSelected();
 		if ($(selected).hasClass("NWUnsaved")) {
-			NW.io.save();
-			return "You have unsaved changes in the draft \"" + selected.textContent + "\".\nYour changes are currently being saved.  Please wait until it is finished.";
+			NW.io.save(null, true, false);
+			//return "You have unsaved changes in the draft \"" + selected.textContent + "\".\nYour changes are currently being saved.  Please wait until it is finished.";
+		} else {
+			NW.io.unlock(NW.filesystem.getSelected(), false);
 		}
 		
 	},

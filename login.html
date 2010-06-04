@@ -23,23 +23,23 @@ $(document).ready(function() {
 <div id="adminPanel"></div>
 <div id="loginBox">
 	<div id="loginFormBox">
-    	<form id="loginForm">
-    		<!-- Begin if this is the initial log in -->
+    	<form id="loginForm" action="php/login.php" method="post" autocomplete="off">
+    		<!-- Begin if this is the initial log in --><!--
     		<h2>Initial Login</h2>
     		<h4>The information that you enter now will be stored. Please remember it.</h4>
-    		<!-- End if this is the initial log in -->
+    		--><!-- End if this is the initial log in -->
     		
     		<label id="usernameLabel" class="placeholder"><span>Username</span></label>
-        	<input type="text" id="usernameInput" />
+        	<input type="text" id="usernameInput" spellcheck="false" name="username" />
         	<label id="passwordLabel" class="placeholder"><span>Password</span></label>
-            <input type="password" id="passwordInput" />
+            <input type="password" id="passwordInput" name="password" />
             
-            <!-- Begin if this is the initial log in -->
+            <!-- Begin if this is the initial log in --><!--
             <label id="confirmPasswordLabel" class="placeholder"><span>Confirm Password</span></label>
             <input type="password" id="confirmPasswordInput" />
             <label id="emailLabel" class="placeholder"><span>Email Address</span></label>
             <input type="text" id="emailInput" />
-            <!-- End if this is the initial log in -->
+            --><!-- End if this is the initial log in -->
             
             <input type="submit" id="loginButton" value="" />
         </form>

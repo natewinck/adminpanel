@@ -1,4 +1,11 @@
 <?php
+	//** Start the session if it hasn't been started yet
+	if (!isset($_SESSION)) {
+	  session_start();
+	}
+	//** Check to see if the user is logged in **//
+	if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) exit;
+	
     require "mysql_backend.php";
     
     //print_r($_GET);
@@ -10,12 +17,12 @@
         $lockData['id'] = $_GET['entryId'];
         $lockData['page'] = $_GET['pageId'];
         $lockData['type'] = "entries";
-        //check_lock($con, $lockData);
+        if (get_lock($con, $lockData['type'], $lockData['page'], $lockData['id'])) exit;
         
         // Lock the entry
         $lockData['locked'] = 1;
         $lockData['timestamp'] = true;
-        $lockData['author'] = 0; // CHANGE TO USER ID!!
+        $lockData['author'] = get_user_id(); // CHANGE TO USER ID!!
         modify_data($con, $lockData);
         
         // Lock the draft of the entry if it exists
@@ -103,12 +110,15 @@
     {
         $con = get_connection();
         
-        // Lock the page
+        // Check the lock on the page
         $lockData['id'] = $_GET['pageId'];
         $lockData['type'] = "pages";
+        if (get_lock($con, $lockData['type'], $lockData['id'])) exit;
+        
+        // Lock the page
         $lockData['locked'] = 1;
         $lockData['timestamp'] = true;
-        $lockData['author'] = 0; // CHANGE TO USER ID!!
+        $lockData['author'] = get_user_id(); // CHANGE TO USER ID!!
         modify_data($con, $lockData);
         
         // Lock the draft of the page if it exists
@@ -165,6 +175,15 @@
        		$row['name'] = str_replace("&nbsp;", " ", $row['name']);
         }
         include("pages_data_template.php");
+    }
+    else if(isset($_GET['checkLogin']))
+    {
+    	$userId = get_user_id();
+    	if ($userId != NULL) { // If the user is logged in
+    		echo 1;
+    	} else { // If the user is not logged in
+    		echo 0;
+    	}
     }
     else //Get a list of pages
     {

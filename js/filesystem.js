@@ -165,6 +165,89 @@ NW.filesystem = {
 		
 		return entriesHeadersArray;
 	},
+	createFile: function(file) {
+		if (!file || file["pageId"] == null) return false;
+		
+		var categoryElement = (file["entryId"] == null) ? $(".NWSites > .NWRowCategory > ul")[0] : $("#NWListEditorBox > ul")[0];
+		if (!file["list"]) {
+			fileElement = document.createElement("li");
+			fileElement.title = file["name"];
+			fileElement.id = NW.filesystem.createId(file["pageId"], file["entryId"]);
+			if (file["locked"]) fileElement.className = "NWNonSelectable";
+			categoryElement.appendChild(fileElement);
+			
+			if (file["locked"]) {
+				divElement = document.createElement("div");
+				divElement.className = "NWLocked";
+				fileElement.appendChild(divElement);
+			} else if (file["draft"]) {
+				divElement = document.createElement("div");
+				divElement.className = "NWDraft";
+				fileElement.appendChild(divElement);
+			} else {
+				divElement = document.createElement("div");
+				divElement.className = "NWFile";
+				fileElement.appendChild(divElement);
+			}
+			
+			textElement = document.createTextNode(file["name"]);
+			fileElement.appendChild(textElement);
+		} else {
+			// First create the first li element that includes the title and file icon
+			fileElement = document.createElement("li");
+			fileElement.title = file["name"];
+			fileElement.className = "NWRowCategoryHeader";
+			if (file["locked"]) fileElement.className += " NWNonSelectable";
+			fileElement.id = NW.filesystem.createId(file["pageId"]);  // Create the id for the overall entries page
+			categoryElement.appendChild(fileElement);
+			
+			divElement = document.createElement("div");
+			divElement.className = "NWOpen";
+			fileElement.appendChild(divElement);
+			
+			if (file["locked"]) {
+				divElement = document.createElement("div");
+				divElement.className = "NWLocked";
+				fileElement.appendChild(divElement);
+			} else if (file["draft"]) {
+				divElement = document.createElement("div");
+				divElement.className = "NWDraft";
+				fileElement.appendChild(divElement);
+			} else {
+				divElement = document.createElement("div");
+				divElement.className = "NWFile";
+				fileElement.appendChild(divElement);
+			}
+			
+			textElement = document.createTextNode(file["name"]);
+			fileElement.appendChild(textElement);
+			
+			// Then, create the category li element and the "Entries" li element
+			liElement = document.createElement("li");
+			liElement.className = "NWRowCategory";
+			categoryElement.appendChild(liElement);
+			
+			ulElement = document.createElement("ul");
+			ulElement.className = "NWRows NWRowsSelectable NWSelectable";
+			liElement.appendChild(ulElement);
+			
+			fileElement = document.createElement("li");
+			fileElement.title = "Entries for " + file["name"];
+			fileElement.id = NW.filesystem.createId(file["pageId"], null, true);
+			fileElement.className = "listEditor";
+			ulElement.appendChild(fileElement);
+			
+			divElement = document.createElement("div");
+			divElement.className = "NWList";
+			fileElement.appendChild(divElement);
+			
+			textElement = document.createTextNode("Entries");
+			fileElement.appendChild(textElement);
+		}
+		
+		// Set up the listeners for the new row
+		fileElement.addEventListener("click", NW.filesystem.select, false);
+	},
 	updateFileData: function(obj, data) {
 		var obj = obj || NW.filesystem.getSelected();
 		if (!obj) return false;
@@ -233,6 +316,48 @@ NW.filesystem = {
 		) {
 			$(selected).children(".NWFile").removeClass("NWFile").addClass("NWDraft");
 			$(selected).addClass("NWUnsaved");
+		}
+	},
+	checkDeletedFiles: function() {
+		var files = NW.io.getFilesArray();
+		var listedFiles = [];
+		$(".NWSites > .NWRowCategory > ul > li:not(.NWRowCategory)").each(function() {
+			//listedFiles.push(this.id);
+			listedFiles[this.id] = true;
+		});
+		// If the list editor is open, get those files too
+		if ($("#NWListEditor").css("display") != "none") {
+			var selectedEntriesRow = $("#NWSidebarLeft .NWSelected.listEditor");
+			if (selectedEntriesRow[0]) {
+				var parsedId = NW.filesystem.parseId(selectedEntriesRow[0].id);
+				var pageId = parsedId.pageId;
+				if (pageId != null) {
+					files = files.concat(NW.io.getListEntriesArray(pageId));
+					$("#NWListEditorBox > ul > li").each(function() {
+						//listedFiles.push(this.id);
+						listedFiles[this.id] = true;
+					});
+				}
+			}
+		}
+		
+		// Give each file that was received via ajax an id
+		var i = files.length;
+		var tempFiles = [];
+		while (i--) {
+			if (files[i]["pageId"] == null) { // If this a page
+				tempFiles[NW.filesystem.createId(files[i]["id"])] = true;
+			} else { // If this an entry
+				tempFiles[NW.filesystem.createId(files[i]["pageId"], files[i]["id"])] = true;
+			}
+		}
+		files = tempFiles;
+		tempFiles = null;
+		
+		for (var key in listedFiles) {
+			if (!files[key]) { // If there is no file in the database but is shown, delete it
+				$(document.getElementById(key)).remove();
+			}
 		}
 	},
 	lock: function(obj) {

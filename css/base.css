@@ -449,7 +449,8 @@ ul.NWRowsSelectable.NWRowsSelectableFlat li.NWSelected {
 
 #NWToolbar #NWToolbarButtons {
 	width: 100%;
-	overflow: hidden;
+	overflow-x: auto;
+	overflow-y: hidden;
 	margin: auto 0px auto 0px;
 	white-space: nowrap;
 }
@@ -533,6 +534,22 @@ ul.NWRowsSelectable.NWRowsSelectableFlat li.NWSelected {
 
 #NWToolbar #NWToolbarButtons li.NWPreviewPage:active .NWToolbarButtonIcon {
 	background-position: -50px -30px;
+}
+
+#NWToolbar #NWToolbarButtons li.NWSettings .NWToolbarButtonIcon {
+	background-position: -175px 0px;
+}
+
+#NWToolbar #NWToolbarButtons li.NWSettings:active .NWToolbarButtonIcon {
+	background-position: -175px -30px;
+}
+
+#NWToolbar #NWToolbarButtons li.NWLogOut .NWToolbarButtonIcon {
+	background-position: -150px 0px;
+}
+
+#NWToolbar #NWToolbarButtons li.NWLogOut:active .NWToolbarButtonIcon {
+	background-position: -150px -30px;
 }
 
 #NWToolbar #NWToolbarButtons li.NWEditPanelToggle .NWToolbarButtonIcon {
@@ -1097,6 +1114,10 @@ div.NWChooseTemplate .NWTemplatesWindow .NWTemplatesWindowBottom .NWTemplatesWin
 	margin: auto;
 }
 
+#NWEditPanel .NWEditPanelGroup:last-child {
+	border-bottom: none;
+}
+
 #NWEditPanel .NWEditPanelGroup .NWEditControls {
 	height: 20px;
 	margin: 0px 0px 15px 0px;
@@ -1377,11 +1398,13 @@ a.NWButton.NWDone {
 }
 
 /* Input */
-#NWEditPanel .NWEditPanelGroup .NWEditControls input {
-	background: none;
+#NWEditPanel .NWEditPanelGroup .NWEditControls input[type="text"] {
+	height: 13px;
+	margin: 2px 0px 2px 0px;
+	/*background: none;
 	border: solid 1px #ffffff;
 	color: #ffffff;
-	resize: none;
+	resize: none;*/
 }
 
 #NWEditPanel .NWEditPanelGroup .NWEditControls select {
@@ -1801,7 +1824,7 @@ a.NWButton.NWDone {
 }
 
 #NWEditPanel .NWEditPanelGroup .NWEditControls.NWDragNumber input.NWDragNumber {
-	background-image: url(../images/NWEditPanel/number-select.png);
+	background: url(../images/NWEditPanel/number-select.png);
 	background-position: -15px 0px;
 	width: 30px;
 	height: 20px;
@@ -1813,6 +1836,7 @@ a.NWButton.NWDone {
 	cursor: ew-resize;
 	font-size: 9px;
 	text-align: center;
+	color: #ffffff;
     vertical-align: bottom;
 }
 

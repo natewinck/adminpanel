@@ -1,4 +1,13 @@
 <?php
+	ignore_user_abort(true);
+	
+	//** Start the session if it hasn't been started yet
+	if (!isset($_SESSION)) {
+	  session_start();
+	}
+	//** Check to see if the user is logged in **//
+	if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) exit;
+	
     require "mysql_backend.php";
 	
     //print_r($_POST);
@@ -10,7 +19,7 @@
 		if(isset($_POST['unlock']) || isset($_POST['lock'])) // Lock or Unlock a page
 		{
 			$data['timestamp'] = $draftData['timestamp'] = true;
-			$data['author'] = $draftData['lockuid'] = (isset($_POST['unlock'])) ? -1 : 0; // 0 NEEDS TO BE THE USER ID!!
+			$data['author'] = $draftData['lockuid'] = (isset($_POST['unlock'])) ? -1 : get_user_id(); // 0 NEEDS TO BE THE USER ID!!
 			$draftData['type'] = "drafts";
 			if (isset($_POST['entry'])) { // If the file is an entry
 				$data['type'] = "entries";
@@ -21,9 +30,9 @@
 				$data['id'] = $draftData['page_id'] = $_POST['page'];
 				$draftData['entry_id'] = NULL;
 			}
+			
 			$con = get_connection();
 			if (!draft_exists($con, $draftData['page_id'], $draftData['entry_id'])) $draftData = NULL;
-			print_r($draftData);
 		}
 		else if(isset($_POST['entry']) && isset($_POST['revert'])) // Revert an entry
 		{
@@ -55,7 +64,7 @@
 			$draftData = Array();
 			$data['entry_id'] = $draftData['id'] = $_POST['entry'];
 			$data['page_id'] = $draftData['page'] = $_POST['page'];
-			$data['lockuid'] = $draftData['author'] = $originalData['author']; // The user id needs to be put here!!
+			$data['lockuid'] = $draftData['author'] = get_user_id(); // The user id needs to be put here!!
 			//unset($data['author']);
 			$data['type'] = "drafts";
 			$draftData['type'] = "entries";
@@ -101,7 +110,7 @@
 			//echo "third";
 			$draftData = Array();
 			$data['page_id'] = $draftData['id'] = $_POST['page'];
-			$data['lockuid'] = $draftData['author'] = 0; // The user id needs to be put here!!
+			$data['lockuid'] = $draftData['author'] = get_user_id(); // The user id needs to be put here!!
 			$data['name'] = $originalData['name'];
 			/*unset($data['author']);
 			unset($data['rank']);
@@ -142,5 +151,61 @@
         	modify_data($con, $data);
         }
         if ($draftData) modify_data($con, $draftData); // Change the db to say there is a draft
+    } else { // Settings saver
+    	$con = get_connection();
+    	
+    	if (isset($_POST['password']) && isset($_POST['oldPassword']))
+    	{
+    		$userData = get_user_data($con, Array("password"));
+    		if ($userData['password'] == $_POST['oldPassword'] && $_POST['password'] == $_POST['confirmPassword']) {
+    			$data['password'] = $_POST['password'];
+    			$data['id'] = get_user_id();
+    			$data['type'] = "users";
+    			
+    			$confirmation = "Your password has been changed.";
+    		} else {
+    			$confirmation = "There was an error changing your password.";
+    			$confirmationType = "fail";
+    		}
+    	}
+    	else if (isset($_POST['email']))
+    	{
+    		if ($_POST['email'] != "") {
+				// Assuming that the email is valid...
+				$data['email'] = $_POST['email'];
+				$data['id'] = get_user_id();
+				$data['type'] = "users";
+				$confirmation = "The email address has been changed.";
+			} else {
+				$confirmationType = "fail";
+				$confirmation = "No email address was entered.";
+			}
+    	}
+    	else if (isset($_POST['username']))
+    	{
+    		if ($_POST['username'] != "") {
+				$data['username'] = $_POST['username'];
+				$data['id'] = get_user_id();
+				$data['type'] = "users";
+				
+				$_SESSION['username'] = $data['username'];
+				
+				$confirmation = "Your username has been changed.";
+			} else {
+				$confirmationType = "fail";
+				$confirmation = "No username was entered.";
+			}
+    	}
+    	else
+    	{
+    		$confirmationType = "fail";
+    		$confirmation = "No information was entered.";
+    	}
+    	
+    	if (isset($data)) modify_data($con, $data);
+    	
+    	$_SESSION['confirmationType'] = (isset($confirmationType)) ? $confirmationType : "success";
+    	$_SESSION['confirmation'] = $confirmation;
+    	header("Location: ../settings.php");
     }
 ?>
