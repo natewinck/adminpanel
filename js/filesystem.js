@@ -145,7 +145,7 @@ NW.filesystem = {
 		var i = 0;
 		$(".NWSites > .NWRowCategory > .NWRows > li, #NWListEditor #NWListEditorBox .NWRows > li").each(function() {
 			if ($(this).children(".NWDraft")[0]) {
-				console.log($(this).children(":first")[0]);
+				//console.log($(this).children(":first")[0]);
 				draftsArray[i] = $(this)[0];
 				i++;
 			}
@@ -255,6 +255,7 @@ NW.filesystem = {
 		if (data.name) {
 			// Get rid of any html stuff that we don't want
 			data.name = data.name.replace(/(<([^>]+)>)/ig,"");
+			data.name = data.name.replace(/(&nbsp;)/g, " ");
 			var isDraft = NW.filesystem.isDraft(obj);
 			
 			if ($(obj).hasClass("NWRowCategoryHeader")) {
@@ -264,7 +265,7 @@ NW.filesystem = {
 				var divElement = $(obj).children(".NWOpen, .NWClosed")[0];
 			}
 			
-			obj.name = data.name;
+			obj.title = data.name;
 			obj.innerHTML = "";
 			
 			if ($(obj).hasClass("NWRowCategoryHeader")) {

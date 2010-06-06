@@ -503,8 +503,7 @@ NW.io = {
             ajax.open("POST", "./php/saver.php", synchronous);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			ajax.send(postData);
-            var readyFunction = function(e, selected, data)
-            {
+            var readyFunction = function(e, selected, data) {
 				var ajax = (e.readyState) ? e : e.target;
                 if(ajax.readyState==4) {
 					// When done saving, close the loading window
