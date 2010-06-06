@@ -425,7 +425,7 @@ NW = {
 					
 					if ($(userSelection.focusNode).hasClass("NWEditable")
 						|| (NW.browserDetect.browser != "Safari" && $(userSelection.focusNode).css("display") != "inline")) {
-						console.log("in here");
+						//console.log("in here");
 						/*var divElement = NWEditPage.document.createElement("div");
 						divElement.innerHTML = userSelection.focusNode.innerHTML;
 						userSelection.focusNode.innerHTML = "";
@@ -687,7 +687,7 @@ NW = {
 			mouseoverImage: function() {
 				this.style.cursor = "default";
 				// BRING BACK console.log("OVER");
-				if (NW.browserDetect.browser == "Firefox") {
+				if (NW.browserDetect.browser == "Firefox" && false) {
 					if (NW.imageWasMousedDown) {
 						NW.editor.functions.addImageEvents(this);
 						NW.editor.functions.updateImageMargin();
@@ -766,11 +766,11 @@ NW = {
 				image.removeEventListener("click", NW.editor.functions.clickImage, false);
 				image.addEventListener("click", NW.editor.functions.clickImage, false);
 				
-				NWEditPage.removeEventListener("click", NW.editor.functions.offclickImage, false);
-				NWEditPage.addEventListener("click", NW.editor.functions.offclickImage, false);
+				NWEditPage.document.removeEventListener("click", NW.editor.functions.offclickImage, false);
+				NWEditPage.document.addEventListener("click", NW.editor.functions.offclickImage, false);
 				
-				NWEditPage.removeEventListener("mouseup", NW.editor.functions.mouseupImage, false);
-				NWEditPage.addEventListener("mouseup", NW.editor.functions.mouseupImage, false);
+				NWEditPage.document.removeEventListener("mouseup", NW.editor.functions.mouseupImage, false);
+				NWEditPage.document.addEventListener("mouseup", NW.editor.functions.mouseupImage, false);
 				
 				// Add mouse over and mouse out event to this image
 				image.removeEventListener("mouseover", NW.editor.functions.mouseoverImage, false);
@@ -1054,7 +1054,7 @@ NW = {
 					if (NW.selectedImage.getAttribute("src") != url) {
 						NW.selectedImage.onload = NW.editor.functions.resetImageSize;
 						NW.selectedImage.setAttribute("src", url);
-						console.log(url);
+						//console.log(url);
 						
 						NW.filesystem.changeToDraft();
 					}
