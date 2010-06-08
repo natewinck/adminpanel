@@ -46,6 +46,15 @@
         //echo "\n User data Array: ";
         return $userDataArray[0]; // Return them
     }
+	
+	//** Function to insert user data - Self explanitory **//
+	function insert_user_data($con, $username, $password, $email, $rank)
+	{
+		$query = "INSERT INTO adminpanel.users (username, password, email, rank) VALUES(\"$username\", \"$password\", \"$email\", \"$rank\");";
+		$result = mysql_query($query, $con) or die(mysql_error());
+		if($result) return "Success";
+		else return "Fail";
+	}
     
     //** Function to get the current users user id **//
     function get_user_id()
@@ -62,6 +71,8 @@
     {
     	if (!isset($username) || !isset($password)) return NULL;
     	
+		$password = hash('sha256', hash('sha512', $password . "boom-deyada boom-deyada"));
+		
     	$query = "SELECT id FROM users WHERE username = \"$username\" AND password = \"$password\"";
     	$result = mysql_query($query, $con);
     	$users = Array();
