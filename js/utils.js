@@ -1,252 +1,127 @@
 /**
- *
- * Utilities
- * Author: Stefan Petre www.eyecon.ro
- * 
- */
-(function($) {
-EYE.extend({
-	getPosition : function(e, forceIt)
-	{
-		var x = 0;
-		var y = 0;
-		var es = e.style;
-		var restoreStyles = false;
-		if (forceIt && jQuery.curCSS(e,'display') == 'none') {
-			var oldVisibility = es.visibility;
-			var oldPosition = es.position;
-			restoreStyles = true;
-			es.visibility = 'hidden';
-			es.display = 'block';
-			es.position = 'absolute';
-		}
-		var el = e;
-		if (el.getBoundingClientRect) { // IE
-			var box = el.getBoundingClientRect();
-			x = box.left + Math.max(document.documentElement.scrollLeft, document.body.scrollLeft) - 2;
-			y = box.top + Math.max(document.documentElement.scrollTop, document.body.scrollTop) - 2;
-		} else {
-			x = el.offsetLeft;
-			y = el.offsetTop;
-			el = el.offsetParent;
-			if (e != el) {
-				while (el) {
-					x += el.offsetLeft;
-					y += el.offsetTop;
-					el = el.offsetParent;
-				}
-			}
-			if (jQuery.browser.safari && jQuery.curCSS(e, 'position') == 'absolute' ) {
-				x -= document.body.offsetLeft;
-				y -= document.body.offsetTop;
-			}
-			el = e.parentNode;
-			while (el && el.tagName.toUpperCase() != 'BODY' && el.tagName.toUpperCase() != 'HTML') 
-			{
-				if (jQuery.curCSS(el, 'display') != 'inline') {
-					x -= el.scrollLeft;
-					y -= el.scrollTop;
-				}
-				el = el.parentNode;
-			}
-		}
-		if (restoreStyles == true) {
-			es.display = 'none';
-			es.position = oldPosition;
-			es.visibility = oldVisibility;
-		}
-		return {x:x, y:y};
-	},
-	getSize : function(e)
-	{
-		var w = parseInt(jQuery.curCSS(e,'width'), 10);
-		var h = parseInt(jQuery.curCSS(e,'height'), 10);
-		var wb = 0;
-		var hb = 0;
-		if (jQuery.curCSS(e, 'display') != 'none') {
-			wb = e.offsetWidth;
-			hb = e.offsetHeight;
-		} else {
-			var es = e.style;
-			var oldVisibility = es.visibility;
-			var oldPosition = es.position;
-			es.visibility = 'hidden';
-			es.display = 'block';
-			es.position = 'absolute';
-			wb = e.offsetWidth;
-			hb = e.offsetHeight;
-			es.display = 'none';
-			es.position = oldPosition;
-			es.visibility = oldVisibility;
-		}
-		return {w:w, h:h, wb:wb, hb:hb};
-	},
-	getClient : function(e)
-	{
-		var h, w;
-		if (e) {
-			w = e.clientWidth;
-			h = e.clientHeight;
-		} else {
-			var de = document.documentElement;
-			w = window.innerWidth || self.innerWidth || (de&&de.clientWidth) || document.body.clientWidth;
-			h = window.innerHeight || self.innerHeight || (de&&de.clientHeight) || document.body.clientHeight;
-		}
-		return {w:w,h:h};
-	},
-	getScroll : function (e)
-	{
-		var t=0, l=0, w=0, h=0, iw=0, ih=0;
-		if (e && e.nodeName.toLowerCase() != 'body') {
-			t = e.scrollTop;
-			l = e.scrollLeft;
-			w = e.scrollWidth;
-			h = e.scrollHeight;
-		} else  {
-			if (document.documentElement) {
-				t = document.documentElement.scrollTop;
-				l = document.documentElement.scrollLeft;
-				w = document.documentElement.scrollWidth;
-				h = document.documentElement.scrollHeight;
-			} else if (document.body) {
-				t = document.body.scrollTop;
-				l = document.body.scrollLeft;
-				w = document.body.scrollWidth;
-				h = document.body.scrollHeight;
-			}
-			if (typeof pageYOffset != 'undefined') {
-				t = pageYOffset;
-				l = pageXOffset;
-			}
-			iw = self.innerWidth||document.documentElement.clientWidth||document.body.clientWidth||0;
-			ih = self.innerHeight||document.documentElement.clientHeight||document.body.clientHeight||0;
-		}
-		return { t: t, l: l, w: w, h: h, iw: iw, ih: ih };
-	},
-	getMargins : function(e, toInteger)
-	{
-		var t = jQuery.curCSS(e,'marginTop') || '';
-		var r = jQuery.curCSS(e,'marginRight') || '';
-		var b = jQuery.curCSS(e,'marginBottom') || '';
-		var l = jQuery.curCSS(e,'marginLeft') || '';
-		if (toInteger)
-			return {
-				t: parseInt(t, 10)||0,
-				r: parseInt(r, 10)||0,
-				b: parseInt(b, 10)||0,
-				l: parseInt(l, 10)
-			};
-		else
-			return {t: t, r: r,	b: b, l: l};
-	},
-	getPadding : function(e, toInteger)
-	{
-		var t = jQuery.curCSS(e,'paddingTop') || '';
-		var r = jQuery.curCSS(e,'paddingRight') || '';
-		var b = jQuery.curCSS(e,'paddingBottom') || '';
-		var l = jQuery.curCSS(e,'paddingLeft') || '';
-		if (toInteger)
-			return {
-				t: parseInt(t, 10)||0,
-				r: parseInt(r, 10)||0,
-				b: parseInt(b, 10)||0,
-				l: parseInt(l, 10)
-			};
-		else
-			return {t: t, r: r,	b: b, l: l};
-	},
-	getBorder : function(e, toInteger)
-	{
-		var t = jQuery.curCSS(e,'borderTopWidth') || '';
-		var r = jQuery.curCSS(e,'borderRightWidth') || '';
-		var b = jQuery.curCSS(e,'borderBottomWidth') || '';
-		var l = jQuery.curCSS(e,'borderLeftWidth') || '';
-		if (toInteger)
-			return {
-				t: parseInt(t, 10)||0,
-				r: parseInt(r, 10)||0,
-				b: parseInt(b, 10)||0,
-				l: parseInt(l, 10)||0
-			};
-		else
-			return {t: t, r: r,	b: b, l: l};
-	},
-	traverseDOM : function(nodeEl, func)
-	{
-		func(nodeEl);
-		nodeEl = nodeEl.firstChild;
-		while(nodeEl){
-			EYE.traverseDOM(nodeEl, func);
-			nodeEl = nodeEl.nextSibling;
-		}
-	},
-	getInnerWidth :  function(el, scroll) {
-		var offsetW = el.offsetWidth;
-		return scroll ? Math.max(el.scrollWidth,offsetW) - offsetW + el.clientWidth:el.clientWidth;
-	},
-	getInnerHeight : function(el, scroll) {
-		var offsetH = el.offsetHeight;
-		return scroll ? Math.max(el.scrollHeight,offsetH) - offsetH + el.clientHeight:el.clientHeight;
-	},
-	getExtraWidth : function(el) {
-		if($.boxModel)
-			return (parseInt($.curCSS(el, 'paddingLeft'))||0)
-				+ (parseInt($.curCSS(el, 'paddingRight'))||0)
-				+ (parseInt($.curCSS(el, 'borderLeftWidth'))||0)
-				+ (parseInt($.curCSS(el, 'borderRightWidth'))||0);
-		return 0;
-	},
-	getExtraHeight : function(el) {
-		if($.boxModel)
-			return (parseInt($.curCSS(el, 'paddingTop'))||0)
-				+ (parseInt($.curCSS(el, 'paddingBottom'))||0)
-				+ (parseInt($.curCSS(el, 'borderTopWidth'))||0)
-				+ (parseInt($.curCSS(el, 'borderBottomWidth'))||0);
-		return 0;
-	},
-	isChildOf: function(parentEl, el, container) {
-		if (parentEl == el) {
-			return true;
-		}
-		if (!el || !el.nodeType || el.nodeType != 1) {
-			return false;
-		}
-		if (parentEl.contains && !$.browser.safari) {
-			return parentEl.contains(el);
-		}
-		if ( parentEl.compareDocumentPosition ) {
-			return !!(parentEl.compareDocumentPosition(el) & 16);
-		}
-		var prEl = el.parentNode;
-		while(prEl && prEl != container) {
-			if (prEl == parentEl)
-				return true;
-			prEl = prEl.parentNode;
-		}
-		return false;
-	},
-	centerEl : function(el, axis)
-	{
-		var clientScroll = EYE.getScroll();
-		var size = EYE.getSize(el);
-		if (!axis || axis == 'vertically')
-			$(el).css(
-				{
-					top: clientScroll.t + ((Math.min(clientScroll.h,clientScroll.ih) - size.hb)/2) + 'px'
-				}
-			);
-		if (!axis || axis == 'horizontally')
-			$(el).css(
-				{
-					left: clientScroll.l + ((Math.min(clientScroll.w,clientScroll.iw) - size.wb)/2) + 'px'
-				}
-			);
+*
+*  Secure Hash Algorithm (SHA256)
+*  http://www.webtoolkit.info/
+*
+*  Original code by Angel Marin, Paul Johnston.
+*
+**/
+ 
+function SHA256(s){
+ 
+	var chrsz   = 8;
+	var hexcase = 0;
+ 
+	function safe_add (x, y) {
+		var lsw = (x & 0xFFFF) + (y & 0xFFFF);
+		var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+		return (msw << 16) | (lsw & 0xFFFF);
 	}
-});
-if (!$.easing.easeout) {
-	$.easing.easeout = function(p, n, firstNum, delta, duration) {
-		return -delta * ((n=n/duration-1)*n*n*n - 1) + firstNum;
-	};
+ 
+	function S (X, n) { return ( X >>> n ) | (X << (32 - n)); }
+	function R (X, n) { return ( X >>> n ); }
+	function Ch(x, y, z) { return ((x & y) ^ ((~x) & z)); }
+	function Maj(x, y, z) { return ((x & y) ^ (x & z) ^ (y & z)); }
+	function Sigma0256(x) { return (S(x, 2) ^ S(x, 13) ^ S(x, 22)); }
+	function Sigma1256(x) { return (S(x, 6) ^ S(x, 11) ^ S(x, 25)); }
+	function Gamma0256(x) { return (S(x, 7) ^ S(x, 18) ^ R(x, 3)); }
+	function Gamma1256(x) { return (S(x, 17) ^ S(x, 19) ^ R(x, 10)); }
+ 
+	function core_sha256 (m, l) {
+		var K = new Array(0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5, 0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3, 0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174, 0xE49B69C1, 0xEFBE4786, 0xFC19DC6, 0x240CA1CC, 0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA, 0x983E5152, 0xA831C66D, 0xB00327C8, 0xBF597FC7, 0xC6E00BF3, 0xD5A79147, 0x6CA6351, 0x14292967, 0x27B70A85, 0x2E1B2138, 0x4D2C6DFC, 0x53380D13, 0x650A7354, 0x766A0ABB, 0x81C2C92E, 0x92722C85, 0xA2BFE8A1, 0xA81A664B, 0xC24B8B70, 0xC76C51A3, 0xD192E819, 0xD6990624, 0xF40E3585, 0x106AA070, 0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A, 0x5B9CCA4F, 0x682E6FF3, 0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208, 0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2);
+		var HASH = new Array(0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19);
+		var W = new Array(64);
+		var a, b, c, d, e, f, g, h, i, j;
+		var T1, T2;
+ 
+		m[l >> 5] |= 0x80 << (24 - l % 32);
+		m[((l + 64 >> 9) << 4) + 15] = l;
+ 
+		for ( var i = 0; i<m.length; i+=16 ) {
+			a = HASH[0];
+			b = HASH[1];
+			c = HASH[2];
+			d = HASH[3];
+			e = HASH[4];
+			f = HASH[5];
+			g = HASH[6];
+			h = HASH[7];
+ 
+			for ( var j = 0; j<64; j++) {
+				if (j < 16) W[j] = m[j + i];
+				else W[j] = safe_add(safe_add(safe_add(Gamma1256(W[j - 2]), W[j - 7]), Gamma0256(W[j - 15])), W[j - 16]);
+ 
+				T1 = safe_add(safe_add(safe_add(safe_add(h, Sigma1256(e)), Ch(e, f, g)), K[j]), W[j]);
+				T2 = safe_add(Sigma0256(a), Maj(a, b, c));
+ 
+				h = g;
+				g = f;
+				f = e;
+				e = safe_add(d, T1);
+				d = c;
+				c = b;
+				b = a;
+				a = safe_add(T1, T2);
+			}
+ 
+			HASH[0] = safe_add(a, HASH[0]);
+			HASH[1] = safe_add(b, HASH[1]);
+			HASH[2] = safe_add(c, HASH[2]);
+			HASH[3] = safe_add(d, HASH[3]);
+			HASH[4] = safe_add(e, HASH[4]);
+			HASH[5] = safe_add(f, HASH[5]);
+			HASH[6] = safe_add(g, HASH[6]);
+			HASH[7] = safe_add(h, HASH[7]);
+		}
+		return HASH;
+	}
+ 
+	function str2binb (str) {
+		var bin = Array();
+		var mask = (1 << chrsz) - 1;
+		for(var i = 0; i < str.length * chrsz; i += chrsz) {
+			bin[i>>5] |= (str.charCodeAt(i / chrsz) & mask) << (24 - i%32);
+		}
+		return bin;
+	}
+ 
+	function Utf8Encode(string) {
+		string = string.replace(/\r\n/g,"\n");
+		var utftext = "";
+ 
+		for (var n = 0; n < string.length; n++) {
+ 
+			var c = string.charCodeAt(n);
+ 
+			if (c < 128) {
+				utftext += String.fromCharCode(c);
+			}
+			else if((c > 127) && (c < 2048)) {
+				utftext += String.fromCharCode((c >> 6) | 192);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+			else {
+				utftext += String.fromCharCode((c >> 12) | 224);
+				utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+ 
+		}
+ 
+		return utftext;
+	}
+ 
+	function binb2hex (binarray) {
+		var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
+		var str = "";
+		for(var i = 0; i < binarray.length * 4; i++) {
+			str += hex_tab.charAt((binarray[i>>2] >> ((3 - i%4)*8+4)) & 0xF) +
+			hex_tab.charAt((binarray[i>>2] >> ((3 - i%4)*8  )) & 0xF);
+		}
+		return str;
+	}
+ 
+	s = Utf8Encode(s);
+	return binb2hex(core_sha256(str2binb(s), s.length * chrsz));
+ 
 }
-	
-})(jQuery);

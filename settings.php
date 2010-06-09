@@ -14,6 +14,7 @@
 <title>Admin Panel | Settings</title>
 <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8rc3.custom.min.js"></script>
+<script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/inputlabel.js"></script>
 
 <link href="css/settings.css" rel="stylesheet" type="text/css" />
@@ -24,6 +25,15 @@ $(document).ready(function() {
 	$("input[type='text'], input[type='password']").focus(onInputFocus);
 	$("a.button").click(function(){
 		$(this).parents("form").submit();
+	});
+	$(".passwordForm").submit(function() {
+		var passwordPreHash = $(this).children(".passwordPreHash");
+		var i = 0;
+		$(this).children(".password").each(function() {
+			$(this).val(SHA256($(passwordPreHash[i]).val()));
+			$(passwordPreHash[i]).val("");
+			i++;
+		});
 	});
 });
 </script>
@@ -42,18 +52,23 @@ $(document).ready(function() {
 				<label class="placeholder"><span>Username</span></label>
 				<input type="password" name="username" />
 				<a class="button"><span>Change Username</span></a>
+				<input type="submit" />
 			</form>
 		</li>
 		<li>
-			<form action="php/saver.php" method="post">
+			<form action="php/saver.php" method="post" class="passwordForm">
 				<h2>Change Password</h2>
 				<label class="placeholder"><span>Old Password</span></label>
-				<input type="password" name="oldPassword" />
+				<input type="password" name="oldPasswordPreHash" class="passwordPreHash" />
+				<input type="hidden" name="oldPassword" class="password" />
 				<label class="placeholder"><span>New Password</span></label>
-				<input type="password" name="password" />
+				<input type="password" name="passwordPreHash" class="passwordPreHash" />
+				<input type="hidden" name="password" class="password" />
 				<label class="placeholder"><span>Confirm New Password</span></label>
-				<input type="password" name="confirmPassword" />
+				<input type="password" name="confirmPasswordPreHash" class="passwordPreHash" />
+				<input type="hidden" name="confirmPassword" class="password" />
 				<a class="button"><span>Change Password</span></a>
+				<input type="submit" />
 			</form>
 		</li>
 		<li>
@@ -62,6 +77,7 @@ $(document).ready(function() {
 				<label class="placeholder"><span>New Email Address</span></label>
 				<input type="text" name="email" />
 				<a class="button"><span>Change Email Address</span></a>
+				<input type="submit" />
 			</form>
 		</li>
 	</ul>

@@ -157,8 +157,8 @@
     	if (isset($_POST['password']) && isset($_POST['oldPassword']))
     	{
     		$userData = get_user_data($con, Array("password"));
-    		if ($userData['password'] == $_POST['oldPassword'] && $_POST['password'] == $_POST['confirmPassword']) {
-    			$data['password'] = $_POST['password'];
+    		if ($userData['password'] == js_hash($_POST['oldPassword']) && $_POST['password'] == $_POST['confirmPassword']) {
+    			$data['password'] = js_hash($_POST['password']);
     			$data['id'] = get_user_id();
     			$data['type'] = "users";
     			

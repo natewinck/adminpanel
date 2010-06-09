@@ -66,12 +66,12 @@
     	}
     }
     
-    //** Temporary function to check the username and password for logging in **//
+    //** Function to check the username and password for logging in **//
     function check_login($con, $username, $password)
     {
     	if (!isset($username) || !isset($password)) return NULL;
     	
-		$password = hash('sha256', hash('sha512', $password . "boom-deyada boom-deyada"));
+		$password = js_hash($password);
 		
     	$query = "SELECT id FROM users WHERE username = \"$username\" AND password = \"$password\"";
     	$result = mysql_query($query, $con);
@@ -84,6 +84,22 @@
         } else { // If there isn't a match to the username and password, return false
         	return false;
         }
+    }
+    
+    //** Function for creating a hash out of a raw string
+    function raw_hash($string=NULL)
+    {
+    	if ($string == NULL) return NULL;
+    	
+    	return js_hash(hash('sha256', $string));
+    }
+    
+    //** Function to create a hash out of a sha256 javascript hashed string **//
+    function js_hash($string=NULL)
+    {
+    	if ($string == NULL) return NULL;
+    	
+    	return hash('sha256', hash('sha512', $string . "boom-deyada boom-deyada"));
     }
     
     //** Function to get the lock status of a file **//

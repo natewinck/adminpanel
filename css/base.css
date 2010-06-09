@@ -1224,7 +1224,7 @@ div.NWChooseTemplate .NWTemplatesWindow .NWTemplatesWindowBottom .NWTemplatesWin
 
 /* NWColorPickerWindow */
 .NWDraggable.NWColorPickerWindow {
-	position: absolute;
+	position: fixed;
 	right: 19%;
 }
 
