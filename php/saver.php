@@ -13,7 +13,10 @@
     //print_r($_POST);
     if(isset($_POST['data']) && isset($_POST['page']))
     {
-        $originalData = unserialize(urldecode(stripslashes($_POST['data'])));
+    	$postData = stripslashes(rawurldecode($_POST['data']));
+        $originalData = ($postData != "0" && $postData != "1") ? json_decode($postData, true) : NULL;
+        unset($postData);
+        
         $data = Array();
 		//unset($data['timestamp']);
 		if(isset($_POST['unlock']) || isset($_POST['lock'])) // Lock or Unlock a page
@@ -51,6 +54,8 @@
 			$data['type'] = "entries";
 			$data['display'] = 0;
 			$data['draft'] = 1;
+			$data['date_created'] = "CURRENT_TIMESTAMP";
+			$data['date_modified'] = "CURRENT_TIMESTAMP";
 		}
 		else if(isset($_POST['entry']) && isset($_POST['delete'])) // Delete an entry
 		{
@@ -104,6 +109,7 @@
 			$data['type'] = "entries";
 			$data['draft'] = 0;
 			$data['display'] = 1;
+			$data['date_modified'] = "CURRENT_TIMESTAMP";
 		}
 		else if(!isset($_POST['entry']) && isset($_POST['draft'])) // Draft a page
 		{
@@ -133,24 +139,24 @@
 		}
 		if (isset($originalData['name'])) $data['name'] = strip_tags($originalData['name']);
 		unset($originalData['name']);
-		if ($originalData) $data['data'] = base64_encode(serialize($originalData));
+		if (isset($originalData)) $data['data'] = base64_encode(json_encode($originalData));
         //print_r($data);
         $con = get_connection();
-       	if ($revertData) {
+       	if (isset($revertData) && $revertData) {
         	revert_data($con, $revertData);
-        } else if ($deleteData) {
+        } else if (isset($deleteData) && $deleteData) {
         	delete_data($con, $deleteData);
-        } else if ($publishSite) {
+        } else if (isset($publishSite) && $publishSite) {
         	foreach($drafts as &$draft) {
         		modify_data($con, $draft);
         		unset($draft['data']);
         	}
         	// Return the array to the javascript side
-        	print(serialize($drafts));
+        	print(json_encode($drafts));
         } else {
         	modify_data($con, $data);
         }
-        if ($draftData) modify_data($con, $draftData); // Change the db to say there is a draft
+        if (isset($draftData) && $draftData) modify_data($con, $draftData); // Change the db to say there is a draft
     } else { // Settings saver
     	$con = get_connection();
     	

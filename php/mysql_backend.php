@@ -50,7 +50,7 @@
 	//** Function to insert user data - Self explanitory **//
 	function insert_user_data($con, $username, $password, $email, $rank)
 	{
-		$query = "INSERT INTO adminpanel.users (username, password, email, rank) VALUES(\"$username\", \"$password\", \"$email\", \"$rank\");";
+		$query = "INSERT INTO users (username, password, email, rank) VALUES(\"$username\", \"$password\", \"$email\", \"$rank\");";
 		$result = mysql_query($query, $con) or die(mysql_error());
 		if($result) return "Success";
 		else return "Fail";
@@ -134,7 +134,7 @@
         	$file['locked'] = check_lock($file['unix_timestamp'], $file[$userIdField]);
             $files[] = $file; //Append them
         }
-        if (!$files[0]) return NULL;
+        if (!isset($files[0])) return NULL;
         return $files[0]['locked'];
     }
     
@@ -229,7 +229,10 @@
 				$nonDraftPages[] = $row;
 			}
 			// Add the template data to the entries data
+			$pages[0]["id"] = $pages[0]["page_id"];
+			unset($pages[0]["page_id"]);
 			$pages[0]["template"] = $nonDraftPages[0]["template"];
+			$pages[0]["list"] = $nonDraftPages[0]["list"];
 		}
 		
     	return $pages[0]; // Return it
@@ -260,6 +263,7 @@
         	if ($row['draft']) {
         		$draft = get_draft($con, $row['page'], $row['id']);
         		$row['name'] = $draft['name'];
+        		$row['data'] = $draft['data'];
         	}
             $entries[] = $row; //Append them
         }
@@ -316,11 +320,15 @@
     	$result = mysql_query($query, $con);
         $draft = Array();
         while ($row = mysql_fetch_assoc($result)) {
-        	$row['locked'] = check_lock($row['unix_timestamp'], $row['author']);
+        	$row['locked'] = check_lock($row['unix_timestamp'], $row['lockuid']);
         	$draft[] = $row;
         }
         
-        return $draft[0];
+        if (isset($draft[0])) {
+        	return $draft[0];
+        } else {
+        	return NULL;
+        }
     }
     
     //** Function to get all drafts **//
@@ -330,7 +338,7 @@
         $result = mysql_query($query, $con);
         $drafts = Array();
         while ($row = mysql_fetch_assoc($result)) {
-        	$row['locked'] = check_lock($row['unix_timestamp'], $row['author']);
+        	$row['locked'] = check_lock($row['unix_timestamp'], $row['lockuid']);
         	$drafts[] = $row;
         }
         
@@ -455,9 +463,10 @@
     	
     	
     	// Sort the whole array by pageId, entryId, and then by if it's a draft, putting the draft version in front of the non-draft version
+    	if (!isset($files[0])) return Array();
     	foreach ($files as $key => $row) {
     		$arrayPageId[$key] = $row['pageId'];
-    		$arrayEntryId[$key] = $row['entryId'];
+    		$arrayEntryId[$key] = (isset($row['entryId'])) ? $row['entryId'] : NULL;
     		$arrayDraft[$key] = ($row['type'] == "drafts") ? 0 : 1;
     	}
     	array_multisort($arrayPageId, SORT_ASC, $arrayEntryId, SORT_ASC, $arrayDraft, SORT_ASC, $files);
@@ -502,25 +511,28 @@
         unset($data['type']);
         
         // This checks to see if the page has been locked since the page was opened; it's almost redundant and can probably be deleted
-        if ($table == "entries") { // If it's an entry
-        	$pageId = $data['page'];
-        	$entryId = $data['id'];
-        } else if ($table == "pages") { // If it's a page
-        	$pageId = $data['id'];
-        	$entryId = NULL;
-        } else if ($table == "drafts") { // If it's a draft
-        	$pageId = $data['page_id'];
-        	$entryId = $data['entry_id'];
-        } else {
-        	$passLockTest = true;
-        }
+        $passLockTest = false;
+        if ($table != "entries" || ($table == "entries" && isset($data['id'])) ) {
+			if ($table == "entries") { // If it's an entry
+				$pageId = $data['page'];
+				$entryId = $data['id'];
+			} else if ($table == "pages") { // If it's a page
+				$pageId = $data['id'];
+				$entryId = NULL;
+			} else if ($table == "drafts") { // If it's a draft
+				$pageId = $data['page_id'];
+				$entryId = $data['entry_id'];
+			} else {
+				$passLockTest = true;
+			}
         
-		if ($passLockTest && get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
-        if ($table == "drafts") { // Check the original page or entry
-        	$lockTable = ($data['entry_id'] == NULL) ? "pages" : "entries";
-        	if (get_lock($con, $lockTable, $pageId, $entryId)) return false; // It's locked so don't modify
+			if (!$passLockTest && get_lock($con, $table, $pageId, $entryId)) return false; // It's locked so don't modify
+			if ($table == "drafts") { // Check the original page or entry
+				$lockTable = ($data['entry_id'] == NULL) ? "pages" : "entries";
+				if (get_lock($con, $lockTable, $pageId, $entryId)) return false; // It's locked so don't modify
+			}
         }
-        
+        $isUpdateDraft = false;
         if ($table == "drafts" && (!isset($data['entry_id']) || (isset($data['entry_id']) && $data['entry_id'] == -1)) && draft_exists($con, $data['page_id'])) $isUpdateDraft = true;
         
         if (!$isUpdateDraft) {
@@ -544,7 +556,7 @@
 				}
 				else
 				{
-					if($field != "timestamp") {
+					if($field != "timestamp" && $value != "CURRENT_TIMESTAMP") {
 						$values = $values . "\"" . $value . "\",";
 					} else {
 						$values = $values . "CURRENT_TIMESTAMP,";
@@ -610,6 +622,8 @@
         	unset($data['page']);
         	$data['entry_id'] = $autoIncrementId;
         	unset($data['display']);
+        	unset($data['date_created']);
+        	unset($data['date_modified']);
         	modify_data($con, $data);
         } else if ($table != "drafts" && isset($data['draft']) && $data['draft'] == 0) {
         	// If you are publishing, delete the draft of the page or entry
@@ -664,7 +678,7 @@
         }
         $where = substr_replace($where, "", -5);
         $query = $query . $where . ";";
-        print($query);
+        //print($query);
 		//echo $query . "\n";
         $result = mysql_query($query, $con);
 		print(mysql_error());
@@ -707,5 +721,12 @@
 		
 		modify_data($con, $dataToModify);
     }
+    
+    //** Function to unserialize a string. It checks to see if the lengths are correct **//
+    function __unserialize($sObject) {
+		$__ret =preg_replace('!s:(\d+):"(.*?)";!e', "'s:'.strlen('$2').':\"$2\";'", $sObject );
+		echo strlen($__ret) . "\n";
+		return unserialize($__ret);
+	}
     
 ?>

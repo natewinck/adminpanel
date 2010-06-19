@@ -54,9 +54,10 @@ h2 {
 
 <body>
 <h3>The movies entry template</h3>
-<span class="NWEditable NWFieldnameNWZ NWEditablePageInfo NWPageInfoNameNWpageInfoZ" <?php if ($data["nameStyle"]) echo "style=\"" . $data["nameStyle"] . "\""; ?>><?php if($data["name"]) echo $data["name"]; ?></span>
-<div class="newspaper NWEditable NWFieldnewspaperNWZ" <?php if ($data["newspaperStyle"]) echo "style=\"" . $data["newspaperStyle"] . "\""; ?>><?php if ($data["newspaper"]) echo $data["newspaper"]; ?></div>
-<h2 class="NWEditable NWFieldheaderNWZ" <?php if ($data["headerStyle"]) echo "style=\"" . $data["headerStyle"] . "\""; ?>><?php if ($data["header"]) echo $data["header"]; ?></h2>
+<span class="NWEditable NWfield NWFieldnameNWZ NWEditablePageInfo NWPageInfoNameNWpageInfoZ" <?php if ($data["nameStyle"]) echo "style=\"" . $data["nameStyle"] . "\""; ?>><?php if($data["name"]) echo $data["name"]; ?></span>
+<div class="newspaper NWEditable NWfield NWFieldnewspaperNWZ" <?php if ($data["newspaperStyle"]) echo "style=\"" . $data["newspaperStyle"] . "\""; ?>><?php if ($data["newspaper"]) echo $data["newspaper"]; ?></div>
+<h2 class="NWEditable NWfield NWFieldheaderNWZ" <?php if ($data["headerStyle"]) echo "style=\"" . $data["headerStyle"] . "\""; ?>><?php if ($data["header"]) echo $data["header"]; ?></h2>
+<div class="NWfield NWFieldcheckboxTestNWZ NWEditablePageInfo NWPageInfoStaff_PickNWpageInfoZ NWCheckboxPageInfoTrueThe_Checkbox_is_set_to_trueNWcheckboxPageInfoTrueZ NWTypePageInfocheckboxNWtypePageInfoZ NWDatacheckboxNWdataZ"><?php if (isset($data['checkboxTest']) && $data['checkboxTest']) { ?>The Checkbox is set to true<?php } ?></div>
 <h2>A collection of imgs</h2>
 <div>
 	<img <?php if ($data["img1"]) echo "src=\"" . $data["img1"]["src"] . "\""; ?> class="NWEditableData NWDataimageNWdataZ NWFieldimg1NWZ NWEditableAttrsrc_align_widthNWAttrZ" />

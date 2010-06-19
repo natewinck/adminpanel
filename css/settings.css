@@ -209,6 +209,15 @@ form input:focus[type="text"], form input:focus[type="password"] {
 	outline: none;
 }
 
+form input[type="submit"] {
+	height: 0px;
+	width: 0px;
+	padding: 0px;
+	margin: 0px;
+	opacity: 0;
+	border: none;
+}
+
 a.button {
 	height: 18px;
 	background-color: transparent;

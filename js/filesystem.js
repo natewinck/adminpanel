@@ -35,7 +35,7 @@ NW.filesystem = {
 					//&& !prevSelected.children(".NWFile")[0]
 					//&& prevSelected.hasClass("NWUnsaved")
 				) {
-					NW.io.save(prevSelected[0], false);
+					NW.io.save(prevSelected[0], false, false);
 					NW.io.unlock(prevSelected[0]);
 				}
 			}
