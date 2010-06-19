@@ -1,0 +1,244 @@
+@charset "UTF-8";
+
+@font-face {
+	font-family: "LucidaGrande";
+	src: url('LucidaGrande.dfont');
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
+	background-color: #3d3d4c;
+	background-image: url(../images/LoginPage/AdminPanel_Symbol.png);
+	background-repeat: no-repeat;
+	background-position: -200px center;
+	font-family: "Lucida Grande", "LucidaGrande", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+}
+
+input[type="checkbox"] {
+	height: 14px;
+	width: 14px;
+	background-image: url("../images/LoginPage/checks_large.png");
+	background-position: 0px 0px;
+	border: none;
+	-webkit-appearance: none;
+}
+
+input:active[type="checkbox"] {
+	background-position: 0px -14px;
+}
+
+input:focus[type="checkbox"] {
+	background-position: 0px -28px;
+	outline: none;
+}
+
+input:checked[type="checkbox"] {
+	background-position: 0px -42px;
+}
+
+input:checked:active[type="checkbox"] {
+	background-position: 0px -56px;
+}
+
+input:checked:focus[type="checkbox"] {
+	background-position: 0px -70px;
+}
+
+#gradientBottom {
+	height: 100%;
+	width: 100%;
+	position: fixed;
+	bottom: 0px;
+	background-image: url(../images/LoginPage/login_gradient.png);
+	background-repeat: repeat-x;
+	background-position: 0px bottom;
+	z-index: 0;
+}
+
+#adminPanel {
+	height: 30px;
+	width: 266px;
+	margin: 0px;
+	padding: 0px;
+	position: fixed;
+	bottom: 5px;
+	right: 5px;
+	background-image: url(../images/LoginPage/AdminPanel.png);
+	background-repeat: no-repeat;
+}
+
+#confirmation {
+	height: 40px;
+	width: auto;
+	display: block;
+	padding: 0px 0px 0px 0px;
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	left: 0px;
+	text-align: center;
+	font-size: 16px;
+	line-height: 40px;
+	color: #ffffff;
+	border-bottom: 1px solid #ffffff;
+}
+
+#confirmation.success {
+	background-color: rgba(52,167,48,0.81);
+}
+
+#confirmation.fail {
+	background-color: rgba(247,24,25,0.81);
+}
+
+#return {
+	height: 20px;
+	width: auto;
+	padding: 5px 0px 5px 0px;
+	position: fixed;
+	right: 0px;
+	bottom: 50px;
+	left: 400px;
+	overflow: hidden;
+	background-color: rgba(255, 255, 255, 0.6);
+	border-bottom: 1px solid rgb(180, 180, 180);
+	border-left: 1px solid rgb(180, 180, 180);
+	color: #ffffff;
+	text-align: center;
+	white-space: nowrap;
+	font-size: 18px;
+	text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.65);
+	text-decoration: none;
+	cursor: pointer;
+	z-index: 9998;
+}
+
+#return:hover {
+	background-color: rgba(255, 255, 255, 0.7);
+	text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.65);
+}
+
+#settingsBox {
+	height: auto;
+	width: auto;
+	min-width: 200px;
+	margin: 0px 0px 31px 0px;
+	overflow: auto;
+	position: fixed;
+	top: 50px;
+	right: 0px;
+	bottom: 50px;
+	left: 400px;
+	background-color: rgba(0, 0, 0, 0.7);
+	border-top: 1px solid rgb(180, 180, 180);
+	border-left: 1px solid rgb(180, 180, 180);
+}
+
+#settingsBox #settingsList {
+	height: auto;
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
+	color: white;
+	display: block;
+}
+
+#settingsBox #settingsList li {
+	padding: 20px 0px 40px 20px;
+	margin: 10px 0px 10px 20px;
+	display: block;
+	border-bottom: 1px solid rgba(180, 180, 180, 0.7);
+}
+
+#settingsBox #settingsList li:last-child {
+	border: none;
+}
+
+#loginBox #loginFormBox #loginForm {
+	height: 150px;
+	width: auto;
+}
+
+form h2 {
+	margin-top: 0px;
+}
+
+form .placeholder {
+	cursor: text;
+}
+
+form .placeholder span {
+	position: absolute;
+	line-height: 17px;
+	font-size: 11px;
+	padding: 1px 0px 0px 6px;
+	color: #999999;
+	opacity: 1;
+}
+
+form .placeholder span.focus {
+	/*color: #dddddd;*/
+}
+
+form .placeholder span.focus.hidden {
+	opacity: 0;
+}
+
+form input[type="text"], form input[type="password"] {
+	height: 18px;
+	width: 150px;
+	line-height: 18px;
+	padding: 0px 4px 0px 4px;
+	display: block;
+	background-color: rgba(255, 255, 255, 0.91);
+	border: solid 1px #333333;
+	font-size: 11px;
+	color: #555555;
+	margin-bottom: 5px;
+}
+
+#loginBox #loginFormBox #loginForm input:first-child {
+	
+}
+
+form input:focus[type="text"], form input:focus[type="password"] {
+	outline: none;
+}
+
+form input[type="submit"] {
+	height: 0px;
+	width: 0px;
+	padding: 0px;
+	margin: 0px;
+	opacity: 0;
+	border: none;
+}
+
+a.button {
+	height: 18px;
+	background-color: transparent;
+	background-image: url(../images/LoginPage/button.png);
+	background-repeat: no-repeat;
+	background-position: -167px 0px;
+	white-space: nowrap;
+	line-height: 18px;
+	text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.65);
+	margin: 0px;
+	padding: 0px 0px 0px 8px;
+	border: none;
+	cursor: pointer;
+	float: left;
+}
+
+a.button > span {
+	height: 18px;
+	display: block;
+	padding: 0px 8px 0px 0px;
+	background-image: url(../images/LoginPage/button.png);
+	background-repeat: no-repeat;
+	background-position: right -18px;
+}
