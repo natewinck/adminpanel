@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Admin Panel | Login</title>
+<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8rc3.custom.min.js"></script>
+<script type="text/javascript" src="js/utils.js"></script>
+<script type="text/javascript" src="js/inputlabel.js"></script>
+
+<link href="css/login.css" rel="stylesheet" type="text/css" />
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$(".placeholder").click(onInputFocus);
+	$("input:not(#loginButton)").focus(onInputFocus);
+	$("#usernameInput").focus();
+	$("#loginForm").submit(function() {
+		$("#password").val(SHA256($("#passwordPreHash").val()));
+		$("#passwordPreHash").val("");
+	});
+});
+</script>
+</head>
+
+<body>
+<div id="gradientBottom"></div>
+<div id="adminPanel"></div>
+<div id="loginBox">
+	<div id="loginFormBox">
+    	<form id="loginForm" action="php/login.php" method="post" autocomplete="off">
+    		<!-- Begin if this is the initial log in --><!--
+    		<h2>Initial Login</h2>
+    		<h4>The information that you enter now will be stored. Please remember it.</h4>
+    		--><!-- End if this is the initial log in -->
+    		
+    		<label id="usernameLabel" class="placeholder"><span>Username</span></label>
+        	<input type="text" id="usernameInput" spellcheck="false" name="username" />
+        	<label id="passwordLabel" class="placeholder"><span>Password</span></label>
+            <input type="password" id="passwordPreHash" name="passwordPreHash" />
+			<input type="hidden" id="password" name="password" value="password"/>
+            
+            <!-- Begin if this is the initial log in --><!--
+            <label id="confirmPasswordLabel" class="placeholder"><span>Confirm Password</span></label>
+            <input type="password" id="confirmPasswordInput" />
+            <label id="emailLabel" class="placeholder"><span>Email Address</span></label>
+            <input type="text" id="emailInput" />
+            --><!-- End if this is the initial log in -->
+            
+            <input type="submit" id="loginButton" value="" />
+        </form>
+    </div>
+</div>
+</body>
+</html>

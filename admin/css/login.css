@@ -1,0 +1,128 @@
+@charset "UTF-8";
+
+@font-face {
+	font-family: "LucidaGrande";
+	src: url('LucidaGrande.dfont');
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
+	background-color: #3d3d4c;
+	background-image: url(../images/LoginPage/AdminPanel_Symbol.png);
+	background-repeat: no-repeat;
+	background-position: -200px center;
+	font-family: "Lucida Grande", "LucidaGrande", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+}
+
+#gradientBottom {
+	height: 100%;
+	width: 100%;
+	position: fixed;
+	bottom: 0px;
+	background-image: url(../images/LoginPage/login_gradient.png);
+	background-repeat: repeat-x;
+	background-position: 0px bottom;
+	z-index: 0;
+}
+
+#adminPanel {
+	height: 30px;
+	width: 266px;
+	margin: 0px;
+	padding: 0px;
+	position: fixed;
+	bottom: 5px;
+	right: 5px;
+	background-image: url(../images/LoginPage/AdminPanel.png);
+	background-repeat: no-repeat;
+}
+
+#loginBox {
+	height: auto;
+	width: 100%;
+	min-width: 750px;
+	margin: 50px 0px 0px 0px;
+	position: absolute;
+}
+
+#loginBox #loginFormBox {
+	height: auto;
+	width: auto;
+	margin: 0px 80px 0px 0px;
+	float: right;
+}
+
+#loginBox #loginFormBox #loginForm {
+	height: 150px;
+	width: auto;
+}
+
+#loginBox #loginFormBox #loginForm .placeholder {
+	cursor: text;
+}
+
+#loginBox #loginFormBox #loginForm h2 {
+	width: 260px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	color: #ffffff;
+}
+#loginBox #loginFormBox #loginForm h4 {
+	width: 260px;
+	margin-top: 0px;
+	color: #dddddd;
+}
+
+#loginBox #loginFormBox #loginForm .placeholder span {
+	position: absolute;
+	line-height: 17px;
+	font-size: 11px;
+	padding: 1px 0px 0px 6px;
+	color: #999999;
+	opacity: 1;
+}
+
+#loginBox #loginFormBox #loginForm .placeholder span.focus {
+	color: #dddddd;
+}
+
+#loginBox #loginFormBox #loginForm .placeholder span.focus.hidden {
+	opacity: 0;
+}
+
+#loginBox #loginFormBox #loginForm input {
+	height: 18px;
+	width: 250px;
+	line-height: 18px;
+	padding: 0px 4px 0px 4px;
+	display: block;
+	background-color: rgba(255, 255, 255, 0.91);
+	border: solid 1px #333333;
+	font-size: 11px;
+	color: #555555;
+	margin-bottom: 5px;
+}
+
+#loginBox #loginFormBox #loginForm input:first-child {
+	
+}
+
+#loginBox #loginFormBox #loginForm input:focus {
+	outline: none;
+}
+
+#loginBox #loginFormBox #loginForm #loginButton {
+	height: 18px;
+	width: 60px;
+	background-color: transparent;
+	background-image: url(../images/LoginPage/login_button.png);
+	background-repeat: no-repeat;
+	margin: 0px;
+	border: none;
+	cursor: pointer;
+	float: right;
+}
