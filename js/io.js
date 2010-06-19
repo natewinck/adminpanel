@@ -110,6 +110,7 @@ NW.io = {
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/malloc/news/");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary Sutherland/Welcome.html");
 		//NW.io.open("http://76.177.45.11/~nathanielwinckler/marysutherland/Mary%20Sutherland/Updates/77A1D142-8FD9-489B-BC1F-7048A0A3EB2D.html");
+		/*
 		var lastOpenFile = {
 			pageId: "1",
 			entryId: "1",
@@ -136,6 +137,7 @@ NW.io = {
 			var openedPage = document.getElementById(NW.filesystem.createId(lastOpenFile.pageId));
 			if (openedPage) NW.filesystem.select(null, openedPage);
 		}
+		*/
 	},
 	open: function(pageId, entryId) {
 		if (pageId == null) return false;
@@ -253,10 +255,10 @@ NW.io = {
             //var dstring = escape(NW.io.serialize_data(data));
             
             // Create the data
-            var data = [];
-            data["name"] = "Untitled Entry";
+            var data = {};
+            data.name = "Untitled Entry";
             // Serialize it for php
-            var dstring = escape(NW.io.serialize_data(data));
+            var dstring = encodeURIComponent(JSON.stringify(data));
             
             var postData = "data=" + dstring + "&page=" + pageId + "&add=true";
             ajax.open("POST", "./php/saver.php", false);
@@ -492,7 +494,7 @@ NW.io = {
             // Get the data
             var data = NW.editor.functions.getFieldsDataArray();
             // Serialize it for php
-            var dstring = escape(NW.io.serialize_data(data));
+            var dstring = encodeURIComponent(JSON.stringify(data));
             //console.log(file);
             //console.log("./php/saver.php?data=" + dstring + "&id=" + file.id);
 			
@@ -619,7 +621,7 @@ NW.io = {
             // Get the data
             var data = NW.editor.functions.getFieldsDataArray();
             // Serialize it for php
-            var dstring = escape(NW.io.serialize_data(data));
+            var dstring = encodeURIComponent(JSON.stringify(data));
             
             //console.log("./php/saver.php?data=" + dstring + "&id=" + id);
             // DAVID: I believe there is a mistake here: you have the cat=drafts. Shouldn't it be cat=public or whatever you're calling it?
@@ -910,6 +912,7 @@ NW.io = {
                 break;
             case "string":
                 mixed_value = this.utf8_encode(mixed_value);
+                mixed_value = mixed_value.replace(/\"/g, "\\\""); // Mine
                 val = "s:" + encodeURIComponent(mixed_value).replace(/%../g, 'x').length + ":\"" + mixed_value + "\"";
                 break;
             case "array":

@@ -17,17 +17,17 @@ NW.keystrokes = {
 		//NW.listener.bindKey("CMD", Key.Z, NW.history.undo, "Undo"),
 		//NW.listener.bindKey("CMD SHIFT", Key.Z, NW.history.redo, "Redo"),
 		
-		NW.listener.bindKey("CMD", Key.S, NW.io.save, "Save open file"),
+		NW.listener.bindKey("CMD", Key.S, NW.io.save, "Save open file", false),
 		
-		NW.listener.bindKey("CMD", Key.E, NW.editor.functions.toggleEditPanel, "Close Edit Panel"),
+		NW.listener.bindKey("CMD", Key.E, NW.editor.functions.toggleEditPanel, "Close Edit Panel", false),
 		NW.listener.bindKey("CMD", Key.W, NW.editor.functions.closeWindow, "Close Window"),
 		//NW.listener.bindKey("CMD", Key.O, NW.io.openDialog, "Open File"),
 		
-		NW.listener.bindKey("CMD SHIFT", Key.P, NW.editor.functions.confirmPublishPage, "Publish File"),
-		NW.listener.bindKey("CMD ALT SHIFT", Key.P, NW.editor.functions.confirmPublishSite, "Publish Site"),
+		NW.listener.bindKey("CMD SHIFT", Key.P, NW.editor.functions.confirmPublishPage, "Publish File", false),
+		NW.listener.bindKey("CMD ALT SHIFT", Key.P, NW.editor.functions.confirmPublishSite, "Publish Site", false),
 		
-		NW.listener.bindKey("CMD", Key.B, function() { NW.editor.functions.fireCommand("bold", false, null); }, "Bold"),
-		NW.listener.bindKey("CMD", Key.L, NW.editor.functions.createLink, "Create Link"),
+		NW.listener.bindKey("CMD", Key.B, function() { NW.editor.functions.fireCommand("bold", false, null); }, "Bold", false),
+		NW.listener.bindKey("CMD", Key.L, NW.editor.functions.createLink, "Create Link", false),
 		
 		// Assign a shortcut for all functions that use Enter
 		NW.listener.bindKey("", Key.ENTER, NW.onenterpress, "Enter Press"),
@@ -36,17 +36,17 @@ NW.keystrokes = {
 		NW.listener.bindKey("", Key.ESCAPE, NW.onescapepress, "Escape Press"),
 		
 		// Assign a shortcut for all functions that use Delete or Backspace
-		NW.listener.bindKey("", Key.DELETE, NW.ondeletedown, "Delete Press", null, "page", true),
-		NW.listener.bindKey("", Key.BACKSPACE, NW.ondeletedown, "Backspace Press", null, "page", true),
+		NW.listener.bindKey("", Key.DELETE, NW.ondeletedown, "Delete Press", true, null, "page"),
+		NW.listener.bindKey("", Key.BACKSPACE, NW.ondeletedown, "Backspace Press", true, null, "page"),
 		
 		NW.listener.bindKey("ALT", "", NW.onoptiondown, "Option Press", "keydown"),
 		NW.listener.bindKey("ALT", "", NW.onoptionup, "Option Press", "keyup"),
 		
 		// Templates Window Keystrokes
-		NW.listener.bindKey("", Key.LEFT_ARROW, NW.templates.moveSelectorLeft, "Move Selector Left", null, null, true),
-		NW.listener.bindKey("", Key.RIGHT_ARROW, NW.templates.moveSelectorRight, "Move Selector Right", null, null, true),
-		NW.listener.bindKey("", Key.UP_ARROW, NW.templates.moveSelectorUp, "Move Selector Up", null, null, true),
-		NW.listener.bindKey("", Key.DOWN_ARROW, NW.templates.moveSelectorDown, "Move Selector Down", null, null, true)
+		NW.listener.bindKey("", Key.LEFT_ARROW, NW.templates.moveSelectorLeft, "Move Selector Left", true),
+		NW.listener.bindKey("", Key.RIGHT_ARROW, NW.templates.moveSelectorRight, "Move Selector Right", true),
+		NW.listener.bindKey("", Key.UP_ARROW, NW.templates.moveSelectorUp, "Move Selector Up", true),
+		NW.listener.bindKey("", Key.DOWN_ARROW, NW.templates.moveSelectorDown, "Move Selector Down", true)
 	],
 
 	checkKeystroke: function(modifiers, keyCode, click, e) {

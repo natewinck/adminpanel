@@ -8,6 +8,9 @@
 	
     require "mysql_backend.php";
     
+    $templatePath = "templates/";
+    $edit = true;
+    
     //print_r($_GET);
     if(isset($_GET['pageId']) && is_numeric($_GET['pageId']) && isset($_GET['entryId'])) //Get a single Entry
     {
@@ -44,7 +47,7 @@
         $data = get_entry($con, $_GET['pageId'], 'id', $_GET['entryId']);
 		if($data['data'] != NULL)
 		{
-			$data_col = unserialize(base64_decode($data['data'])); //Data array in the DB is serialized and B64d, so we need to undo it.
+			$data_col = json_decode(base64_decode($data['data']), true); //Data array in the DB is serialized and B64d, so we need to undo it.
 			unset($data['data']); //Remove the B64 version
 			$data = array_merge($data, $data_col); //Merge the new arrays
 		}
@@ -56,7 +59,7 @@
 		unset($data['draft']);
 		unset($data['page']);
 		unset($data['locked']);
-        include("templates/" . $data["template"] . "_entry.php");
+        include($templatePath . $data["template"] . "_entry.php");
         unset($data['template']);
     }
     else if(isset($_GET['pageId']) && isset($_GET['xml'])) //Get list of entries in XML form
@@ -81,7 +84,7 @@
        		$row['name'] = str_replace("&nbsp;", " ", $row['name']);
 			/*if($row['data'] != NULL)
 			{
-				$data_col = unserialize(base64_decode($row['data'])); //Data array in the DB is serialized and B64d, so we need to undo it.
+				$data_col = json_decode(base64_decode($row['data']), true); //Data array in the DB is serialized and B64d, so we need to undo it.
 				unset($row['data']); //Remove the B64 version
 				$row = array_merge($row, $data_col); //Merge the new arrays
 			}
@@ -149,7 +152,7 @@
         $data = get_page($con, $_GET['pageId']);
         if($data['data'] != NULL)
 		{
-			$data_col = unserialize(base64_decode($data['data'])); //Data array in the DB is serialized and B64d, so we need to undo it.
+			$data_col = json_decode(base64_decode($data['data']), true); //Data array in the DB is serialized and B64d, so we need to undo it.
 			unset($data['data']); //Remove the B64 version
 			$data = array_merge($data, $data_col); //Merge the new arrays
 		}
@@ -157,11 +160,60 @@
 		{
 			unset($data['data']);
 		}
+		// Now get the entries for this page if it has entries
+		if ($data['list']) {
+			/*$sort = (isset($get['sort'])) ? $get['sort'] : "date_createddesc";
+			$pagedata['entriesSort'] = $sort;
+			$descSortLength = strlen($sort) - 1 - 4;
+			$ascSortLength = strlen($sort) - 1 - 3;
+			if ($descSortLength > 0 && stristr(substr($sort, $descSortLength), "desc")) {
+				$sort = substr_replace($sort, "", $descSortLength + 1);
+				$sortDirection = "DESC";
+			} else if ($ascSortLength > 0 && stristr(substr($sort, $ascSortLength), "asc")) {
+				$sort = substr_replace($sort, "", $ascSortLength + 1);
+				$sortDirection = "ASC";
+			} else {
+				$sortDirection = "ASC";
+			}
+			$sql = 'SELECT * FROM entries WHERE page=\'' . $get['p'] . '\' AND display=\'1\' ORDER BY ' . $sort . ' ' . $sortDirection . ', name ASC';*/
+			
+			//$query = "SELECT *, UNIX_TIMESTAMP(timestamp) AS unix_timestamp FROM entries WHERE page=\"" . $pages[0]['id'] . "\" ORDER BY date_modified DESC";
+			$entries = get_entries($con, $data['id']);
+			$limit = 3;
+			$page = 1;
+			$data['entriesNum'] = count($entries);
+			$data['entriesPages'] = ceil($data['entriesNum']/$limit);
+			$data['entriesStartNum'] = ($page - 1) * $limit;
+			$data['entriesLimit'] = $limit;
+			if($data['entriesStartNum'] >= $data['entriesNum']) {
+				$limit = $data['entriesPages'];
+				$data['entriesStartNum'] = ($page - 1) * $limit;
+			}
+			$data['entriesPage'] = $page;
+			
+			// Set the limit based on the page and limit amount
+			//$sql .= ' LIMIT ' . $pagedata['entriesStartNum'] . ',' . $get['elimit'];
+			
+			//$result = mysql_query($sql, $con);
+			
+			foreach($entries as &$entry) {
+				if ($entry['data'] != NULL) {
+					$entry_col = json_decode(base64_decode($entry['data']), true); //Data array in the DB is serialized and B64d, so we need to undo it.
+					unset($entry['data']); //Remove the B64 version
+					$entry = array_merge($entry, $entry_col); //Merge the new arrays
+				} else {
+					unset($entries['data']);
+				}
+			}
+			$data['entries'] = $entries;
+			unset($entry);
+			unset($entries);
+		}
 		unset($data['rank']);
 		unset($data['draft']);
 		unset($data['page']);
 		unset($data['locked']);
-        include("templates/" . $data["template"] . "_page.php");
+        include($templatePath . $data["template"] . "_page.php");
         unset($data['template']);
     }
     else if(isset($_GET['xml'])) //Get a list of pages in XML form

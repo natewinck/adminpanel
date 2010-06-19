@@ -112,7 +112,7 @@ NW = {
 					$("#NWSidebarRightCategoriesContainer > div:nth-child(" + (categoryNum + 1) + ")").addClass("NWSelected").css("display", "block");
 				}
 			},
-			addPageInfoRow: function(title, obj) {
+			addPageInfoRow: function(title, type, obj) {
 				if ((title && title == "") || !obj) return false;
 				var pageInfoTable = $("#NWPageInfo table")[0];
 				// First create the row
@@ -128,15 +128,52 @@ NW = {
 				var inputCell = row.insertCell(1);
 				inputCell.className = "NWPageInfoInput";
 				var inputElement = document.createElement("input");
-				inputElement.type = "text";
-				inputElement.value = obj.textContent;
+				inputElement.type = type;
 				inputCell.appendChild(inputElement);
 				
-				// Add listeners
-				inputElement.addEventListener("keydown", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
-				// For some reason the keydown event is one step behind: it doesn't show the current value of the input
-				inputElement.addEventListener("keyup", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
-				inputElement.addEventListener("dragend", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
+				switch (type) {
+					case "checkbox":
+						var className = obj.className;
+						var startTruePos = (className.indexOf("NWCheckboxPageInfoTrue") != -1)
+												? className.indexOf("NWCheckboxPageInfoTrue") + 22
+												: 0;
+						var endTruePos = (className.indexOf("NWcheckboxPageInfoTrueZ") != -1)
+												? className.indexOf("NWcheckboxPageInfoTrueZ")
+												: 0;
+						var trueText = className.substring(startTruePos, endTruePos);
+						trueText = trueText.replace(/_/g, " ");
+						
+						var startFalsePos = (className.indexOf("NWCheckboxPageInfoFalse") != -1)
+												? className.indexOf("NWCheckboxPageInfoFalse") + 23
+												: 0;
+						var endFalsePos = (className.indexOf("NWcheckboxPageInfoFalseZ") != -1)
+												? className.indexOf("NWcheckboxPageInfoFalseZ")
+												: 0;
+						var falseText = className.substring(startFalsePos, endFalsePos);
+						falseText = falseText.replace(/_/g, " ");
+						
+						// Initialize its checked state
+						inputElement.checked = (obj.textContent == trueText) ? true : false;
+						
+						inputElement.addEventListener("change", function() {
+							if (this.checked) {
+								NW.editor.functions.updatePageInfo(obj, trueText);
+							} else {
+								NW.editor.functions.updatePageInfo(obj, falseText);
+							}
+						}, false);
+						break;
+					default: // Type == text
+						// Initialize its value
+						inputElement.value = obj.textContent;
+						
+						// Add listeners
+						inputElement.addEventListener("keydown", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
+						// For some reason the keydown event is one step behind: it doesn't show the current value of the input
+						inputElement.addEventListener("keyup", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
+						inputElement.addEventListener("dragend", function() {NW.editor.functions.updatePageInfo(obj, inputElement.value);}, false);
+						break;
+				};
 				
 				return inputElement;
 			},
@@ -339,10 +376,10 @@ NW = {
 				//});
 			},
 			getFieldsDataArray: function() {
-				var fieldsArray = [];
+				var fieldsArray = {};
 				var fieldClassName, startFieldPos, endFieldPos, fieldName, data;
 				var startDataTypePos, endDataTypePos, dataType;
-				$(NWEditPage.document.body).find(".NWEditable, .NWEditableData").each(function() {
+				$(NWEditPage.document.body).find(".NWfield, .NWEditableData").each(function() {
 					data = null;
 					
 					fieldClassName = $(this)[0].className;
@@ -352,12 +389,28 @@ NW = {
 					endDataTypePos = fieldClassName.indexOf("NWdataZ");
 					dataType = fieldClassName.substring(startDataTypePos, endDataTypePos);
 					switch (dataType) {
+						case "checkbox":
+							var startTruePos = (fieldClassName.indexOf("NWCheckboxPageInfoTrue") != -1)
+													? fieldClassName.indexOf("NWCheckboxPageInfoTrue") + 22
+													: 0;
+							var endTruePos = (fieldClassName.indexOf("NWcheckboxPageInfoTrueZ") != -1)
+													? fieldClassName.indexOf("NWcheckboxPageInfoTrueZ")
+													: 0;
+							var trueText = fieldClassName.substring(startTruePos, endTruePos);
+							trueText = trueText.replace(/_/g, " ");
+							if (this.textContent == trueText) {
+								data = true;
+							} else {
+								data = false;
+							}
+							break;
 						case "image":
+							if ($(this).attr("src") == "") break;
 							var startAttrData = fieldClassName.indexOf("NWEditableAttr") + 14;
 							var endAttrData = fieldClassName.indexOf("NWAttrZ");
 							var attrData = fieldClassName.substring(startAttrData, endAttrData).split("_");
 							var attrVal;
-							data = [];
+							data = {};
 							for (var i = 0; i < attrData.length; i++) {
 								attrVal = $(this).attr(attrData[i]);
 								data[attrData[i]] = attrVal;
@@ -1054,7 +1107,11 @@ NW = {
 					if (NW.selectedImage.getAttribute("src") != url) {
 						NW.selectedImage.onload = NW.editor.functions.resetImageSize;
 						NW.selectedImage.setAttribute("src", url);
-						//console.log(url);
+						
+						// Check for an image wrapper
+						if ($(NW.selectedImage).parent(".NWImageLink")[0]) {
+							$(NW.selectedImage).parent(".NWImageLink").attr("href", url);
+						}
 						
 						NW.filesystem.changeToDraft();
 					}
@@ -1451,13 +1508,28 @@ NW = {
 					var startTitlePos = className.indexOf("NWPageInfo") + 10;
 					var endTitlePos = className.indexOf("NWpageInfoZ");
 					var title = className.substring(startTitlePos, endTitlePos);
-					title = title.replace("_", " ");
+					title = title.replace(/_/g, " ");
 					
-					var inputElement = NW.editor.functions.addPageInfoRow(title, this);
+					var startTypePos = (className.indexOf("NWTypePageInfo") != -1)
+											? className.indexOf("NWTypePageInfo") + 14
+											: 0;
+					var endTypePos = (className.indexOf("NWtypePageInfoZ") != -1)
+											? className.indexOf("NWtypePageInfoZ")
+											: 0;
+					var type = className.substring(startTypePos, endTypePos);
+					if (!type || type == "") type = "text";
+					
+					var inputElement = NW.editor.functions.addPageInfoRow(title, type, this);
 					if (inputElement) {
-						this.addEventListener("keydown", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
-						this.addEventListener("keyup", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
-						this.addEventListener("dragend", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
+						switch (type) {
+							case "checkbox":
+								break;
+							default: // Type == text
+								this.addEventListener("keydown", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
+								this.addEventListener("keyup", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
+								this.addEventListener("dragend", function() {NW.editor.functions.updatePageInfoInput(inputElement, this.textContent);}, false);
+								break;
+						}
 					}
 				});
 				
@@ -1879,7 +1951,7 @@ window.onresize = NW.onresize;
 // Set up all keystrokes
 NW.listener = {
 	actions: [],
-	bindKey: function(modifiers, keyCode, action, name, event, scope, passThrough) {
+	bindKey: function(modifiers, keyCode, action, name, passThrough, event, scope) {
 		this.actions[this.createActionId(null, scope, modifiers, keyCode, event)] = {name: name, modifiers: modifiers, keyCode: keyCode, action: action, event: event, scope: scope, passThrough: passThrough};
 	},
 	createActionId: function(e, scope, modifiers, keyCode, event) {
@@ -1996,7 +2068,7 @@ NW.listener = {
 		
 		var passToBrowser;
 		if (typeof(action.action) == "string") {
-			eval(action.action);
+			passToBrowser = eval(action.action);
 		} else {
 			passToBrowser = action.action();
 		}
@@ -2006,7 +2078,9 @@ NW.listener = {
 		}*/
 		// This prevents the default action from happening (though Safari likes to keep the basic ones such as bold
 		// If the action is not to pass through, prevent it
-		if (action.passThrough != true) e.preventDefault();
+		//if ((passToBrowser != null && passToBrowser == false) || (passToBrowser == null && action.passThrough != true))
+		if ((action.passThrough == null && passToBrowser != null && passToBrowser == false)
+			|| (action.passThrough != null && action.passThrough == false)) e.preventDefault();
 		return false;
 			//}
 		//}
@@ -2452,7 +2526,7 @@ NW.editor.checkQueryState = function () {
 		});
 	}
 	// List Style
-	if(NWEditPage.document.queryCommandState('insertunorderedlist'))
+	if(NWEditPage.document.queryCommandEnabled('insertunorderedlist') && NWEditPage.document.queryCommandState('insertunorderedlist'))
 		$("div#NWEditPanel .NWEditPanelGroup .NWEditControls.NWListStyle a.NWUnorderedList").addClass("NWSelected");
 	else
 		$("div#NWEditPanel .NWEditPanelGroup .NWEditControls.NWListStyle a.NWUnorderedList").removeClass("NWSelected");
